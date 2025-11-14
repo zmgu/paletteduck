@@ -1,0 +1,17 @@
+spring:
+  application:
+    name: paletteduck-service
+  profiles:
+    active: local
+
+server:
+  port: 8083
+
+jwt:
+  secret: paletteduck-secret-key-must-be-at-least-256-bits-long
+  expiration: 7200000
+
+logging:
+  level:
+    root: INFO
+    com.unduck.paletteduck: DEBUG
