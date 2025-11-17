@@ -1,7 +1,7 @@
-package com.unduck.paletteduck.service;
+package com.unduck.paletteduck.domain.player.service;
 
-import com.unduck.paletteduck.dto.PlayerJoinRequest;
-import com.unduck.paletteduck.dto.PlayerJoinResponse;
+import com.unduck.paletteduck.domain.player.dto.PlayerJoinRequest;
+import com.unduck.paletteduck.domain.player.dto.PlayerJoinResponse;
 import com.unduck.paletteduck.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.redis.core.RedisTemplate;

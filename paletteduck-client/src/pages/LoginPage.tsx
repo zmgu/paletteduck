@@ -1,15 +1,25 @@
-// src/pages/LoginPage.tsx
-import { useState, type FormEvent } from 'react';
-import { useNavigate } from 'react-router-dom';
-import apiClient from '../utils/apiClient';
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import apiClient, { getPlayerInfo } from '../utils/apiClient';
+import { getSessionId } from '../utils/sessionManager';
 import type { PlayerJoinResponse } from '../types/game.types';
 
 export default function LoginPage() {
   const [nickname, setNickname] = useState('');
   const [error, setError] = useState('');
   const navigate = useNavigate();
+  const { roomId } = useParams<{ roomId?: string }>();
 
-  const handleSubmit = async (e: FormEvent) => {
+  useEffect(() => {
+    const playerInfo = getPlayerInfo();
+    if (playerInfo && roomId) {
+      navigate(`/room/${roomId}/lobby`);
+    } else if (playerInfo) {
+      navigate('/main');
+    }
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!nickname.trim()) {
@@ -18,13 +28,19 @@ export default function LoginPage() {
     }
 
     try {
+      const sessionId = getSessionId();
+      
       const { data } = await apiClient.post<PlayerJoinResponse>('/player/join', {
         nickname: nickname.trim()
       });
       
       sessionStorage.setItem('paletteduck_token', data.token);
       
-      navigate('/main');
+      if (roomId) {
+        navigate(`/room/${roomId}/lobby`);
+      } else {
+        navigate('/main');
+      }
     } catch (err) {
       setError('입장에 실패했습니다');
     }

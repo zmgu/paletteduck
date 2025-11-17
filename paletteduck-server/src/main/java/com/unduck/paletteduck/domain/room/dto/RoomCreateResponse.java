@@ -1,4 +1,4 @@
-package com.unduck.paletteduck.dto;
+package com.unduck.paletteduck.domain.room.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
