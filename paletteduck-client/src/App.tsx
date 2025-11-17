@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import LoginPage from './pages/LoginPage';
 import MainPage from './pages/MainPage';
-import RoomPage from './pages/RoomPage';
+import RoomPage from './pages/RoomPage'; // 폴더명으로 import
 import GameRoomPage from './pages/GameRoomPage';
 
 function App() {

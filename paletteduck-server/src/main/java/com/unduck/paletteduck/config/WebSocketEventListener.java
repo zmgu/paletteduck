@@ -4,6 +4,7 @@ import com.unduck.paletteduck.domain.chat.dto.ChatMessage;
 import com.unduck.paletteduck.domain.chat.dto.ChatType;
 import com.unduck.paletteduck.domain.room.dto.RoomInfo;
 import com.unduck.paletteduck.domain.room.dto.RoomPlayer;
+import com.unduck.paletteduck.domain.room.service.RoomPlayerService;
 import com.unduck.paletteduck.domain.room.service.RoomService;
 import com.unduck.paletteduck.domain.room.service.SessionMappingService;
 import lombok.RequiredArgsConstructor;
@@ -22,6 +23,7 @@ public class WebSocketEventListener {
 
     private final SessionMappingService sessionMappingService;
     private final RoomService roomService;
+    private final RoomPlayerService roomPlayerService; // 추가
     private final SimpMessagingTemplate messagingTemplate;
 
     @EventListener
@@ -59,8 +61,8 @@ public class WebSocketEventListener {
 
                     String leavingNickname = leavingPlayer != null ? leavingPlayer.getNickname() : "Unknown";
 
-                    // 방 나가기 처리
-                    RoomInfo updatedRoomInfo = roomService.leaveRoom(roomIdToLeave, playerId);
+                    // 방 나가기 처리 - roomPlayerService 사용
+                    RoomInfo updatedRoomInfo = roomPlayerService.leaveRoom(roomIdToLeave, playerId);
 
                     if (updatedRoomInfo != null) {
                         // WebSocket으로 방 정보 갱신 브로드캐스트

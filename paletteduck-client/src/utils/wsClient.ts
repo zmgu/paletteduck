@@ -20,13 +20,17 @@ class WebSocketClient {
     });
   }
 
-send(destination: string, body: any = {}) {
-  const payload = typeof body === 'string' ? body : JSON.stringify(body);
-  this.client?.publish({ destination, body: payload });
-}
+  send(destination: string, body: any = {}) {
+    const payload = typeof body === 'string' ? body : JSON.stringify(body);
+    this.client?.publish({ destination, body: payload });
+  }
 
   disconnect() {
     this.client?.deactivate();
+  }
+
+  isConnected(): boolean {
+    return this.client?.connected || false;
   }
 }
 
