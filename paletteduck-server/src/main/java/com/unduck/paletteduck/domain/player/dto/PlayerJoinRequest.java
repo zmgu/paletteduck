@@ -1,4 +1,4 @@
-package com.unduck.paletteduck.dto;
+package com.unduck.paletteduck.domain.player.dto;
 
 import lombok.Getter;
 import lombok.NoArgsConstructor;

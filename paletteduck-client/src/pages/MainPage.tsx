@@ -28,7 +28,7 @@ export default function MainPage() {
   const handleCreateRoom = async () => {
     try {
       const { data } = await apiClient.post<RoomCreateResponse>('/room/create');
-      navigate(`/room/${data.roomId}`);
+      navigate(`/room/${data.roomId}/lobby`);
     } catch (err) {
       console.error('Failed to create room', err);
     }

@@ -1,8 +1,8 @@
-package com.unduck.paletteduck.controller;
+package com.unduck.paletteduck.domain.player.controller;
 
-import com.unduck.paletteduck.dto.PlayerJoinRequest;
-import com.unduck.paletteduck.dto.PlayerJoinResponse;
-import com.unduck.paletteduck.service.PlayerService;
+import com.unduck.paletteduck.domain.player.dto.PlayerJoinRequest;
+import com.unduck.paletteduck.domain.player.dto.PlayerJoinResponse;
+import com.unduck.paletteduck.domain.player.service.PlayerService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

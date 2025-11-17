@@ -20,9 +20,10 @@ class WebSocketClient {
     });
   }
 
-  send(destination: string, body: any = {}) {
-    this.client?.publish({ destination, body: JSON.stringify(body) });
-  }
+send(destination: string, body: any = {}) {
+  const payload = typeof body === 'string' ? body : JSON.stringify(body);
+  this.client?.publish({ destination, body: payload });
+}
 
   disconnect() {
     this.client?.deactivate();
