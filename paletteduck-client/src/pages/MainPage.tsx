@@ -1,4 +1,3 @@
-// src/pages/MainPage.tsx
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getPlayerInfo } from '../utils/apiClient';
