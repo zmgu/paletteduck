@@ -7,8 +7,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
-@Service
 @Slf4j
+@Service
 public class SessionMappingService {
 
     private final Map<String, String> sessionToPlayer = new ConcurrentHashMap<>();

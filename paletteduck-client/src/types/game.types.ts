@@ -1,17 +1,8 @@
-// src/types/game.types.ts
-export interface PlayerJoinResponse {
-  token: string;
-  playerId: string;
-  nickname: string;
-}
-
 export type PlayerRole = 'PLAYER' | 'SPECTATOR';
-
 export type RoomStatus = 'WAITING' | 'PLAYING' | 'FINISHED';
-
 export type GameMode = 'NORMAL' | 'CUSTOM';
-
 export type ChatType = 'NORMAL' | 'CORRECT' | 'SYSTEM';
+export type GamePhase = 'COUNTDOWN' | 'WORD_SELECT' | 'DRAWING' | 'ROUND_END' | 'GAME_END';
 
 export interface RoomPlayer {
   playerId: string;
@@ -41,15 +32,44 @@ export interface RoomInfo {
   status: RoomStatus;
 }
 
-export interface RoomCreateResponse {
-  roomId: string;
-  inviteCode: string;
-}
-
 export interface ChatMessage {
   playerId: string;
   nickname: string;
   message: string;
   type: ChatType;
   timestamp: number;
+}
+
+export interface TurnInfo {
+  turnNumber: number;
+  drawerId: string;
+  drawerNickname: string;
+  word: string | null;
+  wordChoices: string[];
+  timeLeft: number;
+  correctPlayerIds: string[];
+}
+
+export interface GameState {
+  roomId: string;
+  currentRound: number;
+  totalRounds: number;
+  phase: GamePhase;
+  currentTurn: TurnInfo | null;
+  turnOrder: string[];
+  phaseStartTime: number;
+  drawTime: number;
+}
+
+export interface DrawPoint {
+  x: number;
+  y: number;
+}
+
+export interface DrawData {
+  playerId: string;
+  tool: 'pen' | 'eraser';
+  color: string;
+  width: number;
+  points: DrawPoint[];
 }

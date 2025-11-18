@@ -1,33 +1,29 @@
 package com.unduck.paletteduck.domain.room.controller;
 
+import com.unduck.paletteduck.domain.chat.dto.ChatMessage;
+import com.unduck.paletteduck.domain.chat.dto.ChatType;
 import com.unduck.paletteduck.domain.room.dto.RoomCreateResponse;
 import com.unduck.paletteduck.domain.room.dto.RoomInfo;
-import com.unduck.paletteduck.domain.room.service.RoomGameService;
 import com.unduck.paletteduck.domain.room.service.RoomPlayerService;
 import com.unduck.paletteduck.domain.room.service.RoomService;
 import com.unduck.paletteduck.util.JwtUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.Map;
 
 @Slf4j
 @RestController
 @RequestMapping("/api/room")
 @RequiredArgsConstructor
-@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class RoomController {
 
     private final RoomService roomService;
     private final RoomPlayerService roomPlayerService;
-    private final RoomGameService roomGameService;
     private final JwtUtil jwtUtil;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    /**
-     * 방 생성
-     */
     @PostMapping("/create")
     public ResponseEntity<RoomCreateResponse> createRoom(@RequestHeader("Authorization") String token) {
         String jwt = token.replace("Bearer ", "");
@@ -39,91 +35,71 @@ public class RoomController {
         return ResponseEntity.ok(response);
     }
 
-    /**
-     * 방 정보 조회
-     */
     @GetMapping("/{roomId}")
     public ResponseEntity<RoomInfo> getRoomInfo(@PathVariable String roomId) {
-        log.info("Get room info - roomId: {}", roomId);
+        log.debug("Get room info - roomId: {}", roomId);
         RoomInfo roomInfo = roomService.getRoomInfo(roomId);
-
         if (roomInfo == null) {
-            log.warn("Room not found - roomId: {}", roomId);
             return ResponseEntity.notFound().build();
         }
-
         return ResponseEntity.ok(roomInfo);
     }
 
-    /**
-     * 방 입장
-     */
     @PostMapping("/{roomId}/join")
     public ResponseEntity<Void> joinRoom(
             @PathVariable String roomId,
-            @RequestHeader("Authorization") String token
-    ) {
+            @RequestHeader("Authorization") String token) {
         String jwt = token.replace("Bearer ", "");
         String playerId = jwtUtil.getPlayerIdFromToken(jwt);
         String nickname = jwtUtil.getNicknameFromToken(jwt);
 
         log.info("Join room request - roomId: {}, playerId: {}, nickname: {}", roomId, playerId, nickname);
 
-        try {
+        // 이미 방에 있는지 체크
+        RoomInfo roomInfo = roomService.getRoomInfo(roomId);
+        boolean alreadyInRoom = roomInfo != null &&
+                roomInfo.getPlayers().stream()
+                        .anyMatch(p -> p.getPlayerId().equals(playerId));
+
+        if (!alreadyInRoom) {
             roomPlayerService.joinRoom(roomId, playerId, nickname);
-            log.info("Join room successful");
-            return ResponseEntity.ok().build();
-        } catch (Exception e) {
-            log.error("Join room failed", e);
-            return ResponseEntity.badRequest().build();
-        }
-    }
 
-    /**
-     * 방 나가기
-     */
-    @PostMapping("/{roomId}/leave")
-    public ResponseEntity<Void> leaveRoom(
-            @PathVariable String roomId,
-            @RequestHeader(value = "Authorization", required = false) String token
-    ) {
-        String playerId = null;
+            // 입장 메시지 브로드캐스트
+            ChatMessage joinMessage = new ChatMessage(
+                    "", "",
+                    nickname + "님이 입장했습니다.",
+                    ChatType.SYSTEM,
+                    System.currentTimeMillis()
+            );
+            messagingTemplate.convertAndSend("/topic/room/" + roomId + "/chat", joinMessage);
 
-        if (token != null && !token.isEmpty()) {
-            String jwt = token.replace("Bearer ", "");
-            playerId = jwtUtil.getPlayerIdFromToken(jwt);
+            // 방 정보 갱신 브로드캐스트
+            RoomInfo updatedRoomInfo = roomService.getRoomInfo(roomId);
+            messagingTemplate.convertAndSend("/topic/room/" + roomId, updatedRoomInfo);
         }
 
-        log.info("Leave room request - roomId: {}, playerId: {}", roomId, playerId);
-
-        if (playerId != null) {
-            roomPlayerService.leaveRoom(roomId, playerId);
-            log.info("Leave room successful");
-        } else {
-            log.warn("Leave room - no playerId provided");
-        }
-
+        log.info("Join room successful");
         return ResponseEntity.ok().build();
     }
 
-    /**
-     * sendBeacon용 방 나가기
-     */
+    @PostMapping("/{roomId}/leave")
+    public ResponseEntity<Void> leaveRoom(
+            @PathVariable String roomId,
+            @RequestHeader("Authorization") String token) {
+        String jwt = token.replace("Bearer ", "");
+        String playerId = jwtUtil.getPlayerIdFromToken(jwt);
+
+        log.info("Leave room request - roomId: {}, playerId: {}", roomId, playerId);
+        roomPlayerService.leaveRoom(roomId, playerId);
+        return ResponseEntity.ok().build();
+    }
+
     @PostMapping("/{roomId}/leave-beacon")
     public ResponseEntity<Void> leaveRoomBeacon(
             @PathVariable String roomId,
-            @RequestBody Map<String, String> body
-    ) {
-        String playerId = body.get("playerId");
+            @RequestParam String playerId) {
         log.info("Leave room beacon - roomId: {}, playerId: {}", roomId, playerId);
-
-        if (playerId != null) {
-            roomPlayerService.leaveRoom(roomId, playerId);
-            log.info("Leave room beacon successful");
-        } else {
-            log.warn("Leave room beacon - no playerId provided");
-        }
-
+        roomPlayerService.leaveRoom(roomId, playerId);
         return ResponseEntity.ok().build();
     }
 }
