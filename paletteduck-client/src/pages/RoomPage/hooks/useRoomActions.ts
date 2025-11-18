@@ -43,11 +43,9 @@ export const useRoomActions = (roomId: string, currentPlayerId: string) => {
   };
 
   // 초대 코드 복사
-  const copyInviteCode = (inviteCode: string) => {
-    const inviteUrl = `${window.location.origin}/room/${inviteCode}`;
-    navigator.clipboard.writeText(inviteUrl);
-    alert('초대 코드가 복사되었습니다!');
-  };
+const copyInviteCode = (inviteCode: string) => {
+  navigator.clipboard.writeText(`${window.location.origin}/room/${inviteCode}`);
+};
 
   return {
     toggleReady,

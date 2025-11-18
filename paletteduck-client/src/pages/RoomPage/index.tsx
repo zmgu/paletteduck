@@ -9,10 +9,10 @@ import ChatBox from './components/ChatBox';
 
 export default function RoomPage() {  // export default 확인
   const { roomId } = useParams<{ roomId: string }>();
-  const { roomInfo, currentPlayerId, chatMessages } = useRoomConnection(roomId!);
+  const { roomInfo, currentPlayerId, chatMessages, loading } = useRoomConnection(roomId!);
   const { toggleReady, changeRole, updateSettings, startGame, sendChat, copyInviteCode } = useRoomActions(roomId!, currentPlayerId);
 
-  if (!roomInfo) {
+  if (loading || !roomInfo) {
     return <div>로딩 중...</div>;
   }
 

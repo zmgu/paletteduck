@@ -1,11 +1,16 @@
+server:
+  port: 8083
+  servlet:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+
 spring:
   application:
     name: paletteduck-service
   profiles:
     active: local
-
-server:
-  port: 8083
 
 jwt:
   secret: paletteduck-secret-key-must-be-at-least-256-bits-long
