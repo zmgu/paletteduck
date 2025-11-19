@@ -60,6 +60,23 @@ public class WebSocketGameController {
             return;
         }
 
-        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/game/clear", playerId);
+        // 객체로 감싸서 전송
+        Map<String, String> clearMessage = Map.of("playerId", playerId);
+        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/game/clear", clearMessage);
+    }
+
+    @MessageMapping("/room/{roomId}/game/drawing")
+    public void streamDrawing(@DestinationVariable String roomId, @Payload Map<String, Object> data) {
+        GameState gameState = gameService.getGameState(roomId);
+        if (gameState == null || gameState.getPhase() != GamePhase.DRAWING) {
+            return;
+        }
+
+        String playerId = (String) data.get("playerId");
+        if (!gameState.getCurrentTurn().getDrawerId().equals(playerId)) {
+            return;
+        }
+
+        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/game/drawing", data);
     }
 }

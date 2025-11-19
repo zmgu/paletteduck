@@ -1,16 +1,49 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
-import { type GameState } from '../../../types/game.types';
+import { wsClient } from '../../../utils/wsClient';
+import { WS_TOPICS } from '../../../constants/wsDestinations';
+import type { GameState } from '../../../types/game.types';
+import { getPlayerInfo } from '../../../utils/apiClient';
 
-export const useGameState = () => {
+export const useGameState = (roomId: string) => {
   const location = useLocation();
   const [gameState, setGameState] = useState<GameState | null>(
-    location.state?.gameState || null
+    location.state?.gameState || null  // 초기 상태 복원
   );
-  const [timeLeft, setTimeLeft] = useState<number>(0);
+  const [timeLeft, setTimeLeft] = useState(0);
+  const playerInfo = getPlayerInfo();
 
   useEffect(() => {
+    console.log('[useGameState] Initializing with roomId:', roomId);
+    
+    if (!playerInfo || !roomId) {
+      console.error('[useGameState] Missing playerInfo or roomId!');
+      return;
+    }
+
+    const timer = setTimeout(() => {
+      console.log('[useGameState] Subscribing to:', WS_TOPICS.GAME_STATE(roomId));
+      
+      wsClient.subscribe(WS_TOPICS.GAME_STATE(roomId), (data: GameState) => {
+        console.log('[useGameState] ✅ Game state received:', {
+          phase: data.phase,
+          currentTurn: data.currentTurn,
+          timestamp: new Date().toISOString()
+        });
+        setGameState(data);
+      });
+    }, 100);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [roomId, playerInfo]);
+
+  // 타이머 카운트다운
+  useEffect(() => {
     if (!gameState) return;
+
+    console.log('[useGameState] Phase changed to:', gameState.phase);
 
     const calculateTimeLeft = () => {
       const now = Date.now();
@@ -32,14 +65,16 @@ export const useGameState = () => {
 
     calculateTimeLeft();
 
-    const interval = setInterval(() => {
+    const interval: number = setInterval(() => {
       const remaining = calculateTimeLeft();
       if (remaining === 0) {
         clearInterval(interval);
       }
-    }, 1000);
+    }, 1000) as unknown as number;
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+    };
   }, [gameState]);
 
   return {
