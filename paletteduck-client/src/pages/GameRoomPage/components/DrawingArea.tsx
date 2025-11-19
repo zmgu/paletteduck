@@ -1,27 +1,27 @@
 import React from 'react';
 import Canvas from './Canvas';
-import type { TurnInfo, DrawData } from '../../../types/game.types';
+import type { TurnInfo } from '../../../types/game.types';
+import type { DrawingData } from '../../../types/drawing.types';
 
 interface DrawingAreaProps {
   turnInfo: TurnInfo;
   isDrawer: boolean;
-  drawData: DrawData | null;
+  drawingData: DrawingData | null;
   clearSignal: number;
-  onDrawComplete?: (data: DrawData) => void;
+  onDrawing?: (data: Omit<DrawingData, 'playerId'>) => void;
   onClearCanvas?: () => void;
 }
 
 export default function DrawingArea({
   turnInfo,
   isDrawer,
-  drawData,
+  drawingData,
   clearSignal,
-  onDrawComplete,
+  onDrawing,
   onClearCanvas,
 }: DrawingAreaProps) {
   return (
     <>
-      {/* 단어 표시 */}
       <div style={{ 
         marginTop: '20px', 
         padding: '30px', 
@@ -52,12 +52,11 @@ export default function DrawingArea({
         )}
       </div>
 
-      {/* Canvas */}
       <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
         <Canvas
           isDrawer={isDrawer}
-          onPathComplete={onDrawComplete}
-          drawData={drawData}
+          onDrawing={onDrawing}
+          drawingData={drawingData}
           clearSignal={clearSignal}
           onClearRequest={onClearCanvas}
         />

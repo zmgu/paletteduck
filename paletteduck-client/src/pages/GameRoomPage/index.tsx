@@ -2,7 +2,9 @@ import React from 'react';
 import { useParams } from 'react-router-dom';
 import { getPlayerInfo } from '../../utils/apiClient';
 import { useGameState } from './hooks/useGameState';
-import { useGameWebSocket } from './hooks/useGameWebSocket';
+import { useDrawing } from './hooks/useDrawing';
+import { useCanvasClear } from './hooks/useCanvasClear';
+import { useWordSelect } from './hooks/useWordSelect';
 import GameHeader from './components/GameHeader';
 import WordSelect from './components/WordSelect';
 import DrawingArea from './components/DrawingArea';
@@ -10,17 +12,15 @@ import DrawingArea from './components/DrawingArea';
 export default function GameRoomPage() {
   const { roomId } = useParams<{ roomId: string }>();
   const playerInfo = getPlayerInfo();
-  const { gameState, setGameState, timeLeft } = useGameState();
-  const {
-    drawData,
-    clearSignal,
-    selectWord,
-    handleDrawComplete,
-    handleClearCanvas,
-  } = useGameWebSocket({
-    roomId: roomId!,
-    onGameStateUpdate: setGameState,
-  });
+  
+  console.log('[GameRoomPage] Rendering with roomId:', roomId);
+  
+  const { gameState, timeLeft } = useGameState(roomId!);  // roomId 전달!
+  const { drawingData, sendDrawing } = useDrawing(roomId!);
+  const { clearSignal, clearCanvas } = useCanvasClear(roomId!);
+  const { selectWord } = useWordSelect(roomId!);
+
+  console.log('[GameRoomPage] Current gameState:', gameState);
 
   if (!gameState) {
     return <div style={{ padding: '20px' }}>게임 로딩 중...</div>;
@@ -28,16 +28,29 @@ export default function GameRoomPage() {
 
   const isDrawer = gameState.currentTurn?.drawerId === playerInfo?.playerId;
 
+  console.log('[GameRoomPage] Phase:', gameState.phase);
+  console.log('[GameRoomPage] IsDrawer:', isDrawer);
+  console.log('[GameRoomPage] Should show WordSelect:', 
+    gameState.phase === 'WORD_SELECT' && isDrawer && gameState.currentTurn);
+
   return (
     <div style={{ padding: '20px', maxWidth: '1200px', margin: '0 auto' }}>
       <h1>게임 진행 중</h1>
       
-      {/* Phase 표시 + 카운트다운 */}
       <GameHeader gameState={gameState} timeLeft={timeLeft} isDrawer={isDrawer} />
 
-      {/* 단어 선택 (출제자만) */}
+      {/* 단어 선택 단계 */}
       {gameState.phase === 'WORD_SELECT' && isDrawer && gameState.currentTurn && (
-        <WordSelect turnInfo={gameState.currentTurn} onSelectWord={selectWord} />
+        <>
+          <p style={{ color: 'blue', fontWeight: 'bold' }}>단어 선택 화면 렌더링됨</p>
+          <WordSelect 
+            turnInfo={gameState.currentTurn} 
+            onSelectWord={(word) => {
+              console.log('[GameRoomPage] Word selected:', word);
+              selectWord(word);
+            }} 
+          />
+        </>
       )}
 
       {/* 그리기 단계 */}
@@ -45,15 +58,15 @@ export default function GameRoomPage() {
         <DrawingArea
           turnInfo={gameState.currentTurn}
           isDrawer={isDrawer}
-          drawData={drawData}
+          drawingData={drawingData}
           clearSignal={clearSignal}
-          onDrawComplete={isDrawer ? handleDrawComplete : undefined}
-          onClearCanvas={isDrawer ? handleClearCanvas : undefined}
+          onDrawing={isDrawer ? sendDrawing : undefined}
+          onClearCanvas={isDrawer ? clearCanvas : undefined}
         />
       )}
 
       {/* 디버그 정보 */}
-      <details style={{ marginTop: '30px' }}>
+      <details style={{ marginTop: '30px' }} open>
         <summary style={{ cursor: 'pointer', fontSize: '14px', color: '#666' }}>
           디버그 정보 보기
         </summary>
