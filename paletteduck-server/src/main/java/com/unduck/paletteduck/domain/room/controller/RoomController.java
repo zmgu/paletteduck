@@ -65,12 +65,16 @@ public class RoomController {
             roomPlayerService.joinRoom(roomId, playerId, nickname);
 
             // 입장 메시지 브로드캐스트
-            ChatMessage joinMessage = new ChatMessage(
-                    "", "",
-                    nickname + "님이 입장했습니다.",
-                    ChatType.SYSTEM,
-                    System.currentTimeMillis()
-            );
+            ChatMessage joinMessage = ChatMessage.builder()
+                    .messageId(java.util.UUID.randomUUID().toString())
+                    .playerId("system")
+                    .nickname("System")
+                    .message(nickname + "님이 입장했습니다.")
+                    .type(ChatType.SYSTEM)
+                    .isCorrect(false)
+                    .timestamp(System.currentTimeMillis())
+                    .build();
+
             messagingTemplate.convertAndSend("/topic/room/" + roomId + "/chat", joinMessage);
 
             // 방 정보 갱신 브로드캐스트

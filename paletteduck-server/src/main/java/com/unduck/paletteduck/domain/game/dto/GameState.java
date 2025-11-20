@@ -21,6 +21,7 @@ public class GameState {
     private List<String> turnOrder;     // 출제자 순서 (playerId 목록)
     private long phaseStartTime;        // 현재 phase 시작 시각 (밀리초)
     private int drawTime;               // 그리기 제한 시간 (초)
+    private List<Player> players;       // 플레이어 정보 추가
 
     public GameState(String roomId, int totalRounds, int drawTime, List<String> turnOrder) {
         this.roomId = roomId;
@@ -30,5 +31,6 @@ public class GameState {
         this.turnOrder = new ArrayList<>(turnOrder);
         this.phaseStartTime = System.currentTimeMillis();
         this.drawTime = drawTime;
+        this.players = new ArrayList<>();
     }
 }

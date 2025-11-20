@@ -1,4 +1,4 @@
-import { Client } from '@stomp/stompjs';
+import { Client, type StompSubscription } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
 
 class WebSocketClient {
@@ -75,16 +75,18 @@ class WebSocketClient {
     }
   }
 
-  subscribe(destination: string, callback: (message: any) => void) {
+  // ✅ 수정: unsubscribe 함수를 반환하도록
+  subscribe(destination: string, callback: (message: any) => void): () => void {
+    let subscription: StompSubscription | null = null;
+
     const doSubscribe = () => {
       if (!this.client || !this.isReady) {
-        console.warn('WebSocket not ready, queuing subscription:', destination);
         this.pendingSubscriptions.push(doSubscribe);
         return;
       }
 
       try {
-        return this.client.subscribe(destination, (msg) => {
+        subscription = this.client.subscribe(destination, (msg) => {
           try {
             callback(JSON.parse(msg.body));
           } catch (e) {
@@ -97,7 +99,15 @@ class WebSocketClient {
       }
     };
 
-    return doSubscribe();
+    doSubscribe();
+
+    // ✅ unsubscribe 함수 반환
+    return () => {
+      if (subscription) {
+        subscription.unsubscribe();
+        subscription = null;
+      }
+    };
   }
 
   send(destination: string, body: any = {}) {
