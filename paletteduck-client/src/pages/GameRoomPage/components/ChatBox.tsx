@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import type { ChatMessage } from '../../../types/chat.types';
 
 interface ChatBoxProps {
@@ -6,7 +6,7 @@ interface ChatBoxProps {
   onSendMessage: (message: string) => void;
   disabled?: boolean;
   currentPlayerId: string;
-  isCorrect: boolean;  // ✅ 현재 사용자가 정답 맞췄는지
+  isCorrect: boolean;
 }
 
 export default function ChatBox({ 
@@ -14,16 +14,10 @@ export default function ChatBox({
   onSendMessage, 
   disabled,
   currentPlayerId,
-  isCorrect  // ✅ 추가
+  isCorrect
 }: ChatBoxProps) {
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
-
-      console.log('[ChatBox] Rendering...');
-  console.log('[ChatBox] Total messages:', messages.length);
-  console.log('[ChatBox] isCorrect:', isCorrect);
-  console.log('[ChatBox] disabled:', disabled);
-  console.log('[ChatBox] Messages:', messages);
 
   // 자동 스크롤
   useEffect(() => {
@@ -39,22 +33,33 @@ export default function ChatBox({
     setInputValue('');
   };
 
-  // ✅ 메시지 필터링: 
-  // - 정답 맞춘 사람의 일반 채팅은 정답 맞춘 사람들만 볼 수 있음
-  // - 시스템 메시지와 정답 메시지는 모두 볼 수 있음
-  const visibleMessages = messages.filter(msg => {
-    // 시스템 메시지, 정답 메시지는 모두 표시
-    if (msg.type === 'SYSTEM' || msg.type === 'CORRECT') return true;
+  // useMemo로 최적화
+  const visibleMessages = useMemo(() => {
+    const filtered = messages.filter(msg => {
+      // SYSTEM 메시지는 항상 표시
+      if (msg.type === 'SYSTEM') {
+        return true;
+      }
+      
+      // CORRECT 메시지
+      if (msg.type === 'CORRECT') {
+        // "🎉 정답입니다!"는 본인에게만
+        if (msg.message.includes('🎉 정답입니다!')) {
+          return msg.playerId === currentPlayerId;
+        }
+        return true;
+      }
+      
+      // 일반 채팅: 발신자가 정답 맞춘 사람이면
+      if (msg.isCorrect) {
+        return isCorrect;
+      }
+      
+      return true;
+    });
     
-    // 일반 채팅: 발신자가 정답 맞춘 사람이면
-    if (msg.isCorrect) {
-      // 나도 정답 맞췄으면 보이고, 아니면 숨김
-      return isCorrect;
-    }
-    
-    // 정답 못 맞춘 사람의 채팅은 모두 표시
-    return true;
-  });
+    return filtered;
+  }, [messages, currentPlayerId, isCorrect]);
 
   return (
     <div style={{
@@ -74,6 +79,11 @@ export default function ChatBox({
         flexDirection: 'column',
         gap: '8px',
       }}>
+        {visibleMessages.length === 0 && (
+          <div style={{ color: '#999', textAlign: 'center', marginTop: '20px' }}>
+            채팅이 없습니다
+          </div>
+        )}
         {visibleMessages.map((msg) => (
           <div 
             key={msg.messageId}

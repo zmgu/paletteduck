@@ -85,8 +85,6 @@ public class WebSocketGameController {
 
     @MessageMapping("/room/{roomId}/game/chat")
     public void handleChat(@DestinationVariable String roomId, @Payload Map<String, Object> data) {
-        log.info("=== Chat message received ===");
-        log.info("RoomId: {}", roomId);
 
         String playerId = (String) data.get("playerId");
         String playerName = (String) data.get("playerName");
@@ -121,7 +119,7 @@ public class WebSocketGameController {
         boolean isCorrect = checkAnswer(gameState, message);
 
         if (isCorrect) {
-            // 정답 처리
+
             handleCorrectAnswer(roomId, gameState, player, playerName);
 
             // 정답 메시지 (본인에게)
@@ -135,11 +133,10 @@ public class WebSocketGameController {
                     .isCorrect(true)
                     .build();
 
-            log.info("=== Sending correct message ===");  // ✅ 로그 추가
-            log.info("Message: {}", correctMsg);
+            log.info("=== Sending correct message ===");
             messagingTemplate.convertAndSend("/topic/room/" + roomId + "/chat", correctMsg);
 
-            // 정답 공지 (다른 사람들에게)
+            // 정답 공지 (모두에게)
             ChatMessage announceMsg = ChatMessage.builder()
                     .messageId(java.util.UUID.randomUUID().toString())
                     .playerId("system")
@@ -150,9 +147,10 @@ public class WebSocketGameController {
                     .isCorrect(false)
                     .build();
 
-            log.info("=== Sending announce message ===");  // ✅ 로그 추가
-            log.info("Message: {}", announceMsg);
             messagingTemplate.convertAndSend("/topic/room/" + roomId + "/chat", announceMsg);
+
+            // GameState 브로드캐스트
+            messagingTemplate.convertAndSend("/topic/room/" + roomId + "/game/state", gameState);
 
         } else {
             // 일반 채팅 메시지
@@ -193,23 +191,23 @@ public class WebSocketGameController {
         // 플레이어 정답 여부 업데이트
         player.setIsCorrect(true);
 
-        // 점수 계산 (정답 맞춘 순서)
+        // 점수 계산
         long correctCount = gameState.getPlayers().stream()
                 .filter(p -> Boolean.TRUE.equals(p.getIsCorrect()))
                 .count();
 
         int earnedScore = 0;
         if (correctCount == 1) {
-            earnedScore = 300; // 1등
+            earnedScore = 300;
         } else if (correctCount == 2) {
-            earnedScore = 200; // 2등
+            earnedScore = 200;
         } else if (correctCount == 3) {
-            earnedScore = 100; // 3등
+            earnedScore = 100;
         }
 
         player.setScore((player.getScore() != null ? player.getScore() : 0) + earnedScore);
 
-        // 출제자 점수 (정답 맞춘 사람당 50점)
+        // 출제자 점수
         String drawerId = gameState.getCurrentTurn().getDrawerId();
         Player drawer = gameState.getPlayers().stream()
                 .filter(p -> p.getPlayerId().equals(drawerId))
@@ -219,9 +217,8 @@ public class WebSocketGameController {
             drawer.setScore((drawer.getScore() != null ? drawer.getScore() : 0) + 50);
         }
 
-        // 게임 상태 업데이트
+        // 게임 상태 저장만 (브로드캐스트는 나중에)
         gameService.updateGameState(roomId, gameState);
-        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/game/state", gameState);
 
         log.info("Player {} guessed correctly. Score: {}", playerName, player.getScore());
     }

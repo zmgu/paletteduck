@@ -43,6 +43,6 @@ export const getPlayerInfo = () => {
   
   return {
     playerId: payload.sub,
-    nickname: payload.nickname
+    playerName: payload.nickname
   };
 };
