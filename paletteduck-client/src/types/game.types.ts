@@ -50,6 +50,13 @@ export interface TurnInfo {
   correctPlayerIds: string[];
 }
 
+export interface Player {
+  playerId: string;
+  playerName: string;
+  score: number;
+  isCorrect: boolean;
+}
+
 export interface GameState {
   roomId: string;
   currentRound: number;
@@ -59,6 +66,7 @@ export interface GameState {
   turnOrder: string[];
   phaseStartTime: number;
   drawTime: number;
+  players: Player[];
 }
 
 export interface DrawPoint {

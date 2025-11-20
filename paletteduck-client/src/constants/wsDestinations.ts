@@ -9,6 +9,7 @@ export const WS_DESTINATIONS = {
   GAME_WORD_SELECT: (roomId: string) => `/app/room/${roomId}/game/word/select`,
   GAME_DRAWING: (roomId: string) => `/app/room/${roomId}/game/drawing`,
   GAME_CLEAR: (roomId: string) => `/app/room/${roomId}/game/clear`,
+  GAME_CHAT: (roomId: string) => `/app/room/${roomId}/game/chat`,
 } as const;
 
 export const WS_TOPICS = {

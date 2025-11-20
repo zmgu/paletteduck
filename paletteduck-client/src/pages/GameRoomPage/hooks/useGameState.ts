@@ -14,7 +14,6 @@ export const useGameState = (roomId: string) => {
   const playerInfo = getPlayerInfo();
 
   useEffect(() => {
-    console.log('[useGameState] Initializing with roomId:', roomId);
     
     if (!playerInfo || !roomId) {
       console.error('[useGameState] Missing playerInfo or roomId!');
@@ -22,14 +21,7 @@ export const useGameState = (roomId: string) => {
     }
 
     const timer = setTimeout(() => {
-      console.log('[useGameState] Subscribing to:', WS_TOPICS.GAME_STATE(roomId));
-      
       wsClient.subscribe(WS_TOPICS.GAME_STATE(roomId), (data: GameState) => {
-        console.log('[useGameState] ✅ Game state received:', {
-          phase: data.phase,
-          currentTurn: data.currentTurn,
-          timestamp: new Date().toISOString()
-        });
         setGameState(data);
       });
     }, 100);
@@ -42,8 +34,6 @@ export const useGameState = (roomId: string) => {
   // 타이머 카운트다운
   useEffect(() => {
     if (!gameState) return;
-
-    console.log('[useGameState] Phase changed to:', gameState.phase);
 
     const calculateTimeLeft = () => {
       const now = Date.now();
