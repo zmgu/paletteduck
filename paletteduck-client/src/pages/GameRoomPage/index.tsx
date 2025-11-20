@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { getPlayerInfo } from '../../utils/apiClient';
 import { useGameState } from './hooks/useGameState';
@@ -13,7 +13,8 @@ import ChatBox from './components/ChatBox';
 
 export default function GameRoomPage() {
   const { roomId } = useParams<{ roomId: string }>();
-  const playerInfo = getPlayerInfo();
+  
+  const playerInfo = useMemo(() => getPlayerInfo(), []);
   
   const { gameState, timeLeft } = useGameState(roomId!);
   const { drawingData, sendDrawing } = useDrawing(roomId!);
@@ -27,12 +28,10 @@ export default function GameRoomPage() {
 
   const isDrawer = gameState.currentTurn?.drawerId === playerInfo?.playerId;
   
-  // 정답 맞춘 사람 확인
   const currentPlayer = gameState.players?.find(p => p.playerId === playerInfo?.playerId);
   const isCorrect = currentPlayer?.isCorrect || false;
   
-  // 채팅 비활성화 조건: 출제자이거나 이미 정답 맞춤
-  const isChatDisabled = isDrawer || isCorrect;
+  const isChatDisabled = isDrawer;
 
   return (
     <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto' }}>
@@ -40,7 +39,6 @@ export default function GameRoomPage() {
       
       <GameHeader gameState={gameState} timeLeft={timeLeft} isDrawer={isDrawer} />
 
-      {/* 단어 선택 */}
       {gameState.phase === 'WORD_SELECT' && isDrawer && gameState.currentTurn && (
         <WordSelect 
           turnInfo={gameState.currentTurn} 
@@ -48,10 +46,8 @@ export default function GameRoomPage() {
         />
       )}
 
-      {/* 그리기 + 채팅 */}
       {gameState.phase === 'DRAWING' && gameState.currentTurn && (
         <div style={{ display: 'flex', gap: '20px', marginTop: '20px' }}>
-          {/* 왼쪽: 그림 영역 */}
           <div style={{ flex: 1 }}>
             <DrawingArea
               turnInfo={gameState.currentTurn}
@@ -63,7 +59,6 @@ export default function GameRoomPage() {
             />
           </div>
 
-          {/* 오른쪽: 채팅 */}
           <div style={{ width: '350px' }}>
             <h3>채팅</h3>
             {isCorrect && (
@@ -105,7 +100,6 @@ export default function GameRoomPage() {
         </div>
       )}
 
-      {/* 디버그 정보 */}
       <details style={{ marginTop: '30px' }}>
         <summary style={{ cursor: 'pointer', fontSize: '14px', color: '#666' }}>
           디버그 정보 보기
