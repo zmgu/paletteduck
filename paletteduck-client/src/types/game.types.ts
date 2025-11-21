@@ -48,6 +48,7 @@ export interface TurnInfo {
   wordChoices: string[];
   timeLeft: number;
   correctPlayerIds: string[];
+  revealedHints?: number; 
 }
 
 export interface Player {
@@ -59,6 +60,7 @@ export interface Player {
 
 export interface GameState {
   roomId: string;
+  hostId?: string;
   currentRound: number;
   totalRounds: number;
   phase: GamePhase;

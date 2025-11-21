@@ -23,8 +23,8 @@ export default function Canvas({
   const [color, setColor] = useState('#000000');
   const [width, setWidth] = useState(4);
   
-  // ✅ 이전 포인트 추적
   const lastPointRef = useRef<{ x: number; y: number } | null>(null);
+  const lastClearSignalRef = useRef<number>(0);  // ✅ 추가: 마지막 처리한 clearSignal 추적
 
   const {
     canvasRef,
@@ -45,30 +45,24 @@ export default function Canvas({
 
     const penColor = t === 0 ? c : CANVAS_CONFIG.BACKGROUND_COLOR;
     
-    // 스타일 설정
     ctx.strokeStyle = penColor;
     ctx.lineWidth = w;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
 
-    // 새로운 경로 시작
     ctx.beginPath();
 
     if (s) {
-      // ✅ 새로운 선 시작 (마우스 다운)
       ctx.moveTo(p[0], p[1]);
       lastPointRef.current = { x: p[0], y: p[1] };
     } else {
-      // ✅ 이전 선에서 이어 그리기 (마우스 무브)
       if (lastPointRef.current) {
         ctx.moveTo(lastPointRef.current.x, lastPointRef.current.y);
       } else {
-        // 이전 포인트가 없으면 첫 포인트에서 시작
         ctx.moveTo(p[0], p[1]);
       }
     }
 
-    // 나머지 포인트 연결
     const startIndex = s ? 2 : 0;
     for (let i = startIndex; i < p.length; i += 2) {
       ctx.lineTo(p[i], p[i + 1]);
@@ -76,28 +70,37 @@ export default function Canvas({
     
     ctx.stroke();
     
-    // ✅ 마지막 포인트 저장
     lastPointRef.current = { 
       x: p[p.length - 2], 
       y: p[p.length - 1] 
     };
   }, [drawingData, ctx, isDrawer]);
 
-  // Clear 신호
+  // ✅ Clear 신호 - 중복 처리 방지
   useEffect(() => {
-    if (clearSignal && clearSignal > 0) {
-      console.log('[Canvas] Received clear signal:', clearSignal);
+    console.log('[Canvas] clearSignal changed:', clearSignal, 'last processed:', lastClearSignalRef.current);
+    
+    // clearSignal이 증가했을 때만 처리
+    if (clearSignal && clearSignal > 0 && clearSignal > lastClearSignalRef.current) {
+      console.log('[Canvas] Processing clear signal:', clearSignal);
+      
       clearCanvas();
-      lastPointRef.current = null;  // ✅ 이전 포인트 초기화
+      lastPointRef.current = null;
+      
+      // ✅ 처리한 신호 기록
+      lastClearSignalRef.current = clearSignal;
+      
+      console.log('[Canvas] Clear completed for signal:', clearSignal);
     }
   }, [clearSignal, clearCanvas]);
 
   const handleClear = () => {
     console.log('[Canvas] Clear button clicked');
     clearCanvas();
-    lastPointRef.current = null;  // ✅ 이전 포인트 초기화
+    lastPointRef.current = null;
     
     if (isDrawer && onClearRequest) {
+      console.log('[Canvas] Sending clear request to server');
       onClearRequest();
     }
   };

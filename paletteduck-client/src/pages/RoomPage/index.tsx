@@ -57,7 +57,7 @@ export default function RoomPage() {  // export default 확인
 
       <ChatBox
         messages={chatMessages}
-        onSendMessage={(message) => sendChat(message, playerInfo?.nickname || '')}
+        onSendMessage={(message) => sendChat(message, playerInfo?.playerName || '')}
       />
 
       <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>

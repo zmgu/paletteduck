@@ -5,7 +5,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Getter
@@ -13,19 +12,18 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TurnInfo {
-    private int turnNumber;                 // 현재 턴 (1부터 시작)
-    private String drawerId;                // 출제자 playerId
-    private String drawerNickname;          // 출제자 닉네임
-    private String word;                    // 정답 단어 (선택 전 null)
-    private List<String> wordChoices;       // 단어 선택지 (출제자만 볼 수 있음)
-    private int timeLeft;                   // 남은 시간 (초)
-    private List<String> correctPlayerIds;  // 정답 맞춘 playerId 목록
+    private Integer turnNumber;
+    private String drawerId;
+    private String drawerName;
+    private String word;
+    private List<String> wordChoices;
+    private Integer timeLeft;
+    private Integer revealedHints;  // ✅ 추가: 공개된 힌트 개수 (0 ~ 단어길이)
 
-    public TurnInfo(int turnNumber, String drawerId, String drawerNickname) {
+    public TurnInfo(Integer turnNumber, String drawerId, String drawerName) {
         this.turnNumber = turnNumber;
         this.drawerId = drawerId;
-        this.drawerNickname = drawerNickname;
-        this.correctPlayerIds = new ArrayList<>();
-        this.wordChoices = new ArrayList<>();
+        this.drawerName = drawerName;
+        this.revealedHints = 0;  // ✅ 초기값
     }
 }

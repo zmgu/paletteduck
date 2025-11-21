@@ -34,7 +34,7 @@ public class RoomGameService {
         roomInfo.setStatus(RoomStatus.PLAYING);
         roomRepository.save(roomId, roomInfo);
 
-        GameState gameState = gameService.initializeGame(roomInfo);
+        GameState gameState = gameService.initializeGame(roomId, roomInfo);
 
         // 카운트다운 타이머 시작
         gameTimerService.startCountdown(roomId);

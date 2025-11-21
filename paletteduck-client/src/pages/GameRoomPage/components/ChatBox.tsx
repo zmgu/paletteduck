@@ -18,10 +18,14 @@ export default function ChatBox({
 }: ChatBoxProps) {
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);  // ✅ 추가
 
-  // 자동 스크롤
+  // ✅ 자동 스크롤 수정
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    // scrollIntoView 대신 컨테이너의 scrollTop 조작
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollTop = scrollContainerRef.current.scrollHeight;
+    }
   }, [messages]);
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -33,24 +37,19 @@ export default function ChatBox({
     setInputValue('');
   };
 
-  // useMemo로 최적화
   const visibleMessages = useMemo(() => {
     const filtered = messages.filter(msg => {
-      // SYSTEM 메시지는 항상 표시
       if (msg.type === 'SYSTEM') {
         return true;
       }
       
-      // CORRECT 메시지
       if (msg.type === 'CORRECT') {
-        // "🎉 정답입니다!"는 본인에게만
         if (msg.message.includes('🎉 정답입니다!')) {
           return msg.playerId === currentPlayerId;
         }
         return true;
       }
       
-      // 일반 채팅: 발신자가 정답 맞춘 사람이면
       if (msg.isCorrect) {
         return isCorrect;
       }
@@ -71,14 +70,18 @@ export default function ChatBox({
       backgroundColor: '#fff',
     }}>
       {/* 채팅 메시지 영역 */}
-      <div style={{
-        flex: 1,
-        overflowY: 'auto',
-        padding: '10px',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '8px',
-      }}>
+      <div 
+        ref={scrollContainerRef}  // ✅ ref 추가
+        style={{
+          flex: 1,
+          overflowY: 'auto',
+          padding: '10px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '8px',
+          position: 'relative',  // ✅ 추가
+        }}
+      >
         {visibleMessages.length === 0 && (
           <div style={{ color: '#999', textAlign: 'center', marginTop: '20px' }}>
             채팅이 없습니다
@@ -121,7 +124,7 @@ export default function ChatBox({
             </div>
           </div>
         ))}
-        <div ref={messagesEndRef} />
+        <div ref={messagesEndRef} />  {/* 마커는 유지하되 scrollIntoView 안씀 */}
       </div>
 
       {/* 입력 영역 */}

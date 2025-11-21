@@ -1,5 +1,5 @@
 import React from 'react';
-import type { GameState, GamePhase } from '../../../types/game.types';
+import type { GameState } from '../../../types/game.types';
 
 interface GameHeaderProps {
   gameState: GameState;
@@ -8,52 +8,60 @@ interface GameHeaderProps {
 }
 
 export default function GameHeader({ gameState, timeLeft, isDrawer }: GameHeaderProps) {
-  const getPhaseTitle = () => {
-    if (gameState.phase === 'COUNTDOWN') {
-      return '게임이 곧 시작됩니다...';
-    }
-    if (gameState.phase === 'WORD_SELECT') {
-      return isDrawer ? '단어를 선택하세요!' : '출제자가 단어를 선택하고 있습니다...';
-    }
-    if (gameState.phase === 'DRAWING') {
-      return '그림을 그리는 중...';
-    }
-    return '';
-  };
-
-  const getTimerColor = () => {
-    if (gameState.phase === 'COUNTDOWN') return '#ff5722';
-    if (timeLeft <= 5) return '#ff5722';
-    if (timeLeft <= 10) return '#ff9800';
-    if (gameState.phase === 'WORD_SELECT') return '#2196f3';
-    return '#4caf50';
-  };
+  const currentTurn = gameState.currentTurn;
+  
+  if (!currentTurn) {
+    return null;
+  }
 
   return (
-    <div style={{ 
-      padding: '30px', 
-      marginTop: '20px', 
-      backgroundColor: '#f5f5f5', 
+    <div style={{
+      padding: '20px',
+      backgroundColor: '#f8f9fa',
       borderRadius: '8px',
-      textAlign: 'center'
+      marginBottom: '20px',
+      border: '2px solid #dee2e6',
     }}>
-      <h2 style={{ fontSize: '28px', margin: '0 0 10px 0' }}>
-        {getPhaseTitle()}
-      </h2>
-      
-      <div style={{ 
-        fontSize: gameState.phase === 'COUNTDOWN' ? '64px' : '48px', 
-        fontWeight: 'bold', 
-        color: getTimerColor()
-      }}>
-        {gameState.phase === 'COUNTDOWN' ? timeLeft : `${timeLeft}초`}
-      </div>
-      
-      <div style={{ marginTop: '20px', fontSize: '18px', color: '#666' }}>
-        <p>라운드: {gameState.currentRound} / {gameState.totalRounds}</p>
-        {gameState.currentTurn && (
-          <p>출제자: <strong>{gameState.currentTurn.drawerNickname}</strong></p>
-        )}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        {/* 왼쪽: 라운드 & 턴 정보 */}
+        <div>
+          {/* ✅ 라운드 표시 */}
+          <div style={{ fontSize: '16px', color: '#666', marginBottom: '5px' }}>
+            라운드 {gameState.currentRound || 1} / {gameState.totalRounds || 3}
+          </div>
+          <div style={{ fontSize: '24px', fontWeight: 'bold', color: '#333' }}>
+            턴 {currentTurn.turnNumber}
+          </div>
+          <div style={{ fontSize: '18px', color: '#666', marginTop: '5px' }}>
+            출제자: {currentTurn.drawerNickname}
+          </div>
+        </div>
+
+        {/* 중앙: 역할 */}
+        <div style={{
+          padding: '15px 30px',
+          backgroundColor: isDrawer ? '#e3f2fd' : '#fff3cd',
+          border: `2px solid ${isDrawer ? '#2196f3' : '#ffc107'}`,
+          borderRadius: '8px',
+          fontSize: '20px',
+          fontWeight: 'bold',
+          color: isDrawer ? '#1976d2' : '#856404',
+        }}>
+          {isDrawer ? '🎨 출제자' : '🔍 참가자'}
+        </div>
+
+        {/* 오른쪽: 타이머 */}
+        <div style={{
+          fontSize: '48px',
+          fontWeight: 'bold',
+          color: timeLeft <= 10 ? '#dc3545' : '#28a745',
+          textAlign: 'center',
+        }}>
+          {timeLeft}
+          <div style={{ fontSize: '14px', color: '#666', fontWeight: 'normal' }}>
+            초 남음
+          </div>
+        </div>
       </div>
     </div>
   );

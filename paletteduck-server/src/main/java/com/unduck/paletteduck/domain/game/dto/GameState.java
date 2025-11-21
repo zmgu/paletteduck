@@ -13,15 +13,16 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 public class GameState {
-    private String roomId;              // 방 ID
-    private int currentRound;           // 현재 라운드 (1부터 시작)
-    private int totalRounds;            // 전체 라운드 수
-    private GamePhase phase;            // 현재 진행 단계
-    private TurnInfo currentTurn;       // 현재 턴 정보
-    private List<String> turnOrder;     // 출제자 순서 (playerId 목록)
-    private long phaseStartTime;        // 현재 phase 시작 시각 (밀리초)
-    private int drawTime;               // 그리기 제한 시간 (초)
-    private List<Player> players;       // 플레이어 정보 추가
+    private String roomId;
+    private String hostId;
+    private int currentRound;
+    private int totalRounds;
+    private GamePhase phase;
+    private TurnInfo currentTurn;
+    private List<String> turnOrder;
+    private long phaseStartTime;
+    private int drawTime;
+    private List<Player> players;
 
     public GameState(String roomId, int totalRounds, int drawTime, List<String> turnOrder) {
         this.roomId = roomId;
@@ -32,5 +33,6 @@ public class GameState {
         this.phaseStartTime = System.currentTimeMillis();
         this.drawTime = drawTime;
         this.players = new ArrayList<>();
+        this.hostId = null;
     }
 }

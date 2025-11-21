@@ -1,142 +1,122 @@
 import { useRef, useEffect, useState, useCallback } from 'react';
-import type { DrawingPoint, Tool } from '../../../types/drawing.types';
+import type { Tool, DrawingData } from '../../../types/drawing.types';
 import { CANVAS_CONFIG } from '../../../constants/canvas.constants';
 
 interface UseCanvasProps {
   isDrawer: boolean;
-  onDrawing?: (data: any) => void;
+  onDrawing?: (data: Omit<DrawingData, 'playerId'>) => void;
 }
 
 export const useCanvas = ({ isDrawer, onDrawing }: UseCanvasProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [ctx, setCtx] = useState<CanvasRenderingContext2D | null>(null);
   const [isDrawing, setIsDrawing] = useState(false);
-  
-  const pointsBufferRef = useRef<DrawingPoint[]>([]);
-  const lastSendTimeRef = useRef<number>(0);
-  const isNewStrokeRef = useRef(false);
+  const [currentPath, setCurrentPath] = useState<number[]>([]);
 
-  // Canvas 초기화
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
 
-    const context = canvas.getContext('2d', { willReadFrequently: true });
+    const context = canvas.getContext('2d');
     if (!context) return;
 
     context.fillStyle = CANVAS_CONFIG.BACKGROUND_COLOR;
-    context.fillRect(0, 0, CANVAS_CONFIG.WIDTH, CANVAS_CONFIG.HEIGHT);
-    context.lineCap = 'round';
-    context.lineJoin = 'round';
+    context.fillRect(0, 0, canvas.width, canvas.height);
     
     setCtx(context);
   }, []);
 
-  const getCanvasCoords = (e: React.MouseEvent<HTMLCanvasElement>): DrawingPoint => {
-    const canvas = canvasRef.current;
-    if (!canvas) return { x: 0, y: 0 };
-    
-    const rect = canvas.getBoundingClientRect();
-    return {
-      x: Math.round(e.clientX - rect.left),
-      y: Math.round(e.clientY - rect.top),
-    };
-  };
+  const handleMouseDown = (e: React.MouseEvent, tool: Tool, color: string, width: number) => {
+    if (!ctx || !isDrawer) return;
 
-  const sendPoints = (tool: Tool, color: string, width: number) => {
-    if (!onDrawing || pointsBufferRef.current.length === 0) return;
+    const rect = canvasRef.current!.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
 
-    const flatPoints = pointsBufferRef.current.flatMap(pt => [pt.x, pt.y]);
-    
-    onDrawing({
-      t: tool === 'pen' ? 0 : 1,
-      c: color,
-      w: width,
-      p: flatPoints,
-      s: isNewStrokeRef.current,
-    });
-
-    isNewStrokeRef.current = false;
-    pointsBufferRef.current = [];
-  };
-
-  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>, tool: Tool, color: string, width: number) => {
-    if (!isDrawer || !ctx) return;
-    
     setIsDrawing(true);
-    const { x, y } = getCanvasCoords(e);
+    setCurrentPath([x, y]);
 
-    ctx.strokeStyle = tool === 'pen' ? color : CANVAS_CONFIG.BACKGROUND_COLOR;
+    const penColor = tool === 'pen' ? color : CANVAS_CONFIG.BACKGROUND_COLOR;
+    
+    ctx.strokeStyle = penColor;
     ctx.lineWidth = width;
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
     ctx.beginPath();
     ctx.moveTo(x, y);
 
-    isNewStrokeRef.current = true;
-    pointsBufferRef.current = [{ x, y }];
-    lastSendTimeRef.current = Date.now();
-    
-    sendPoints(tool, color, width);
+    if (onDrawing) {
+      onDrawing({
+        t: tool === 'pen' ? 0 : 1,
+        c: color,
+        w: width,
+        p: [x, y],
+        s: true,
+      });
+    }
   };
 
-  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>, tool: Tool, color: string, width: number) => {
-    if (!isDrawer || !isDrawing || !ctx) return;
-    
-    const { x, y } = getCanvasCoords(e);
+  const handleMouseMove = (e: React.MouseEvent, tool: Tool, color: string, width: number) => {
+    if (!isDrawing || !ctx || !isDrawer) return;
+
+    const rect = canvasRef.current!.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const newPath = [...currentPath, x, y];
+    setCurrentPath(newPath);
 
     ctx.lineTo(x, y);
     ctx.stroke();
 
-    pointsBufferRef.current.push({ x, y });
-
-    const now = Date.now();
-    if (now - lastSendTimeRef.current >= CANVAS_CONFIG.THROTTLE_MS || 
-        pointsBufferRef.current.length >= CANVAS_CONFIG.BATCH_SIZE) {
-      sendPoints(tool, color, width);
-      lastSendTimeRef.current = now;
+    if (onDrawing && newPath.length >= 4) {
+      onDrawing({
+        t: tool === 'pen' ? 0 : 1,
+        c: color,
+        w: width,
+        p: newPath,
+        s: false,
+      });
+      setCurrentPath([x, y]);
     }
   };
 
   const handleMouseUp = (tool: Tool, color: string, width: number) => {
     if (!isDrawing) return;
-    
     setIsDrawing(false);
+    setCurrentPath([]);
 
-    if (pointsBufferRef.current.length > 0) {
-      sendPoints(tool, color, width);
+    if (ctx) {
+      ctx.closePath();
     }
-
-    isNewStrokeRef.current = false;
   };
 
+  // ✅ useCallback으로 메모이제이션
   const clearCanvas = useCallback(() => {
-    if (!ctx) return;
+    if (!ctx || !canvasRef.current) {
+      console.log('[useCanvas] clearCanvas blocked - ctx:', !!ctx, 'canvas:', !!canvasRef.current);
+      return;
+    }
     
     console.log('[useCanvas] Clearing canvas...');
     
-    // 캔버스 지우기
+    // 배경 채우기
     ctx.fillStyle = CANVAS_CONFIG.BACKGROUND_COLOR;
-    ctx.fillRect(0, 0, CANVAS_CONFIG.WIDTH, CANVAS_CONFIG.HEIGHT);
+    ctx.fillRect(0, 0, canvasRef.current.width, canvasRef.current.height);
     
-    // ctx 설정 완전히 초기화
+    // 경로 초기화
+    ctx.beginPath();
+    
+    // 기본 설정 재적용
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = '#000000';  // ✅ 기본 색상 설정
-    ctx.lineWidth = 4;             // ✅ 기본 굵기 설정
     
-    // 상태 초기화
-    setIsDrawing(false);           // ✅ isDrawing 상태 초기화
-    pointsBufferRef.current = [];
-    isNewStrokeRef.current = false;
-    
-    console.log('[useCanvas] Canvas cleared successfully');
-  }, [ctx]);
+    console.log('[useCanvas] Canvas cleared and reset');
+  }, [ctx]);  // ✅ ctx만 의존
 
   return {
     canvasRef,
     ctx,
-    isDrawing,
     handleMouseDown,
     handleMouseMove,
     handleMouseUp,

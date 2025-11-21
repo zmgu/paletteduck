@@ -6,8 +6,14 @@ import com.unduck.paletteduck.domain.game.dto.DrawData;
 import com.unduck.paletteduck.domain.game.dto.GamePhase;
 import com.unduck.paletteduck.domain.game.dto.GameState;
 import com.unduck.paletteduck.domain.game.dto.Player;
+import com.unduck.paletteduck.domain.game.repository.GameRepository;
 import com.unduck.paletteduck.domain.game.service.GameService;
 import com.unduck.paletteduck.domain.game.service.GameTimerService;
+import com.unduck.paletteduck.domain.room.dto.RoomInfo;
+import com.unduck.paletteduck.domain.room.dto.RoomPlayer;
+import com.unduck.paletteduck.domain.room.dto.RoomStatus;
+import com.unduck.paletteduck.domain.room.repository.RoomRepository;
+import com.unduck.paletteduck.domain.room.service.RoomService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
@@ -16,7 +22,10 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
+import java.util.Collections;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Controller
@@ -24,9 +33,11 @@ import java.util.Map;
 public class WebSocketGameController {
 
     private final GameService gameService;
+    private final RoomService roomService;
     private final GameTimerService gameTimerService;
     private final SimpMessagingTemplate messagingTemplate;
-
+    private final GameRepository gameRepository;
+    private final RoomRepository roomRepository;
     @MessageMapping("/room/{roomId}/game/word/select")
     public void selectWord(@DestinationVariable String roomId,
                            @Payload Map<String, String> payload) {
@@ -53,19 +64,26 @@ public class WebSocketGameController {
     }
 
     @MessageMapping("/room/{roomId}/game/clear")
-    public void clearCanvas(@DestinationVariable String roomId, @Payload String playerId) {
+    public void handleClear(@DestinationVariable String roomId, @Payload Map<String, Object> data) {
+        log.info("Clear canvas requested - room: {}", roomId);
+
         GameState gameState = gameService.getGameState(roomId);
         if (gameState == null || gameState.getPhase() != GamePhase.DRAWING) {
+            log.warn("Cannot clear - invalid game state");
             return;
         }
 
+        // ✅ 출제자만 삭제 가능
+        String playerId = (String) data.get("playerId");
         if (!gameState.getCurrentTurn().getDrawerId().equals(playerId)) {
+            log.warn("Unauthorized clear attempt - playerId: {}, drawer: {}",
+                    playerId, gameState.getCurrentTurn().getDrawerId());
             return;
         }
 
-        // 객체로 감싸서 전송
-        Map<String, String> clearMessage = Map.of("playerId", playerId);
-        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/game/clear", clearMessage);
+        // ✅ 모든 참가자에게 브로드캐스트
+        log.info("Broadcasting clear signal to all participants");
+        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/game/clear", Collections.emptyMap());
     }
 
     @MessageMapping("/room/{roomId}/game/drawing")
@@ -217,9 +235,70 @@ public class WebSocketGameController {
             drawer.setScore((drawer.getScore() != null ? drawer.getScore() : 0) + 50);
         }
 
-        // 게임 상태 저장만 (브로드캐스트는 나중에)
+        // 게임 상태 저장
         gameService.updateGameState(roomId, gameState);
 
         log.info("Player {} guessed correctly. Score: {}", playerName, player.getScore());
+
+        // 모든 참가자 정답 체크
+        long totalPlayers = gameState.getPlayers().stream()
+                .filter(p -> !p.getPlayerId().equals(drawerId))
+                .count();
+
+        if (correctCount >= totalPlayers) {
+            log.info("All players guessed correctly! Ending turn early in 500ms...");
+
+            // ✅ 0.5초 후에 턴 종료 (채팅 메시지 브로드캐스트 시간 확보)
+            CompletableFuture.runAsync(() -> {
+                try {
+                    TimeUnit.MILLISECONDS.sleep(500);
+                    gameTimerService.endTurnEarly(roomId);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+            });
+        }
+    }
+
+    @MessageMapping("/room/{roomId}/restart")
+    public void handleRestart(@DestinationVariable String roomId, @Payload Map<String, Object> data) {
+        log.info("Restart requested - room: {}", roomId);
+
+        String playerId = (String) data.get("playerId");
+
+        // 방 정보 확인
+        RoomInfo roomInfo = roomService.getRoomInfo(roomId);
+        if (roomInfo == null) {
+            log.warn("Room not found - roomId: {}", roomId);
+            return;
+        }
+
+        // ✅ players에서 host 찾기
+        String hostId = roomInfo.getPlayers().stream()
+                .filter(RoomPlayer::isHost)
+                .map(RoomPlayer::getPlayerId)
+                .findFirst()
+                .orElse(null);
+
+        // 방장만 재시작 가능
+        if (hostId == null || !hostId.equals(playerId)) {
+            log.warn("Unauthorized restart attempt - playerId: {}, hostId: {}",
+                    playerId, hostId);
+            return;
+        }
+
+        // ✅ GameState 삭제 (초기화)
+        gameRepository.delete(roomId);
+        log.info("GameState deleted for restart - room: {}", roomId);
+
+        // ✅ RoomInfo를 대기 상태로 변경
+        roomInfo.setStatus(RoomStatus.WAITING);
+        roomInfo.getPlayers().forEach(p -> p.setReady(false));
+        roomRepository.save(roomId, roomInfo);
+
+        // ✅ 대기실 상태 브로드캐스트
+        messagingTemplate.convertAndSend("/topic/room/" + roomId, roomInfo);
+
+        log.info("Game restarted - room: {}, returning to waiting room", roomId);
     }
 }

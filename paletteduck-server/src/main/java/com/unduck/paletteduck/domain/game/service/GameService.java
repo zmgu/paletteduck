@@ -5,13 +5,12 @@ import com.unduck.paletteduck.domain.game.dto.Player;
 import com.unduck.paletteduck.domain.game.repository.GameRepository;
 import com.unduck.paletteduck.domain.room.dto.RoomInfo;
 import com.unduck.paletteduck.domain.room.dto.RoomPlayer;
-import com.unduck.paletteduck.domain.room.dto.PlayerRole;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -20,33 +19,67 @@ public class GameService {
 
     private final GameRepository gameRepository;
 
-    public GameState initializeGame(RoomInfo roomInfo) {
-        List<String> playerIds = roomInfo.getPlayers().stream()
-                .filter(p -> p.getRole() == PlayerRole.PLAYER)
-                .map(RoomPlayer::getPlayerId)
-                .collect(Collectors.toList());
+    public GameState initializeGame(String roomId, RoomInfo roomInfo) {
+        log.info("Initializing game - roomId: {}", roomId);
 
+        // RoomInfo 플레이어 확인
+        log.info("RoomInfo total players: {}", roomInfo.getPlayers().size());
+
+        // ✅ 방장 찾기
+        String hostId = roomInfo.getPlayers().stream()
+                .filter(RoomPlayer::isHost)
+                .map(RoomPlayer::getPlayerId)
+                .findFirst()
+                .orElse(null);
+
+        log.info("Host player ID: {}", hostId);
+
+        // 플레이어 목록 생성
+        List<Player> players = new ArrayList<>();
+
+        for (var p : roomInfo.getPlayers()) {
+            log.info("Processing player: {}, role: {}", p.getNickname(), p.getRole());
+
+            Player player = Player.builder()
+                    .playerId(p.getPlayerId())
+                    .playerName(p.getNickname())
+                    .score(0)
+                    .isCorrect(false)
+                    .build();
+            players.add(player);
+            log.info("  Added player: {}", player.getPlayerName());
+        }
+
+        log.info("Players created: {}", players.size());
+
+        // 턴 순서 생성
+        List<String> turnOrder = new ArrayList<>();
+        for (Player p : players) {
+            turnOrder.add(p.getPlayerId());
+        }
+
+        log.info("Turn order created: {}", turnOrder.size());
+
+        // GameState 생성
         GameState gameState = new GameState(
-                roomInfo.getRoomId(),
+                roomId,
                 roomInfo.getSettings().getRounds(),
                 roomInfo.getSettings().getDrawTime(),
-                playerIds
+                turnOrder
         );
 
-        // ✅ players 초기화 추가
-        List<Player> players = roomInfo.getPlayers().stream()
-                .filter(p -> p.getRole() == PlayerRole.PLAYER)
-                .map(rp -> Player.builder()
-                        .playerId(rp.getPlayerId())
-                        .playerName(rp.getNickname())
-                        .score(0)
-                        .isCorrect(false)
-                        .build())
-                .collect(Collectors.toList());
+        // ✅ hostId 설정
+        gameState.setHostId(hostId);
+
+        // 플레이어 설정
         gameState.setPlayers(players);
 
-        gameRepository.save(roomInfo.getRoomId(), gameState);
-        log.info("Game initialized for room: {}, players: {}", roomInfo.getRoomId(), playerIds.size());
+        // 저장
+        gameRepository.save(roomId, gameState);
+
+        log.info("Game initialized - roomId: {}, players: {}, rounds: {}, turnOrder: {}, hostId: {}",
+                roomId, players.size(), gameState.getTotalRounds(), gameState.getTurnOrder().size(), hostId);
+
         return gameState;
     }
 
