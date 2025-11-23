@@ -82,7 +82,6 @@ export const useRoomConnection = (roomId: string) => {
 
       wsClient.subscribe(WS_TOPICS.GAME_START(roomId), (data: GameState) => {
         isGameStarting.current = true;
-        console.log('Game starting with state:', data);
         navigate(`/room/${roomId}/game`, { state: { gameState: data } });
       });
     });

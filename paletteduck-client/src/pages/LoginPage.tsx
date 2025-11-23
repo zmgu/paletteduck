@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import apiClient, { getPlayerInfo } from '../utils/apiClient';
-import { getSessionId } from '../utils/sessionManager';
 import type { PlayerJoinResponse } from '../types/game.types';
 
 export default function LoginPage() {
@@ -28,8 +27,6 @@ export default function LoginPage() {
     }
 
     try {
-      const sessionId = getSessionId();
-      
       const { data } = await apiClient.post<PlayerJoinResponse>('/player/join', {
         nickname: nickname.trim()
       });

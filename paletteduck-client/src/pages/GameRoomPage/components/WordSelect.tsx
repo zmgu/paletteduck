@@ -1,4 +1,4 @@
-import React from 'react';
+
 import type { TurnInfo } from '../../../types/game.types';
 
 interface WordSelectProps {

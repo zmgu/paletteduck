@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import { useMemo, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { getPlayerInfo } from '../../utils/apiClient';
+import { wsClient } from '../../utils/wsClient';
 import { useGameState } from './hooks/useGameState';
 import { useDrawing } from './hooks/useDrawing';
 import { useCanvasClear } from './hooks/useCanvasClear';
@@ -10,28 +11,54 @@ import GameHeader from './components/GameHeader';
 import WordSelect from './components/WordSelect';
 import DrawingArea from './components/DrawingArea';
 import ChatBox from './components/ChatBox';
+import TurnResult from './components/TurnResult';
 
 export default function GameRoomPage() {
   const { roomId } = useParams<{ roomId: string }>();
-  
+  const navigate = useNavigate();
+
   const playerInfo = useMemo(() => getPlayerInfo(), []);
-  
+
   const { gameState, timeLeft } = useGameState(roomId!);
   const { drawingData, sendDrawing } = useDrawing(roomId!);
   const { clearSignal, clearCanvas } = useCanvasClear(roomId!);
   const { selectWord } = useWordSelect(roomId!);
-  const { messages, sendMessage } = useChat(roomId!);
+  const { messages, sendMessage } = useChat(roomId!, gameState?.currentTurn?.turnNumber);
+
+  const provideChosungHint = useCallback(() => {
+    if (!playerInfo?.playerId) return;
+    wsClient.send(`/app/room/${roomId}/game/hint/chosung`, playerInfo.playerId);
+  }, [roomId, playerInfo?.playerId]);
+
+  const provideLetterHint = useCallback(() => {
+    if (!playerInfo?.playerId) return;
+    wsClient.send(`/app/room/${roomId}/game/hint/letter`, playerInfo.playerId);
+  }, [roomId, playerInfo?.playerId]);
+
+  const handleVote = useCallback((voteType: 'LIKE' | 'DISLIKE' | 'NONE') => {
+    if (!playerInfo?.playerId) return;
+    wsClient.send(`/app/room/${roomId}/game/vote`, {
+      voterId: playerInfo.playerId,
+      voteType: voteType,
+    });
+  }, [roomId, playerInfo?.playerId]);
 
   if (!gameState) {
     return <div style={{ padding: '20px' }}>게임 로딩 중...</div>;
   }
 
   const isDrawer = gameState.currentTurn?.drawerId === playerInfo?.playerId;
-  
+
   const currentPlayer = gameState.players?.find(p => p.playerId === playerInfo?.playerId);
   const isCorrect = currentPlayer?.isCorrect || false;
-  
+
   const isChatDisabled = isDrawer;
+
+  // 현재 사용자의 투표 상태
+  const currentVote = gameState.currentTurn?.votes?.[playerInfo?.playerId || ''] || 'NONE';
+
+  // 순위 계산 (점수 내림차순)
+  const sortedPlayers = [...(gameState.players || [])].sort((a, b) => b.score - a.score);
 
   return (
     <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto' }}>
@@ -54,8 +81,12 @@ export default function GameRoomPage() {
               isDrawer={isDrawer}
               drawingData={drawingData}
               clearSignal={clearSignal}
+              currentVote={currentVote}
               onDrawing={isDrawer ? sendDrawing : undefined}
               onClearCanvas={isDrawer ? clearCanvas : undefined}
+              onProvideChosungHint={isDrawer ? provideChosungHint : undefined}
+              onProvideLetterHint={isDrawer ? provideLetterHint : undefined}
+              onVote={handleVote}
             />
           </div>
 
@@ -95,7 +126,104 @@ export default function GameRoomPage() {
               disabled={isChatDisabled}
               currentPlayerId={playerInfo?.playerId || ''}
               isCorrect={isCorrect}
+              isDrawer={isDrawer}
             />
+          </div>
+        </div>
+      )}
+
+      {gameState.phase === 'TURN_RESULT' && gameState.currentTurn && (
+        <TurnResult
+          turnInfo={gameState.currentTurn}
+          players={gameState.players}
+          drawingData={drawingData}
+          clearSignal={clearSignal}
+        />
+      )}
+
+      {gameState.phase === 'ROUND_END' && gameState.currentTurn && (
+        <div style={{
+          marginTop: '20px',
+          padding: '30px',
+          backgroundColor: '#f8f9fa',
+          borderRadius: '8px',
+          textAlign: 'center',
+        }}>
+          <h2>라운드 종료!</h2>
+          <p style={{ fontSize: '18px', marginTop: '10px' }}>
+            정답: <strong>{gameState.currentTurn.word}</strong>
+          </p>
+          <p style={{ marginTop: '20px', color: '#666' }}>
+            다음 라운드가 곧 시작됩니다...
+          </p>
+        </div>
+      )}
+
+      {gameState.phase === 'GAME_END' && (
+        <div style={{
+          marginTop: '20px',
+          padding: '40px',
+          backgroundColor: '#fff',
+          borderRadius: '8px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+        }}>
+          <h2 style={{ textAlign: 'center', marginBottom: '30px' }}>게임 종료!</h2>
+
+          <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+            <h3 style={{ marginBottom: '20px' }}>최종 순위</h3>
+            {sortedPlayers.map((player, index) => (
+              <div
+                key={player.playerId}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: '15px 20px',
+                  marginBottom: '10px',
+                  backgroundColor: index === 0 ? '#fff3cd' : '#f8f9fa',
+                  border: index === 0 ? '2px solid #ffc107' : '1px solid #dee2e6',
+                  borderRadius: '8px',
+                }}
+              >
+                <span style={{
+                  fontSize: '24px',
+                  fontWeight: 'bold',
+                  marginRight: '20px',
+                  width: '40px',
+                  textAlign: 'center',
+                }}>
+                  {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}위`}
+                </span>
+                <span style={{
+                  flex: 1,
+                  fontSize: '18px',
+                  fontWeight: player.playerId === playerInfo?.playerId ? 'bold' : 'normal',
+                  color: player.playerId === playerInfo?.playerId ? '#007bff' : '#000',
+                }}>
+                  {player.nickname}
+                  {player.playerId === playerInfo?.playerId && ' (나)'}
+                </span>
+                <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                  {player.score}점
+                </span>
+              </div>
+            ))}
+          </div>
+
+          <div style={{ textAlign: 'center', marginTop: '40px' }}>
+            <button
+              onClick={() => navigate('/')}
+              style={{
+                padding: '12px 40px',
+                fontSize: '16px',
+                backgroundColor: '#007bff',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+              }}
+            >
+              메인으로 돌아가기
+            </button>
           </div>
         </div>
       )}

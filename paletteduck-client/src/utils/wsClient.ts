@@ -55,8 +55,8 @@ class WebSocketClient {
         console.log('WebSocket connection closed');
         this.handleReconnect(onConnect);
       },
-      debug: (str) => {
-        // console.log('STOMP Debug:', str);
+      debug: (_str) => {
+        // console.log('STOMP Debug:', _str);
       }
     });
     

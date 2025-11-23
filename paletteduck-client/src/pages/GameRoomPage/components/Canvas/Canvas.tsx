@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { useCanvas } from '../../hooks/useCanvas';
 import CanvasToolbar from './CanvasToolbar';
 import type { Tool, DrawingData } from '../../../../types/drawing.types';
