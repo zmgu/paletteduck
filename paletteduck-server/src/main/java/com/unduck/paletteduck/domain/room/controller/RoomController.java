@@ -1,7 +1,9 @@
 package com.unduck.paletteduck.domain.room.controller;
 
+import com.unduck.paletteduck.config.constants.WebSocketTopics;
 import com.unduck.paletteduck.domain.chat.dto.ChatMessage;
 import com.unduck.paletteduck.domain.chat.dto.ChatType;
+import com.unduck.paletteduck.domain.game.constants.GameConstants;
 import com.unduck.paletteduck.domain.room.dto.RoomCreateResponse;
 import com.unduck.paletteduck.domain.room.dto.RoomInfo;
 import com.unduck.paletteduck.domain.room.service.RoomPlayerService;
@@ -67,19 +69,19 @@ public class RoomController {
             // 입장 메시지 브로드캐스트
             ChatMessage joinMessage = ChatMessage.builder()
                     .messageId(java.util.UUID.randomUUID().toString())
-                    .playerId("system")
-                    .nickname("System")
+                    .playerId(GameConstants.SystemPlayer.ID)
+                    .nickname(GameConstants.SystemPlayer.NAME)
                     .message(nickname + "님이 입장했습니다.")
                     .type(ChatType.SYSTEM)
                     .isCorrect(false)
                     .timestamp(System.currentTimeMillis())
                     .build();
 
-            messagingTemplate.convertAndSend("/topic/room/" + roomId + "/chat", joinMessage);
+            messagingTemplate.convertAndSend(WebSocketTopics.roomChat(roomId), joinMessage);
 
             // 방 정보 갱신 브로드캐스트
             RoomInfo updatedRoomInfo = roomService.getRoomInfo(roomId);
-            messagingTemplate.convertAndSend("/topic/room/" + roomId, updatedRoomInfo);
+            messagingTemplate.convertAndSend(WebSocketTopics.room(roomId), updatedRoomInfo);
         }
 
         log.info("Join room successful");

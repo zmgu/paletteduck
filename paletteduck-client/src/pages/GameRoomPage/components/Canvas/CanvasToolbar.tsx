@@ -1,4 +1,4 @@
-import React from 'react';
+
 import type { Tool } from '../../../../types/drawing.types';
 import { COLORS, LINE_WIDTHS } from '../../../../constants/canvas.constants';
 

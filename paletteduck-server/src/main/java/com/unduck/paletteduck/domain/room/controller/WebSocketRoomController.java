@@ -1,5 +1,6 @@
 package com.unduck.paletteduck.domain.room.controller;
 
+import com.unduck.paletteduck.config.constants.WebSocketTopics;
 import com.unduck.paletteduck.domain.chat.dto.ChatMessage;
 import com.unduck.paletteduck.domain.chat.dto.RoleChangeMessage;
 import com.unduck.paletteduck.domain.game.dto.GameState;
@@ -39,7 +40,7 @@ public class WebSocketRoomController {
     public void updateRoomInfo(@DestinationVariable String roomId) {
         RoomInfo roomInfo = roomService.getRoomInfo(roomId);
         if (roomInfo != null) {
-            messagingTemplate.convertAndSend("/topic/room/" + roomId, roomInfo);
+            messagingTemplate.convertAndSend(WebSocketTopics.room(roomId), roomInfo);
         }
     }
 
@@ -47,7 +48,7 @@ public class WebSocketRoomController {
     public void toggleReady(@DestinationVariable String roomId, @Payload String playerId) {
         roomPlayerService.toggleReady(roomId, playerId);
         RoomInfo roomInfo = roomService.getRoomInfo(roomId);
-        messagingTemplate.convertAndSend("/topic/room/" + roomId, roomInfo);
+        messagingTemplate.convertAndSend(WebSocketTopics.room(roomId), roomInfo);
     }
 
     @MessageMapping("/room/{roomId}/role")
@@ -55,7 +56,7 @@ public class WebSocketRoomController {
                            @Payload RoleChangeMessage message) {
         roomPlayerService.changeRole(roomId, message.getPlayerId(), message.getNewRole());
         RoomInfo roomInfo = roomService.getRoomInfo(roomId);
-        messagingTemplate.convertAndSend("/topic/room/" + roomId, roomInfo);
+        messagingTemplate.convertAndSend(WebSocketTopics.room(roomId), roomInfo);
     }
 
     @MessageMapping("/room/{roomId}/settings")
@@ -63,7 +64,7 @@ public class WebSocketRoomController {
                                @Payload SettingsUpdateMessage message) {
         roomGameService.updateSettings(roomId, message.getPlayerId(), message.getSettings());
         RoomInfo roomInfo = roomService.getRoomInfo(roomId);
-        messagingTemplate.convertAndSend("/topic/room/" + roomId, roomInfo);
+        messagingTemplate.convertAndSend(WebSocketTopics.room(roomId), roomInfo);
     }
 
     @MessageMapping("/room/{roomId}/start")
@@ -71,8 +72,8 @@ public class WebSocketRoomController {
         GameState gameState = roomGameService.startGame(roomId, playerId);
 
         RoomInfo roomInfo = roomService.getRoomInfo(roomId);
-        messagingTemplate.convertAndSend("/topic/room/" + roomId, roomInfo);
-        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/game/start", gameState);
+        messagingTemplate.convertAndSend(WebSocketTopics.room(roomId), roomInfo);
+        messagingTemplate.convertAndSend(WebSocketTopics.gameStart(roomId), gameState);
 
         log.info("Game start broadcast - room: {}, phase: {}", roomId, gameState.getPhase());
     }
@@ -80,6 +81,6 @@ public class WebSocketRoomController {
     @MessageMapping("/room/{roomId}/chat")
     public void sendChat(@DestinationVariable String roomId, @Payload ChatMessage message) {
         message.setTimestamp(System.currentTimeMillis());
-        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/chat", message);
+        messagingTemplate.convertAndSend(WebSocketTopics.roomChat(roomId), message);
     }
 }

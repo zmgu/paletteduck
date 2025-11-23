@@ -1,5 +1,6 @@
 package com.unduck.paletteduck.domain.game.controller;
 
+import com.unduck.paletteduck.config.constants.WebSocketTopics;
 import com.unduck.paletteduck.domain.game.dto.GamePhase;
 import com.unduck.paletteduck.domain.game.dto.GameState;
 import com.unduck.paletteduck.domain.game.service.GameService;
@@ -48,7 +49,7 @@ public class GameController {
         }
 
         data.put("playerId", playerId);
-        messagingTemplate.convertAndSend("/topic/room/" + roomId + "/game/drawing", data);
+        messagingTemplate.convertAndSend(WebSocketTopics.gameDrawing(roomId), data);
 
         return ResponseEntity.ok().build();
     }

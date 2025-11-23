@@ -37,12 +37,12 @@ export const decodeToken = (token: string) => {
 export const getPlayerInfo = () => {
   const token = sessionStorage.getItem('paletteduck_token');
   if (!token) return null;
-  
+
   const payload = decodeToken(token);
   if (!payload) return null;
-  
+
   return {
     playerId: payload.sub,
-    playerName: payload.nickname
+    nickname: payload.nickname
   };
 };

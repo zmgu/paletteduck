@@ -2,7 +2,20 @@ export type PlayerRole = 'PLAYER' | 'SPECTATOR';
 export type RoomStatus = 'WAITING' | 'PLAYING' | 'FINISHED';
 export type GameMode = 'NORMAL' | 'CUSTOM';
 export type ChatType = 'NORMAL' | 'CORRECT' | 'SYSTEM';
-export type GamePhase = 'COUNTDOWN' | 'WORD_SELECT' | 'DRAWING' | 'ROUND_END' | 'GAME_END';
+export type GamePhase = 'COUNTDOWN' | 'WORD_SELECT' | 'DRAWING' | 'TURN_RESULT' | 'ROUND_END' | 'GAME_END';
+export type VoteType = 'LIKE' | 'DISLIKE' | 'NONE';
+
+// API Response types
+export interface PlayerJoinResponse {
+  token: string;
+  playerId: string;
+  nickname: string;
+}
+
+export interface RoomCreateResponse {
+  roomId: string;
+  inviteCode: string;
+}
 
 export interface RoomPlayer {
   playerId: string;
@@ -48,13 +61,22 @@ export interface TurnInfo {
   wordChoices: string[];
   timeLeft: number;
   correctPlayerIds: string[];
+  hintLevel: number;
+  currentHint: string | null;
+  hintArray: string[] | null;
+  revealedChosungPositions: number[];
+  revealedLetterPositions: number[];
+  votes: Record<string, VoteType>;  // voterId -> VoteType
+  turnScores: Record<string, number>;  // playerId -> score earned in this turn
 }
 
 export interface Player {
   playerId: string;
-  playerName: string;
+  nickname: string;
   score: number;
   isCorrect: boolean;
+  totalLikes: number;
+  totalDislikes: number;
 }
 
 export interface GameState {
@@ -69,15 +91,6 @@ export interface GameState {
   players: Player[];
 }
 
-export interface DrawPoint {
-  x: number;
-  y: number;
-}
-
-export interface DrawData {
-  playerId: string;
-  tool: 'pen' | 'eraser';
-  color: string;
-  width: number;
-  points: DrawPoint[];
-}
+// Drawing types are now in drawing.types.ts
+// Use DrawingData for WebSocket transmission (compressed format)
+// DrawPoint is defined in drawing.types.ts

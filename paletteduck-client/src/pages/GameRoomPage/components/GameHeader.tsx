@@ -1,5 +1,4 @@
-import React from 'react';
-import type { GameState, GamePhase } from '../../../types/game.types';
+import type { GameState } from '../../../types/game.types';
 
 interface GameHeaderProps {
   gameState: GameState;
@@ -54,6 +53,42 @@ export default function GameHeader({ gameState, timeLeft, isDrawer }: GameHeader
         {gameState.currentTurn && (
           <p>출제자: <strong>{gameState.currentTurn.drawerNickname}</strong></p>
         )}
+      </div>
+
+      {/* 플레이어 점수판 */}
+      <div style={{ marginTop: '20px', display: 'flex', gap: '10px', flexWrap: 'wrap', justifyContent: 'center' }}>
+        {gameState.players?.map((player) => (
+          <div
+            key={player.playerId}
+            style={{
+              padding: '10px 15px',
+              backgroundColor: player.isCorrect ? '#d4edda' : '#fff',
+              border: player.playerId === gameState.currentTurn?.drawerId
+                ? '2px solid #2196f3'
+                : '1px solid #dee2e6',
+              borderRadius: '8px',
+              minWidth: '150px',
+              textAlign: 'left',
+            }}
+          >
+            <div style={{
+              fontSize: '14px',
+              fontWeight: 'bold',
+              marginBottom: '5px',
+              color: player.playerId === gameState.currentTurn?.drawerId ? '#2196f3' : '#000',
+            }}>
+              {player.nickname}
+              {player.isCorrect && ' ✓'}
+              {player.playerId === gameState.currentTurn?.drawerId && ' 🎨'}
+            </div>
+            <div style={{ fontSize: '12px', color: '#666' }}>
+              점수: <strong>{player.score || 0}</strong>점
+            </div>
+            <div style={{ fontSize: '12px', color: '#666', marginTop: '3px' }}>
+              👍 {player.totalLikes || 0} / 👎 {player.totalDislikes || 0}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

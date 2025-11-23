@@ -112,25 +112,21 @@ export const useCanvas = ({ isDrawer, onDrawing }: UseCanvasProps) => {
 
   const clearCanvas = useCallback(() => {
     if (!ctx) return;
-    
-    console.log('[useCanvas] Clearing canvas...');
-    
+
     // 캔버스 지우기
     ctx.fillStyle = CANVAS_CONFIG.BACKGROUND_COLOR;
     ctx.fillRect(0, 0, CANVAS_CONFIG.WIDTH, CANVAS_CONFIG.HEIGHT);
-    
+
     // ctx 설정 완전히 초기화
     ctx.lineCap = 'round';
     ctx.lineJoin = 'round';
-    ctx.strokeStyle = '#000000';  // ✅ 기본 색상 설정
-    ctx.lineWidth = 4;             // ✅ 기본 굵기 설정
-    
+    ctx.strokeStyle = '#000000';
+    ctx.lineWidth = 4;
+
     // 상태 초기화
-    setIsDrawing(false);           // ✅ isDrawing 상태 초기화
+    setIsDrawing(false);
     pointsBufferRef.current = [];
     isNewStrokeRef.current = false;
-    
-    console.log('[useCanvas] Canvas cleared successfully');
   }, [ctx]);
 
   return {

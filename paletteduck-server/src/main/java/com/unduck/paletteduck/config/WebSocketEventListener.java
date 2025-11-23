@@ -1,5 +1,6 @@
 package com.unduck.paletteduck.config;
 
+import com.unduck.paletteduck.config.constants.WebSocketTopics;
 import com.unduck.paletteduck.domain.chat.dto.ChatMessage;
 import com.unduck.paletteduck.domain.chat.dto.ChatType;
 import com.unduck.paletteduck.domain.room.dto.RoomInfo;
@@ -66,7 +67,7 @@ public class WebSocketEventListener {
 
                     if (updatedRoomInfo != null) {
                         // WebSocket으로 방 정보 갱신 브로드캐스트
-                        messagingTemplate.convertAndSend("/topic/room/" + roomIdToLeave, updatedRoomInfo);
+                        messagingTemplate.convertAndSend(WebSocketTopics.room(roomIdToLeave), updatedRoomInfo);
 
                         // 퇴장 메시지 브로드캐스트
                         ChatMessage chatMessage = new ChatMessage();
@@ -76,7 +77,7 @@ public class WebSocketEventListener {
                         chatMessage.setType(ChatType.SYSTEM);
                         chatMessage.setTimestamp(System.currentTimeMillis());
 
-                        messagingTemplate.convertAndSend("/topic/room/" + roomIdToLeave + "/chat", chatMessage);
+                        messagingTemplate.convertAndSend(WebSocketTopics.roomChat(roomIdToLeave), chatMessage);
 
                         log.info("Broadcasted leave message - roomId: {}, nickname: {}", roomIdToLeave, leavingNickname);
                     }
