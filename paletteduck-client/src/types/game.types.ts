@@ -4,6 +4,7 @@ export type GameMode = 'NORMAL' | 'CUSTOM';
 export type ChatType = 'NORMAL' | 'CORRECT' | 'SYSTEM';
 export type GamePhase = 'COUNTDOWN' | 'WORD_SELECT' | 'DRAWING' | 'TURN_RESULT' | 'ROUND_END' | 'GAME_END';
 export type VoteType = 'LIKE' | 'DISLIKE' | 'NONE';
+export type TurnEndReason = 'TIME_OUT' | 'ALL_CORRECT' | 'DRAWER_LEFT';
 
 // API Response types
 export interface PlayerJoinResponse {
@@ -68,6 +69,7 @@ export interface TurnInfo {
   revealedLetterPositions: number[];
   votes: Record<string, VoteType>;  // voterId -> VoteType
   turnScores: Record<string, number>;  // playerId -> score earned in this turn
+  turnEndReason?: TurnEndReason;  // 턴 종료 사유
 }
 
 export interface Player {

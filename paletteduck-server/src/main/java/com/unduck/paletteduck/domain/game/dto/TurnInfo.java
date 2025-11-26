@@ -31,6 +31,8 @@ public class TurnInfo {
     private Set<Integer> revealedLetterPositions;   // 공개된 글자 위치 (인덱스)
     private Map<String, VoteType> votes;    // 투표 정보 (voterId -> VoteType)
     private Map<String, Integer> turnScores;  // 이번 턴에서 획득한 점수 (playerId -> score)
+    private TurnEndReason turnEndReason;    // 턴 종료 사유
+    private List<Map<String, Object>> drawingEvents;  // 그림 이벤트 저장 (도중 참가자를 위해)
 
     public TurnInfo(int turnNumber, String drawerId, String drawerNickname) {
         this.turnNumber = turnNumber;
@@ -45,5 +47,6 @@ public class TurnInfo {
         this.revealedLetterPositions = new HashSet<>();
         this.votes = new HashMap<>();
         this.turnScores = new HashMap<>();
+        this.drawingEvents = new ArrayList<>();
     }
 }

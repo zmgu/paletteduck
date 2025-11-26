@@ -8,6 +8,7 @@ interface CanvasProps {
   isDrawer: boolean;
   onDrawing?: (data: Omit<DrawingData, 'playerId'>) => void;
   drawingData?: DrawingData | null;
+  initialDrawingEvents?: DrawingData[];
   clearSignal?: number;
   onClearRequest?: () => void;
   turnNumber?: number;  // 턴 번호 변경 시 자동 초기화
@@ -21,6 +22,7 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
   isDrawer,
   onDrawing,
   drawingData,
+  initialDrawingEvents,
   clearSignal,
   onClearRequest,
   turnNumber
@@ -99,6 +101,65 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
       y: p[p.length - 1]
     };
   }, [drawingData, ctx, isDrawer]);
+
+  // 초기 그림 이벤트 적용 (도중 참가자를 위해)
+  useEffect(() => {
+    if (!initialDrawingEvents || initialDrawingEvents.length === 0 || !ctx || isDrawer) return;
+
+    // 모든 초기 이벤트를 순차적으로 적용
+    let localLastPoint: { x: number; y: number } | null = null;
+
+    initialDrawingEvents.forEach((event) => {
+      const { t, c, w, p, s } = event;
+
+      if (!p || p.length < 2) return;
+
+      const penColor = t === 0 ? c : CANVAS_CONFIG.BACKGROUND_COLOR;
+
+      ctx.strokeStyle = penColor;
+      ctx.lineWidth = w;
+      ctx.lineCap = 'round';
+      ctx.lineJoin = 'round';
+
+      ctx.beginPath();
+
+      let startIndex = 0;
+
+      if (s) {
+        // 새로운 선 시작
+        ctx.moveTo(p[0], p[1]);
+        localLastPoint = { x: p[0], y: p[1] };
+        startIndex = 2;
+      } else {
+        // 이전 선에서 이어 그리기
+        if (localLastPoint) {
+          ctx.moveTo(localLastPoint.x, localLastPoint.y);
+          startIndex = 0;
+        } else {
+          ctx.moveTo(p[0], p[1]);
+          startIndex = 2;
+        }
+      }
+
+      // 포인트 연결
+      for (let i = startIndex; i < p.length; i += 2) {
+        ctx.lineTo(p[i], p[i + 1]);
+      }
+
+      ctx.stroke();
+
+      // 마지막 포인트 저장
+      localLastPoint = {
+        x: p[p.length - 2],
+        y: p[p.length - 1]
+      };
+    });
+
+    // 전역 lastPointRef 업데이트
+    if (localLastPoint) {
+      lastPointRef.current = localLastPoint;
+    }
+  }, [initialDrawingEvents, ctx, isDrawer]);
 
   // Clear 신호
   useEffect(() => {

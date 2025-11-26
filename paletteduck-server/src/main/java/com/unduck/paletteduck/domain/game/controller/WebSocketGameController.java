@@ -31,6 +31,7 @@ public class WebSocketGameController {
     private final GameService gameService;
     private final GameTimerService gameTimerService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final com.unduck.paletteduck.domain.room.service.RoomService roomService;
 
     @MessageMapping("/room/{roomId}/game/word/select")
     public void selectWord(@DestinationVariable String roomId,
@@ -85,6 +86,12 @@ public class WebSocketGameController {
             return;
         }
 
+        // 그림 이벤트 저장 (도중 참가자를 위해)
+        if (gameState.getCurrentTurn() != null && gameState.getCurrentTurn().getDrawingEvents() != null) {
+            gameState.getCurrentTurn().getDrawingEvents().add(data);
+            gameService.updateGameState(roomId, gameState);
+        }
+
         messagingTemplate.convertAndSend(WebSocketTopics.gameDrawing(roomId), data);
     }
 
@@ -99,6 +106,19 @@ public class WebSocketGameController {
         if (gameState == null) {
             log.error("Game state not found for room: {}", roomId);
             return;
+        }
+
+        // 관전자는 채팅 불가
+        com.unduck.paletteduck.domain.room.dto.RoomInfo roomInfo = roomService.getRoomInfo(roomId);
+        if (roomInfo != null) {
+            com.unduck.paletteduck.domain.room.dto.RoomPlayer roomPlayer = roomInfo.getPlayers().stream()
+                    .filter(p -> p.getPlayerId().equals(playerId))
+                    .findFirst()
+                    .orElse(null);
+            if (roomPlayer != null && roomPlayer.getRole() == com.unduck.paletteduck.domain.room.dto.PlayerRole.SPECTATOR) {
+                log.warn("Spectator cannot send chat messages - playerId: {}", playerId);
+                return;
+            }
         }
 
         // 출제자는 채팅 불가
@@ -278,7 +298,8 @@ public class WebSocketGameController {
             new Thread(() -> {
                 try {
                     Thread.sleep(100);
-                    gameTimerService.endTurn(roomId, gameState);
+                    gameTimerService.endTurn(roomId, gameState,
+                        com.unduck.paletteduck.domain.game.dto.TurnEndReason.ALL_CORRECT);
                 } catch (InterruptedException e) {
                     Thread.currentThread().interrupt();
                 }
@@ -317,6 +338,19 @@ public class WebSocketGameController {
         if (gameState == null || gameState.getCurrentTurn() == null) {
             log.error("Game state or current turn not found for room: {}", roomId);
             return;
+        }
+
+        // 관전자는 투표 불가
+        com.unduck.paletteduck.domain.room.dto.RoomInfo roomInfo = roomService.getRoomInfo(roomId);
+        if (roomInfo != null) {
+            com.unduck.paletteduck.domain.room.dto.RoomPlayer roomPlayer = roomInfo.getPlayers().stream()
+                    .filter(p -> p.getPlayerId().equals(voterId))
+                    .findFirst()
+                    .orElse(null);
+            if (roomPlayer != null && roomPlayer.getRole() == com.unduck.paletteduck.domain.room.dto.PlayerRole.SPECTATOR) {
+                log.warn("Spectator cannot vote - playerId: {}", voterId);
+                return;
+            }
         }
 
         // DRAWING 단계에서만 투표 가능

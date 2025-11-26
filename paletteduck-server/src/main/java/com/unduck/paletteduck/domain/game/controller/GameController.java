@@ -26,6 +26,18 @@ public class GameController {
     private String token;
     private Map<String, Object> data;
 
+    /**
+     * 게임 상태 조회 (게임 진행 중인 방에 입장 시 사용)
+     */
+    @GetMapping("/{roomId}/state")
+    public ResponseEntity<GameState> getGameState(@PathVariable String roomId) {
+        GameState gameState = gameService.getGameState(roomId);
+        if (gameState == null) {
+            return ResponseEntity.notFound().build();
+        }
+        return ResponseEntity.ok(gameState);
+    }
+
     @PostMapping("/{roomId}/drawing")
     public ResponseEntity<Void> uploadDrawing(
             @PathVariable String roomId,

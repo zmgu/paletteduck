@@ -140,6 +140,12 @@ public class RoomPlayerService {
     }
 
     private PlayerRole determineRole(RoomInfo roomInfo) {
+        // 게임 중이면 무조건 관전자로 입장
+        if (roomInfo.getStatus() == com.unduck.paletteduck.domain.room.dto.RoomStatus.PLAYING) {
+            return PlayerRole.SPECTATOR;
+        }
+
+        // 대기 중일 때는 참가자 수에 따라 결정
         int playerCount = (int) roomInfo.getPlayers().stream()
                 .filter(p -> p.getRole() == PlayerRole.PLAYER).count();
 

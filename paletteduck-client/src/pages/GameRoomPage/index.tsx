@@ -1,5 +1,5 @@
 import { useMemo, useCallback, useRef, useEffect, useLayoutEffect, useState } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { getPlayerInfo } from '../../utils/apiClient';
 import { wsClient } from '../../utils/wsClient';
 import { useGameState } from './hooks/useGameState';
@@ -7,24 +7,31 @@ import { useDrawing } from './hooks/useDrawing';
 import { useCanvasClear } from './hooks/useCanvasClear';
 import { useWordSelect } from './hooks/useWordSelect';
 import { useChat } from './hooks/useChat';
+import { useRoomInfo } from './hooks/useRoomInfo';
 import GameHeader from './components/GameHeader';
 import WordSelect from './components/WordSelect';
 import DrawingArea from './components/DrawingArea';
 import ChatBox from './components/ChatBox';
 import TurnResult from './components/TurnResult';
 import type { CanvasHandle } from './components/Canvas/Canvas';
+import type { RoomInfo } from '../../types/game.types';
 
 export default function GameRoomPage() {
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
 
   const playerInfo = useMemo(() => getPlayerInfo(), []);
   const canvasRef = useRef<CanvasHandle>(null);
   const [canvasImageUrl, setCanvasImageUrl] = useState<string>('');
-  const prevPhaseRef = useRef<string | undefined>();
+  const prevPhaseRef = useRef<string | undefined>(undefined);
+
+  // Extract initial roomInfo from location state
+  const initialRoomInfo = location.state?.roomInfo as RoomInfo | undefined;
 
   const { gameState, timeLeft } = useGameState(roomId!);
-  const { drawingData, sendDrawing } = useDrawing(roomId!);
+  const roomInfo = useRoomInfo(roomId!, initialRoomInfo);
+  const { drawingData, sendDrawing, initialDrawingEvents } = useDrawing(roomId!);
   const { clearSignal, clearCanvas } = useCanvasClear(roomId!);
   const { selectWord } = useWordSelect(roomId!);
   const { messages, sendMessage } = useChat(roomId!, gameState?.currentTurn?.turnNumber);
@@ -63,7 +70,6 @@ export default function GameRoomPage() {
 
   // 페이즈 전환 시 처리
   useLayoutEffect(() => {
-    const prevPhase = prevPhaseRef.current;
     const currentPhase = gameState?.phase;
 
     // 새로운 턴 시작 시 이미지 초기화
@@ -84,7 +90,11 @@ export default function GameRoomPage() {
   const currentPlayer = gameState.players?.find(p => p.playerId === playerInfo?.playerId);
   const isCorrect = currentPlayer?.isCorrect || false;
 
-  const isChatDisabled = isDrawer;
+  // 관전자 여부 확인
+  const currentRoomPlayer = roomInfo?.players?.find(p => p.playerId === playerInfo?.playerId);
+  const isSpectator = currentRoomPlayer?.role === 'SPECTATOR';
+
+  const isChatDisabled = isDrawer || isSpectator;
 
   // 현재 사용자의 투표 상태
   const currentVote = gameState.currentTurn?.votes?.[playerInfo?.playerId || ''] || 'NONE';
@@ -112,6 +122,7 @@ export default function GameRoomPage() {
               turnInfo={gameState.currentTurn}
               isDrawer={isDrawer}
               drawingData={drawingData}
+              initialDrawingEvents={initialDrawingEvents}
               clearSignal={clearSignal}
               currentVote={currentVote}
               canvasRef={canvasRef}
@@ -119,48 +130,99 @@ export default function GameRoomPage() {
               onClearCanvas={isDrawer ? clearCanvas : undefined}
               onProvideChosungHint={isDrawer ? provideChosungHint : undefined}
               onProvideLetterHint={isDrawer ? provideLetterHint : undefined}
-              onVote={handleVote}
+              onVote={!isSpectator ? handleVote : undefined}
             />
           </div>
 
-          <div style={{ width: '350px' }}>
-            <h3>채팅</h3>
-            {isCorrect && (
-              <div style={{
-                padding: '10px',
-                backgroundColor: '#d4edda',
-                border: '1px solid #28a745',
-                borderRadius: '4px',
-                marginBottom: '10px',
-                textAlign: 'center',
-                fontWeight: 'bold',
-                color: '#155724',
-              }}>
-                🎉 정답을 맞췄습니다!
+          <div style={{ width: '350px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
+            {/* 관전자 목록 */}
+            {roomInfo && roomInfo.players.filter(p => p.role === 'SPECTATOR').length > 0 && (
+              <div>
+                <h3 style={{ marginBottom: '10px' }}>👀 관전자 ({roomInfo.players.filter(p => p.role === 'SPECTATOR').length})</h3>
+                <div style={{
+                  backgroundColor: '#f8f9fa',
+                  border: '1px solid #dee2e6',
+                  borderRadius: '4px',
+                  padding: '10px',
+                  maxHeight: '150px',
+                  overflowY: 'auto'
+                }}>
+                  {roomInfo.players
+                    .filter(p => p.role === 'SPECTATOR')
+                    .map(spectator => (
+                      <div
+                        key={spectator.playerId}
+                        style={{
+                          padding: '5px 10px',
+                          marginBottom: '5px',
+                          backgroundColor: spectator.playerId === playerInfo?.playerId ? '#e3f2fd' : 'white',
+                          borderRadius: '4px',
+                          border: '1px solid #e0e0e0',
+                          fontSize: '14px'
+                        }}
+                      >
+                        {spectator.nickname}
+                        {spectator.playerId === playerInfo?.playerId && ' (나)'}
+                      </div>
+                    ))}
+                </div>
               </div>
             )}
-            {isDrawer && (
-              <div style={{
-                padding: '10px',
-                backgroundColor: '#d1ecf1',
-                border: '1px solid #0c5460',
-                borderRadius: '4px',
-                marginBottom: '10px',
-                textAlign: 'center',
-                fontWeight: 'bold',
-                color: '#0c5460',
-              }}>
-                출제자는 채팅을 볼 수 없습니다
-              </div>
-            )}
-            <ChatBox
-              messages={messages}
-              onSendMessage={sendMessage}
-              disabled={isChatDisabled}
-              currentPlayerId={playerInfo?.playerId || ''}
-              isCorrect={isCorrect}
-              isDrawer={isDrawer}
-            />
+
+            {/* 채팅 */}
+            <div style={{ flex: 1 }}>
+              <h3>채팅</h3>
+              {isCorrect && (
+                <div style={{
+                  padding: '10px',
+                  backgroundColor: '#d4edda',
+                  border: '1px solid #28a745',
+                  borderRadius: '4px',
+                  marginBottom: '10px',
+                  textAlign: 'center',
+                  fontWeight: 'bold',
+                  color: '#155724',
+                }}>
+                  🎉 정답을 맞췄습니다!
+                </div>
+              )}
+              {isDrawer && (
+                <div style={{
+                  padding: '10px',
+                  backgroundColor: '#d1ecf1',
+                  border: '1px solid #0c5460',
+                  borderRadius: '4px',
+                  marginBottom: '10px',
+                  textAlign: 'center',
+                  fontWeight: 'bold',
+                  color: '#0c5460',
+                }}>
+                  출제자는 채팅을 볼 수 없습니다
+                </div>
+              )}
+              {isSpectator && (
+                <div style={{
+                  padding: '10px',
+                  backgroundColor: '#fff3cd',
+                  border: '1px solid #ffc107',
+                  borderRadius: '4px',
+                  marginBottom: '10px',
+                  textAlign: 'center',
+                  fontWeight: 'bold',
+                  color: '#856404',
+                }}>
+                  👀 관전자는 채팅을 입력할 수 없습니다
+                </div>
+              )}
+              <ChatBox
+                messages={messages}
+                onSendMessage={sendMessage}
+                disabled={isChatDisabled}
+                currentPlayerId={playerInfo?.playerId || ''}
+                isCorrect={isCorrect}
+                isDrawer={isDrawer}
+              />
+            </div>
           </div>
         </div>
       )}

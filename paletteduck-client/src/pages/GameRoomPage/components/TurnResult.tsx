@@ -21,6 +21,22 @@ export default function TurnResult({ turnInfo, players, canvasImageUrl }: TurnRe
   const drawer = players.find(p => p.playerId === turnInfo.drawerId);
   const drawerTurnScore = turnInfo.turnScores?.[turnInfo.drawerId] || 0;
 
+  // 턴 종료 사유 메시지
+  const getEndReasonMessage = () => {
+    switch (turnInfo.turnEndReason) {
+      case 'TIME_OUT':
+        return { icon: '⏰', text: '시간 종료', color: '#ff9800' };
+      case 'ALL_CORRECT':
+        return { icon: '✅', text: '모든 참가자 정답!', color: '#4caf50' };
+      case 'DRAWER_LEFT':
+        return { icon: '👋', text: '출제자 퇴장', color: '#f44336' };
+      default:
+        return null;
+    }
+  };
+
+  const endReasonInfo = getEndReasonMessage();
+
   return (
     <div style={{
       padding: '20px',
@@ -35,6 +51,28 @@ export default function TurnResult({ turnInfo, players, canvasImageUrl }: TurnRe
       }}>
         턴 결과
       </h2>
+
+      {endReasonInfo && (
+        <div style={{
+          textAlign: 'center',
+          fontSize: '20px',
+          fontWeight: 'bold',
+          marginBottom: '15px',
+          padding: '12px 24px',
+          backgroundColor: `${endReasonInfo.color}20`,
+          border: `2px solid ${endReasonInfo.color}`,
+          borderRadius: '8px',
+          color: endReasonInfo.color,
+          display: 'inline-block',
+          margin: '0 auto 20px',
+          width: 'fit-content',
+          marginLeft: '50%',
+          transform: 'translateX(-50%)'
+        }}>
+          <span style={{ fontSize: '24px', marginRight: '10px' }}>{endReasonInfo.icon}</span>
+          {endReasonInfo.text}
+        </div>
+      )}
 
       <div style={{
         textAlign: 'center',
