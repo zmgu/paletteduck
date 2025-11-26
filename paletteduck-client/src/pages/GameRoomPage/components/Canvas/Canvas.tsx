@@ -102,9 +102,20 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
     };
   }, [drawingData, ctx, isDrawer]);
 
+  // 턴 번호 변경 시 캔버스 자동 초기화
+  useEffect(() => {
+    if (turnNumber !== undefined) {
+      clearCanvas();
+      lastPointRef.current = null;
+      lastProcessedRef.current = null;
+    }
+  }, [turnNumber, clearCanvas]);
+
   // 초기 그림 이벤트 적용 (도중 참가자를 위해)
   useEffect(() => {
     if (!initialDrawingEvents || initialDrawingEvents.length === 0 || !ctx || isDrawer) return;
+
+    console.log(`[Canvas] Applying ${initialDrawingEvents.length} initial drawing events`);
 
     // 모든 초기 이벤트를 순차적으로 적용
     let localLastPoint: { x: number; y: number } | null = null;
@@ -169,15 +180,6 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
       lastProcessedRef.current = null;
     }
   }, [clearSignal, clearCanvas]);
-
-  // 턴 번호 변경 시 캔버스 자동 초기화
-  useEffect(() => {
-    if (turnNumber !== undefined) {
-      clearCanvas();
-      lastPointRef.current = null;
-      lastProcessedRef.current = null;
-    }
-  }, [turnNumber, clearCanvas]);
 
   const handleClear = () => {
     clearCanvas();

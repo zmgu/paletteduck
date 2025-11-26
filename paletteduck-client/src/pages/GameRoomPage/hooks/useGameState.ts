@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { wsClient } from '../../../utils/wsClient';
 import { WS_TOPICS, WS_DESTINATIONS } from '../../../constants/wsDestinations';
@@ -11,7 +11,7 @@ export const useGameState = (roomId: string) => {
     location.state?.gameState || null  // 초기 상태 복원
   );
   const [timeLeft, setTimeLeft] = useState(0);
-  const playerInfo = getPlayerInfo();
+  const playerInfo = useMemo(() => getPlayerInfo(), []);
 
   useEffect(() => {
 
@@ -20,16 +20,22 @@ export const useGameState = (roomId: string) => {
       return;
     }
 
+    let unsubscribe: (() => void) | undefined;
+
     // WebSocket 연결 및 세션 등록 (도중 참가자를 위해 필수)
     wsClient.connect(() => {
       // 세션 등록
       wsClient.send(WS_DESTINATIONS.ROOM_REGISTER(roomId), playerInfo.playerId);
 
       // GameState 구독
-      wsClient.subscribe(WS_TOPICS.GAME_STATE(roomId), (data: GameState) => {
+      unsubscribe = wsClient.subscribe(WS_TOPICS.GAME_STATE(roomId), (data: GameState) => {
         setGameState(data);
       });
     });
+
+    return () => {
+      if (unsubscribe) unsubscribe();
+    };
   }, [roomId, playerInfo]);
 
   // 타이머 카운트다운

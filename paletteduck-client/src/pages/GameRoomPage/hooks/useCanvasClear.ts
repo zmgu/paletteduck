@@ -1,11 +1,11 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo } from 'react';
 import { wsClient } from '../../../utils/wsClient';
 import { WS_TOPICS, WS_DESTINATIONS } from '../../../constants/wsDestinations';
 import { getPlayerInfo } from '../../../utils/apiClient';
 
 export const useCanvasClear = (roomId: string) => {
   const [clearSignal, setClearSignal] = useState(0);
-  const playerInfo = getPlayerInfo();
+  const playerInfo = useMemo(() => getPlayerInfo(), []);
 
   useEffect(() => {
     if (!playerInfo || !roomId) return;
@@ -20,7 +20,7 @@ export const useCanvasClear = (roomId: string) => {
     return () => {
       if (unsubscribe) unsubscribe();
     };
-  }, [roomId, playerInfo]);
+  }, [roomId]);
 
   const clearCanvas = () => {
     if (!playerInfo) return;
