@@ -11,7 +11,6 @@ class WebSocketClient {
 
   connect(onConnect: () => void) {
     if (this.isConnected()) {
-      console.log('WebSocket already connected');
       onConnect();
       return;
     }

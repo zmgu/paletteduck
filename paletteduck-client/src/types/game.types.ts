@@ -70,6 +70,7 @@ export interface TurnInfo {
   votes: Record<string, VoteType>;  // voterId -> VoteType
   turnScores: Record<string, number>;  // playerId -> score earned in this turn
   turnEndReason?: TurnEndReason;  // 턴 종료 사유
+  drawingEvents?: any[];  // 그림 이벤트 저장 (도중 참가자를 위해)
 }
 
 export interface Player {

@@ -31,7 +31,7 @@ export default function GameRoomPage() {
 
   const { gameState, timeLeft } = useGameState(roomId!);
   const roomInfo = useRoomInfo(roomId!, initialRoomInfo);
-  const { drawingData, sendDrawing, initialDrawingEvents } = useDrawing(roomId!);
+  const { drawingData, sendDrawing, initialDrawingEvents } = useDrawing(roomId!, gameState);
   const { clearSignal, clearCanvas } = useCanvasClear(roomId!);
   const { selectWord } = useWordSelect(roomId!);
   const { messages, sendMessage } = useChat(roomId!, gameState?.currentTurn?.turnNumber);
@@ -136,9 +136,9 @@ export default function GameRoomPage() {
 
           <div style={{ width: '350px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
             {/* 관전자 목록 */}
-            {roomInfo && roomInfo.players.filter(p => p.role === 'SPECTATOR').length > 0 && (
+            {roomInfo && roomInfo.players?.filter(p => p && p.role === 'SPECTATOR').length > 0 && (
               <div>
-                <h3 style={{ marginBottom: '10px' }}>👀 관전자 ({roomInfo.players.filter(p => p.role === 'SPECTATOR').length})</h3>
+                <h3 style={{ marginBottom: '10px' }}>👀 관전자 ({roomInfo.players.filter(p => p && p.role === 'SPECTATOR').length})</h3>
                 <div style={{
                   backgroundColor: '#f8f9fa',
                   border: '1px solid #dee2e6',
@@ -148,10 +148,10 @@ export default function GameRoomPage() {
                   overflowY: 'auto'
                 }}>
                   {roomInfo.players
-                    .filter(p => p.role === 'SPECTATOR')
-                    .map(spectator => (
+                    .filter(p => p && p.role === 'SPECTATOR' && p.playerId)
+                    .map((spectator, index) => (
                       <div
-                        key={spectator.playerId}
+                        key={spectator.playerId || `spectator-${index}`}
                         style={{
                           padding: '5px 10px',
                           marginBottom: '5px',

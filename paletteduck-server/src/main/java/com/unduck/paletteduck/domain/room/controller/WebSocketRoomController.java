@@ -25,6 +25,7 @@ public class WebSocketRoomController {
     private final RoomGameService roomGameService;
     private final SessionMappingService sessionMappingService;
     private final SimpMessagingTemplate messagingTemplate;
+    private final com.unduck.paletteduck.domain.game.service.GameService gameService;
 
     @MessageMapping("/room/{roomId}/register")
     public void registerSession(@DestinationVariable String roomId,
@@ -34,6 +35,24 @@ public class WebSocketRoomController {
         sessionMappingService.addSession(sessionId, playerId, roomId);
         log.debug("Session registered - roomId: {}, playerId: {}, sessionId: {}",
                 roomId, playerId, sessionId);
+
+        // 게임 진행 중이면 현재 GameState를 도중 참가자에게 전송
+        RoomInfo roomInfo = roomService.getRoomInfo(roomId);
+        if (roomInfo != null && roomInfo.getStatus() == RoomStatus.PLAYING) {
+            GameState gameState = gameService.getGameState(roomId);
+            if (gameState != null) {
+                // 모든 구독자에게 브로드캐스트 (도중 참가자가 최신 상태를 받도록)
+                messagingTemplate.convertAndSend(
+                    WebSocketTopics.gameState(roomId),
+                    gameState
+                );
+                log.info("Sent current GameState to mid-game joiner - roomId: {}, playerId: {}, turn: {}, drawingEvents: {}",
+                    roomId, playerId,
+                    gameState.getCurrentTurn() != null ? gameState.getCurrentTurn().getTurnNumber() : "N/A",
+                    gameState.getCurrentTurn() != null && gameState.getCurrentTurn().getDrawingEvents() != null ?
+                        gameState.getCurrentTurn().getDrawingEvents().size() : 0);
+            }
+        }
     }
 
     @MessageMapping("/room/{roomId}/update")
