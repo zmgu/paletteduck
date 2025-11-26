@@ -1,4 +1,4 @@
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useRef, useEffect, useLayoutEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getPlayerInfo } from '../../utils/apiClient';
 import { wsClient } from '../../utils/wsClient';
@@ -12,12 +12,16 @@ import WordSelect from './components/WordSelect';
 import DrawingArea from './components/DrawingArea';
 import ChatBox from './components/ChatBox';
 import TurnResult from './components/TurnResult';
+import type { CanvasHandle } from './components/Canvas/Canvas';
 
 export default function GameRoomPage() {
   const { roomId } = useParams<{ roomId: string }>();
   const navigate = useNavigate();
 
   const playerInfo = useMemo(() => getPlayerInfo(), []);
+  const canvasRef = useRef<CanvasHandle>(null);
+  const [canvasImageUrl, setCanvasImageUrl] = useState<string>('');
+  const prevPhaseRef = useRef<string | undefined>();
 
   const { gameState, timeLeft } = useGameState(roomId!);
   const { drawingData, sendDrawing } = useDrawing(roomId!);
@@ -42,6 +46,34 @@ export default function GameRoomPage() {
       voteType: voteType,
     });
   }, [roomId, playerInfo?.playerId]);
+
+  // DRAWING 페이즈 중 주기적으로 캔버스 이미지 캡처 (백업)
+  useEffect(() => {
+    if (gameState?.phase !== 'DRAWING') return;
+
+    const intervalId = setInterval(() => {
+      if (canvasRef.current) {
+        const imageUrl = canvasRef.current.captureImage();
+        setCanvasImageUrl(imageUrl);
+      }
+    }, 1000); // 1초마다 캡처
+
+    return () => clearInterval(intervalId);
+  }, [gameState?.phase]);
+
+  // 페이즈 전환 시 처리
+  useLayoutEffect(() => {
+    const prevPhase = prevPhaseRef.current;
+    const currentPhase = gameState?.phase;
+
+    // 새로운 턴 시작 시 이미지 초기화
+    if (currentPhase === 'WORD_SELECT') {
+      setCanvasImageUrl('');
+    }
+
+    // 현재 페이즈 저장
+    prevPhaseRef.current = currentPhase;
+  }, [gameState?.phase]);
 
   if (!gameState) {
     return <div style={{ padding: '20px' }}>게임 로딩 중...</div>;
@@ -82,6 +114,7 @@ export default function GameRoomPage() {
               drawingData={drawingData}
               clearSignal={clearSignal}
               currentVote={currentVote}
+              canvasRef={canvasRef}
               onDrawing={isDrawer ? sendDrawing : undefined}
               onClearCanvas={isDrawer ? clearCanvas : undefined}
               onProvideChosungHint={isDrawer ? provideChosungHint : undefined}
@@ -136,8 +169,7 @@ export default function GameRoomPage() {
         <TurnResult
           turnInfo={gameState.currentTurn}
           players={gameState.players}
-          drawingData={drawingData}
-          clearSignal={clearSignal}
+          canvasImageUrl={canvasImageUrl}
         />
       )}
 

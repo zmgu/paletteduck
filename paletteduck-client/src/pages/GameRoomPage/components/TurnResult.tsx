@@ -1,15 +1,13 @@
-import Canvas from './Canvas';
 import type { TurnInfo, Player } from '../../../types/game.types';
-import type { DrawingData } from '../../../types/drawing.types';
+import { CANVAS_CONFIG } from '../../../constants/canvas.constants';
 
 interface TurnResultProps {
   turnInfo: TurnInfo;
   players: Player[];
-  drawingData: DrawingData | null;
-  clearSignal: number;
+  canvasImageUrl: string;
 }
 
-export default function TurnResult({ turnInfo, players, drawingData, clearSignal }: TurnResultProps) {
+export default function TurnResult({ turnInfo, players, canvasImageUrl }: TurnResultProps) {
   // 이번 턴에서 점수를 획득한 플레이어만 필터링 및 점수순 정렬
   const scoredPlayers = players
     .filter(p => (turnInfo.turnScores?.[p.playerId] || 0) > 0)
@@ -53,11 +51,34 @@ export default function TurnResult({ turnInfo, players, drawingData, clearSignal
         <div style={{ flex: 1 }}>
           <h3>출제된 그림</h3>
           <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'center' }}>
-            <Canvas
-              isDrawer={false}
-              drawingData={drawingData}
-              clearSignal={clearSignal}
-            />
+            {canvasImageUrl ? (
+              <img
+                src={canvasImageUrl}
+                alt="턴 결과 그림"
+                style={{
+                  border: '2px solid #ccc',
+                  borderRadius: '8px',
+                  width: CANVAS_CONFIG.WIDTH,
+                  height: CANVAS_CONFIG.HEIGHT,
+                }}
+              />
+            ) : (
+              <div
+                style={{
+                  border: '2px solid #ccc',
+                  borderRadius: '8px',
+                  width: CANVAS_CONFIG.WIDTH,
+                  height: CANVAS_CONFIG.HEIGHT,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: '#f5f5f5',
+                  color: '#999',
+                }}
+              >
+                그림을 불러올 수 없습니다
+              </div>
+            )}
           </div>
 
           {/* 출제자 정보 */}
