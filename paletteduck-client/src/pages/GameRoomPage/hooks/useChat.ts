@@ -20,14 +20,14 @@ export const useChat = (roomId: string, turnNumber?: number) => {
 
     let unsubscribe: (() => void) | null = null;
 
-    const timer = setTimeout(() => {
+    // WebSocket 연결 후 채팅 구독 (시스템 메시지 수신을 위해 필수)
+    wsClient.connect(() => {
       unsubscribe = wsClient.subscribe(WS_TOPICS.ROOM_CHAT(roomId), (data: ChatMessage) => {
         setMessages(prev => [...prev, data]);
       });
-    }, 100);
+    });
 
     return () => {
-      clearTimeout(timer);
       if (unsubscribe) {
         unsubscribe();
       }

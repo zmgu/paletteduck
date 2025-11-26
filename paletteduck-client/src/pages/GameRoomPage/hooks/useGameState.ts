@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { wsClient } from '../../../utils/wsClient';
-import { WS_TOPICS } from '../../../constants/wsDestinations';
+import { WS_TOPICS, WS_DESTINATIONS } from '../../../constants/wsDestinations';
 import type { GameState } from '../../../types/game.types';
 import { getPlayerInfo } from '../../../utils/apiClient';
 
@@ -14,21 +14,22 @@ export const useGameState = (roomId: string) => {
   const playerInfo = getPlayerInfo();
 
   useEffect(() => {
-    
+
     if (!playerInfo || !roomId) {
       console.error('[useGameState] Missing playerInfo or roomId!');
       return;
     }
 
-    const timer = setTimeout(() => {
+    // WebSocket 연결 및 세션 등록 (도중 참가자를 위해 필수)
+    wsClient.connect(() => {
+      // 세션 등록
+      wsClient.send(WS_DESTINATIONS.ROOM_REGISTER(roomId), playerInfo.playerId);
+
+      // GameState 구독
       wsClient.subscribe(WS_TOPICS.GAME_STATE(roomId), (data: GameState) => {
         setGameState(data);
       });
-    }, 100);
-
-    return () => {
-      clearTimeout(timer);
-    };
+    });
   }, [roomId, playerInfo]);
 
   // 타이머 카운트다운

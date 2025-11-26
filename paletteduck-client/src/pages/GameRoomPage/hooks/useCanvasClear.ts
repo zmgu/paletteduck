@@ -10,14 +10,15 @@ export const useCanvasClear = (roomId: string) => {
   useEffect(() => {
     if (!playerInfo || !roomId) return;
 
-    const timer = setTimeout(() => {
-      wsClient.subscribe(WS_TOPICS.GAME_CLEAR(roomId), () => {
+    let unsubscribe: (() => void) | undefined;
+    wsClient.connect(() => {
+      unsubscribe = wsClient.subscribe(WS_TOPICS.GAME_CLEAR(roomId), () => {
         setClearSignal(prev => prev + 1);
       });
-    }, 100);
+    });
 
     return () => {
-      clearTimeout(timer);
+      if (unsubscribe) unsubscribe();
     };
   }, [roomId, playerInfo]);
 

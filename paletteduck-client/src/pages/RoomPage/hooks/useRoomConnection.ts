@@ -37,14 +37,31 @@ export const useRoomConnection = (roomId: string) => {
     try {
       // 1. REST API로 방 입장 (입장 메시지는 서버에서 브로드캐스트)
       await apiClient.post(`/room/${roomId}/join`);
-      
+
       // 2. 방 정보 로드
       const response = await apiClient.get(`/room/${roomId}`);
-      setRoomInfo(response.data);
-      
-      // 3. WebSocket 연결
+      const roomData: RoomInfo = response.data;
+      setRoomInfo(roomData);
+
+      // 3. 게임이 이미 진행 중이면 게임 페이지로 리다이렉트
+      if (roomData.status === 'PLAYING') {
+        try {
+          // GameState 로드
+          const gameStateResponse = await apiClient.get(`/game/${roomId}/state`);
+          const gameState: GameState = gameStateResponse.data;
+
+          isGameStarting.current = true;
+          navigate(`/room/${roomId}/game`, { state: { gameState, roomInfo: roomData } });
+          return;
+        } catch (gameError) {
+          console.error('Failed to load game state:', gameError);
+          // GameState 로드 실패 시 대기방에 머물기
+        }
+      }
+
+      // 4. WebSocket 연결 (대기 중일 때만)
       connectWebSocket();
-      
+
       setLoading(false);
     } catch (error) {
       console.error('Failed to join room:', error);
@@ -82,7 +99,7 @@ export const useRoomConnection = (roomId: string) => {
 
       wsClient.subscribe(WS_TOPICS.GAME_START(roomId), (data: GameState) => {
         isGameStarting.current = true;
-        navigate(`/room/${roomId}/game`, { state: { gameState: data } });
+        navigate(`/room/${roomId}/game`, { state: { gameState: data, roomInfo } });
       });
     });
   };

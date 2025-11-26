@@ -73,6 +73,17 @@ public class RoomValidator {
         int maxPlayers = roomInfo.getSettings().getMaxPlayers();
         int maxSpectators = roomInfo.getSettings().getMaxSpectators();
 
+        // 게임 중이면 관전자 자리만 체크
+        if (roomInfo.getStatus() == com.unduck.paletteduck.domain.room.dto.RoomStatus.PLAYING) {
+            if (spectatorCount >= maxSpectators) {
+                log.warn("No spectator slots available - spectators: {}/{}",
+                        spectatorCount, maxSpectators);
+                throw new IllegalStateException("No spectator slots available");
+            }
+            return;
+        }
+
+        // 대기 중일 때는 둘 다 꽉 찬 경우만 불가
         if (playerCount >= maxPlayers && spectatorCount >= maxSpectators) {
             log.warn("Room is full - players: {}/{}, spectators: {}/{}",
                     playerCount, maxPlayers, spectatorCount, maxSpectators);

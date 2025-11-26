@@ -4,6 +4,7 @@ import com.unduck.paletteduck.config.constants.WebSocketTopics;
 import com.unduck.paletteduck.domain.game.constants.GameConstants;
 import com.unduck.paletteduck.domain.game.dto.GamePhase;
 import com.unduck.paletteduck.domain.game.dto.GameState;
+import com.unduck.paletteduck.domain.game.dto.TurnEndReason;
 import com.unduck.paletteduck.domain.game.dto.TurnInfo;
 import com.unduck.paletteduck.domain.game.repository.GameRepository;
 import com.unduck.paletteduck.domain.room.dto.RoomInfo;
@@ -204,7 +205,7 @@ public class GameTimerService {
             }
 
             log.info("Drawing time ended - room: {}", roomId);
-            endTurn(roomId, gameState);
+            endTurn(roomId, gameState, TurnEndReason.TIME_OUT);
 
         } catch (InterruptedException e) {
             log.error("Drawing timer interrupted - roomId: {}", roomId, e);
@@ -212,7 +213,12 @@ public class GameTimerService {
         }
     }
 
-    public void endTurn(String roomId, GameState gameState) {
+    public void endTurn(String roomId, GameState gameState, TurnEndReason reason) {
+        // 턴 종료 사유 설정
+        if (gameState.getCurrentTurn() != null) {
+            gameState.getCurrentTurn().setTurnEndReason(reason);
+        }
+
         // 턴 결과 단계로 전환
         gameState.setPhase(GamePhase.TURN_RESULT);
         gameState.setPhaseStartTime(System.currentTimeMillis());
@@ -222,7 +228,8 @@ public class GameTimerService {
         // 턴 결과 브로드캐스트
         messagingTemplate.convertAndSend(WebSocketTopics.gameState(roomId), gameState);
 
-        log.info("Turn ended, showing results - room: {}, turn: {}", roomId, gameState.getCurrentTurn().getTurnNumber());
+        log.info("Turn ended, showing results - room: {}, turn: {}, reason: {}",
+                roomId, gameState.getCurrentTurn().getTurnNumber(), reason);
 
         // 턴 결과 표시 후 다음 턴 준비
         self.scheduleTurnResultEnd(roomId);
@@ -330,7 +337,7 @@ public class GameTimerService {
         self.startWordSelectTimer(roomId, nextTurnNumber);
     }
 
-    private void endGame(String roomId, GameState gameState) {
+    public void endGame(String roomId, GameState gameState) {
         gameState.setPhase(GamePhase.GAME_END);
         gameState.setPhaseStartTime(System.currentTimeMillis());
 
