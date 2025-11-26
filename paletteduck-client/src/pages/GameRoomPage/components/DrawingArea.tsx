@@ -1,7 +1,8 @@
-
+import { Ref } from 'react';
 import Canvas from './Canvas';
 import type { TurnInfo, VoteType } from '../../../types/game.types';
 import type { DrawingData } from '../../../types/drawing.types';
+import type { CanvasHandle } from './Canvas/Canvas';
 
 interface DrawingAreaProps {
   turnInfo: TurnInfo;
@@ -9,6 +10,7 @@ interface DrawingAreaProps {
   drawingData: DrawingData | null;
   clearSignal: number;
   currentVote?: VoteType;
+  canvasRef?: Ref<CanvasHandle>;
   onDrawing?: (data: Omit<DrawingData, 'playerId'>) => void;
   onClearCanvas?: () => void;
   onProvideChosungHint?: () => void;
@@ -22,6 +24,7 @@ export default function DrawingArea({
   drawingData,
   clearSignal,
   currentVote,
+  canvasRef,
   onDrawing,
   onClearCanvas,
   onProvideChosungHint,
@@ -142,11 +145,13 @@ export default function DrawingArea({
 
       <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'center' }}>
         <Canvas
+          ref={canvasRef}
           isDrawer={isDrawer}
           onDrawing={onDrawing}
           drawingData={drawingData}
           clearSignal={clearSignal}
           onClearRequest={onClearCanvas}
+          turnNumber={turnInfo.turnNumber}
         />
       </div>
 

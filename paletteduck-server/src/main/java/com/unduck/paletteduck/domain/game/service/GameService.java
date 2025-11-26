@@ -12,6 +12,8 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -27,7 +29,11 @@ public class GameService {
         List<String> playerIds = roomInfo.getPlayers().stream()
                 .filter(p -> p.getRole() == PlayerRole.PLAYER)
                 .map(RoomPlayer::getPlayerId)
-                .collect(Collectors.toList());
+                .collect(Collectors.toCollection(ArrayList::new));  // ArrayList로 변환하여 수정 가능하게
+
+        // 출제자 순서를 랜덤하게 섞음
+        Collections.shuffle(playerIds);
+        log.info("Turn order randomized for room: {}, order: {}", roomInfo.getRoomId(), playerIds);
 
         GameState gameState = new GameState(
                 roomInfo.getRoomId(),

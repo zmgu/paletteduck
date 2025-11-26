@@ -26,7 +26,7 @@ public class RoomConstants {
     // 그리기 시간
     public static final int MIN_DRAW_TIME = 30;
     public static final int MAX_DRAW_TIME = 240;
-    public static final int DEFAULT_DRAW_TIME = 60;
+    public static final int DEFAULT_DRAW_TIME = 80;
 
     // Redis TTL
     public static final long ROOM_TTL_HOURS = 24;
