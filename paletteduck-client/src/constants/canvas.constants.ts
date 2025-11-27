@@ -1,8 +1,8 @@
 export const CANVAS_CONFIG = {
   WIDTH: 800,
   HEIGHT: 600,
-  THROTTLE_MS: 16,        // 16ms마다 전송 (60fps, 모니터 주사율과 동기화)
-  BATCH_SIZE: 3,          // 3개 포인트씩 전송 (최대한 빠른 전송)
+  THROTTLE_MS: 8,         // 8ms마다 전송 (125fps, 더 부드러운 곡선)
+  BATCH_SIZE: 5,          // 5개 포인트씩 전송 (곡선 품질 향상)
   BACKGROUND_COLOR: '#FFFFFF',
 } as const;
 

@@ -102,4 +102,12 @@ public class WebSocketRoomController {
         message.setTimestamp(System.currentTimeMillis());
         messagingTemplate.convertAndSend(WebSocketTopics.roomChat(roomId), message);
     }
+
+    @MessageMapping("/room/{roomId}/return-to-waiting")
+    public void returnToWaitingRoom(@DestinationVariable String roomId) {
+        RoomInfo roomInfo = roomGameService.returnToWaitingRoom(roomId);
+        messagingTemplate.convertAndSend(WebSocketTopics.room(roomId), roomInfo);
+
+        log.info("Room returned to waiting - room: {}", roomId);
+    }
 }

@@ -62,4 +62,39 @@ public class RoomGameService {
         roomInfo.setSettings(settings);
         roomRepository.save(roomId, roomInfo);
     }
+
+    /**
+     * 게임 종료 후 대기방으로 복귀
+     * - 이전 게임 설정 유지
+     * - 플레이어 ready 상태 초기화
+     * - 방 상태를 WAITING으로 변경
+     */
+    public RoomInfo returnToWaitingRoom(String roomId) {
+        RoomInfo roomInfo = roomRepository.findById(roomId);
+        if (roomInfo == null) {
+            throw new IllegalStateException("Room not found");
+        }
+
+        // 게임 중이 아니면 무시
+        if (roomInfo.getStatus() != RoomStatus.PLAYING) {
+            log.warn("Cannot return to waiting room - room is not playing: {}", roomId);
+            return roomInfo;
+        }
+
+        // 모든 플레이어 ready 상태 초기화
+        roomInfo.getPlayers().forEach(player -> player.setReady(false));
+
+        // 방 상태를 WAITING으로 변경
+        roomInfo.setStatus(RoomStatus.WAITING);
+
+        // 설정은 유지 (이전 판과 동일한 세팅)
+        roomRepository.save(roomId, roomInfo);
+
+        // GameState 삭제 (새 게임 시작 시 다시 생성)
+        gameService.deleteGame(roomId);
+
+        log.info("Returned to waiting room - room: {}, players: {}", roomId, roomInfo.getPlayers().size());
+
+        return roomInfo;
+    }
 }

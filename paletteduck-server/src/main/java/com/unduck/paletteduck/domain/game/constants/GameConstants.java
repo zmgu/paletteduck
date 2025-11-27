@@ -8,10 +8,37 @@ public final class GameConstants {
 
     // 점수 관련 상수
     public static final class Score {
+        // 정답자 등수별 기본 점수 (힌트 차감 전)
         public static final int FIRST_CORRECT = 300;
-        public static final int SECOND_CORRECT = 200;
-        public static final int THIRD_CORRECT = 100;
-        public static final int DRAWER_BONUS = 50;
+        public static final int SECOND_CORRECT = 220;
+        public static final int THIRD_CORRECT = 160;
+        public static final int FOURTH_CORRECT = 120;
+        public static final int FIFTH_CORRECT = 90;
+        public static final int SIXTH_OR_LATER_CORRECT = 70;
+
+        // 출제자 정답자별 누적 기본 점수
+        public static final int FIRST_ANSWERER = 50;
+        public static final int SECOND_ANSWERER = 45;
+        public static final int THIRD_ANSWERER = 40;
+        public static final int FOURTH_ANSWERER = 35;
+        public static final int FIFTH_ANSWERER = 30;
+        public static final int SIXTH_ANSWERER = 25;
+        public static final int SEVENTH_OR_LATER_ANSWERER = 20;
+
+        // 힌트 차감 점수 (정답자용)
+        public static final int CHOSUNG_HINT_PENALTY = 25;
+        public static final int LETTER_HINT_PENALTY = 50;
+
+        // 힌트 배율 (출제자용)
+        public static final double HINT_MULTIPLIER_NONE = 1.00;
+        public static final double HINT_MULTIPLIER_CHOSUNG_1 = 0.85;
+        public static final double HINT_MULTIPLIER_CHOSUNG_2 = 0.70;
+        public static final double HINT_MULTIPLIER_CHOSUNG_3 = 0.60;
+        public static final double HINT_MULTIPLIER_LETTER_1 = 0.50;
+        public static final double MIN_HINT_MULTIPLIER = 0.30;
+
+        // 최소 점수
+        public static final int MIN_SCORE = 0;
 
         private Score() {}
     }

@@ -32,6 +32,7 @@ public class WebSocketGameController {
     private final GameTimerService gameTimerService;
     private final SimpMessagingTemplate messagingTemplate;
     private final com.unduck.paletteduck.domain.room.service.RoomService roomService;
+    private final com.unduck.paletteduck.domain.game.service.GameScoringService gameScoringService;
 
     @MessageMapping("/room/{roomId}/game/word/select")
     public void selectWord(@DestinationVariable String roomId,
@@ -89,9 +90,16 @@ public class WebSocketGameController {
         // 그림 이벤트 저장 (도중 참가자를 위해)
         if (gameState.getCurrentTurn() != null && gameState.getCurrentTurn().getDrawingEvents() != null) {
             gameState.getCurrentTurn().getDrawingEvents().add(data);
-            gameService.updateGameState(roomId, gameState);
+
+            // ✅ Throttle 저장: 20개마다 한 번씩 Redis에 저장 (성능과 도중 참가 지원 균형)
+            int eventsCount = gameState.getCurrentTurn().getDrawingEvents().size();
+            if (eventsCount % 20 == 0) {
+                gameService.updateGameState(roomId, gameState);
+                log.debug("Drawing events saved to Redis - room: {}, events: {}", roomId, eventsCount);
+            }
         }
 
+        // 모든 클라이언트에게 실시간 브로드캐스트
         messagingTemplate.convertAndSend(WebSocketTopics.gameDrawing(roomId), data);
     }
 
@@ -226,46 +234,30 @@ public class WebSocketGameController {
     }
 
     private void handleCorrectAnswer(String roomId, GameState gameState, Player player, String nickname) {
-        if (player == null) {
-            log.error("Player not found in game state");
-            return;
-        }
+        // 정답자 이전 점수 저장
+        int previousAnswererScore = player.getScore() != null ? player.getScore() : 0;
 
-        // 플레이어 정답 여부 업데이트
-        player.setIsCorrect(true);
-
-        // 점수 계산
-        long correctCount = gameState.getPlayers().stream()
-                .filter(p -> Boolean.TRUE.equals(p.getIsCorrect()))
-                .count();
-
-        int earnedScore = 0;
-        if (correctCount == 1) {
-            earnedScore = GameConstants.Score.FIRST_CORRECT;
-        } else if (correctCount == 2) {
-            earnedScore = GameConstants.Score.SECOND_CORRECT;
-        } else if (correctCount == 3) {
-            earnedScore = GameConstants.Score.THIRD_CORRECT;
-        }
-
-        player.setScore((player.getScore() != null ? player.getScore() : 0) + earnedScore);
-
-        // 이번 턴 획득 점수 기록
-        TurnInfo currentTurn = gameState.getCurrentTurn();
-        currentTurn.getTurnScores().put(player.getPlayerId(), earnedScore);
-
-        // 출제자 점수
+        // 출제자 이전 점수 저장
         String drawerId = gameState.getCurrentTurn().getDrawerId();
         Player drawer = gameState.getPlayers().stream()
                 .filter(p -> p.getPlayerId().equals(drawerId))
                 .findFirst()
                 .orElse(null);
+        int previousDrawerScore = (drawer != null && drawer.getScore() != null) ? drawer.getScore() : 0;
+
+        // GameScoringService를 통한 점수 계산 (정답자 + 출제자 모두 처리)
+        gameScoringService.handleCorrectAnswer(gameState, player);
+
+        // 이번 턴 획득 점수 기록
+        TurnInfo currentTurn = gameState.getCurrentTurn();
+        int earnedScore = (player.getScore() != null ? player.getScore() : 0) - previousAnswererScore;
+        currentTurn.getTurnScores().put(player.getPlayerId(), earnedScore);
+
+        // 출제자 획득 점수 기록 (누적)
         if (drawer != null) {
-            int drawerBonus = GameConstants.Score.DRAWER_BONUS;
-            drawer.setScore((drawer.getScore() != null ? drawer.getScore() : 0) + drawerBonus);
-            // 출제자 보너스도 기록
+            int drawerEarnedScore = (drawer.getScore() != null ? drawer.getScore() : 0) - previousDrawerScore;
             currentTurn.getTurnScores().put(drawerId,
-                (currentTurn.getTurnScores().getOrDefault(drawerId, 0)) + drawerBonus);
+                    (currentTurn.getTurnScores().getOrDefault(drawerId, 0)) + drawerEarnedScore);
         }
 
         // 게임 상태 저장만 (브로드캐스트는 나중에)

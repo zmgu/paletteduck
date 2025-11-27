@@ -18,24 +18,29 @@ export const useDrawing = (roomId: string, gameState?: GameState | null) => {
     const drawingEvents = gameState?.currentTurn?.drawingEvents;
     const drawingEventsLength = drawingEvents?.length || 0;
 
+    console.log(`[useDrawing] useEffect triggered - turnNumber: ${turnNumber}, currentTurnNumber: ${currentTurnNumber.current}, drawingEventsLength: ${drawingEventsLength}, hasLoadedEvents: ${hasLoadedEvents.current}`);
+
     // 턴이 바뀌면 초기화
     if (turnNumber !== undefined && turnNumber !== currentTurnNumber.current) {
+      console.log(`[useDrawing] Turn changed: ${currentTurnNumber.current} -> ${turnNumber}`);
       currentTurnNumber.current = turnNumber;
       hasLoadedEvents.current = false;
       setInitialDrawingEvents([]);
 
       // 새 턴의 그림 이벤트가 있으면 설정
       if (drawingEvents && drawingEvents.length > 0) {
-        console.log(`[useDrawing] Loading ${drawingEvents.length} drawing events for turn ${turnNumber}`);
+        console.log(`[useDrawing] Loading ${drawingEvents.length} drawing events for turn ${turnNumber}`, drawingEvents);
         setInitialDrawingEvents(drawingEvents);
         hasLoadedEvents.current = true;
+      } else {
+        console.log(`[useDrawing] No drawing events to load for turn ${turnNumber}`);
       }
     }
     // 같은 턴이지만 drawingEvents가 새로 들어온 경우 (도중 참가)
     else if (turnNumber === currentTurnNumber.current &&
              !hasLoadedEvents.current &&
              drawingEventsLength > 0) {
-      console.log(`[useDrawing] Mid-game join - Loading ${drawingEventsLength} drawing events for turn ${turnNumber}`);
+      console.log(`[useDrawing] Mid-game join - Loading ${drawingEventsLength} drawing events for turn ${turnNumber}`, drawingEvents);
       setInitialDrawingEvents(drawingEvents!);
       hasLoadedEvents.current = true;
     }
@@ -57,15 +62,19 @@ export const useDrawing = (roomId: string, gameState?: GameState | null) => {
 
     let unsubscribe: (() => void) | undefined;
     wsClient.connect(() => {
+      console.log(`[useDrawing] Subscribing to GAME_DRAWING - roomId: ${roomId}`);
       unsubscribe = wsClient.subscribe(WS_TOPICS.GAME_DRAWING(roomId), (data: DrawingData) => {
         setDrawingData(data);
       });
     });
 
     return () => {
-      if (unsubscribe) unsubscribe();
+      if (unsubscribe) {
+        console.log(`[useDrawing] Unsubscribing from GAME_DRAWING - roomId: ${roomId}`);
+        unsubscribe();
+      }
     };
-  }, [roomId, gameState?.phase]); // gameState.phase를 의존성에 추가하여 페이즈 변경 시에도 재구독
+  }, [roomId]); // ✅ roomId만 의존 - 도중 참가해도 항상 구독됨
 
   const sendDrawing = (data: Omit<DrawingData, 'playerId'>) => {
     const playerInfo = getPlayerInfo();
