@@ -16,7 +16,9 @@ class WebSocketClient {
     }
 
     if (this.connecting) {
-      console.log('WebSocket connection in progress');
+      // ✅ 연결 중일 때도 콜백을 pending에 추가 (여러 hook의 구독 보장)
+      console.log('WebSocket connection in progress, adding callback to pending');
+      this.pendingSubscriptions.push(onConnect);
       return;
     }
 

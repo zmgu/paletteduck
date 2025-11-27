@@ -1,4 +1,4 @@
-import { useEffect, useState, useMemo } from 'react';
+import { useEffect, useState } from 'react';
 import { useLocation } from 'react-router-dom';
 import { wsClient } from '../../../utils/wsClient';
 import { WS_TOPICS, WS_DESTINATIONS } from '../../../constants/wsDestinations';
@@ -11,32 +11,41 @@ export const useGameState = (roomId: string) => {
     location.state?.gameState || null  // 초기 상태 복원
   );
   const [timeLeft, setTimeLeft] = useState(0);
-  const playerInfo = useMemo(() => getPlayerInfo(), []);
 
   useEffect(() => {
+    // ✅ 매번 최신 playerInfo를 가져옴 (도중 참가 관전자 대응)
+    const playerInfo = getPlayerInfo();
 
     if (!playerInfo || !roomId) {
-      console.error('[useGameState] Missing playerInfo or roomId!');
+      console.error('[useGameState] Missing playerInfo or roomId!', { playerInfo, roomId });
       return;
     }
+
+    console.log(`[useGameState] Initializing - playerId: ${playerInfo.playerId}, roomId: ${roomId}`);
 
     let unsubscribe: (() => void) | undefined;
 
     // WebSocket 연결 및 세션 등록 (도중 참가자를 위해 필수)
     wsClient.connect(() => {
-      // 세션 등록
+      console.log(`[useGameState] WebSocket connected, registering session`);
+
+      // 세션 등록 (서버가 현재 GameState를 브로드캐스트함)
       wsClient.send(WS_DESTINATIONS.ROOM_REGISTER(roomId), playerInfo.playerId);
 
       // GameState 구독
       unsubscribe = wsClient.subscribe(WS_TOPICS.GAME_STATE(roomId), (data: GameState) => {
+        console.log(`[useGameState] Received GameState - phase: ${data.phase}, turn: ${data.currentTurn?.turnNumber}, drawingEvents: ${data.currentTurn?.drawingEvents?.length || 0}`);
         setGameState(data);
       });
     });
 
     return () => {
-      if (unsubscribe) unsubscribe();
+      if (unsubscribe) {
+        console.log(`[useGameState] Unsubscribing from GAME_STATE`);
+        unsubscribe();
+      }
     };
-  }, [roomId, playerInfo]);
+  }, [roomId]);
 
   // 타이머 카운트다운
   useEffect(() => {

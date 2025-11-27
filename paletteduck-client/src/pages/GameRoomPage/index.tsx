@@ -54,6 +54,14 @@ export default function GameRoomPage() {
     });
   }, [roomId, playerInfo?.playerId]);
 
+  const handleReturnToWaiting = useCallback(() => {
+    if (!roomId) return;
+    // 대기방 복귀 요청
+    wsClient.send(`/app/room/${roomId}/return-to-waiting`, {});
+    // 페이지 이동
+    navigate(`/room/${roomId}`, { state: { returnFromGame: true } });
+  }, [roomId, navigate]);
+
   // DRAWING 페이즈 중 주기적으로 캔버스 이미지 캡처 (백업)
   useEffect(() => {
     if (gameState?.phase !== 'DRAWING') return;
@@ -102,11 +110,22 @@ export default function GameRoomPage() {
   // 순위 계산 (점수 내림차순)
   const sortedPlayers = [...(gameState.players || [])].sort((a, b) => b.score - a.score);
 
+  // 추천수 1위 계산 (베스트 아티스트)
+  const bestArtist = gameState.players?.reduce((best, player) => {
+    const playerLikes = player.totalLikes || 0;
+    const bestLikes = best?.totalLikes || 0;
+    return playerLikes > bestLikes ? player : best;
+  }, gameState.players?.[0]);
+
   return (
     <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto' }}>
-      <h1>게임 진행 중</h1>
-      
-      <GameHeader gameState={gameState} timeLeft={timeLeft} isDrawer={isDrawer} />
+      {/* 게임 종료 화면이 아닐 때만 표시 */}
+      {gameState.phase !== 'GAME_END' && (
+        <>
+          <h1>게임 진행 중</h1>
+          <GameHeader gameState={gameState} timeLeft={timeLeft} isDrawer={isDrawer} />
+        </>
+      )}
 
       {gameState.phase === 'WORD_SELECT' && isDrawer && gameState.currentTurn && (
         <WordSelect 
@@ -261,62 +280,119 @@ export default function GameRoomPage() {
           borderRadius: '8px',
           boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
         }}>
-          <h2 style={{ textAlign: 'center', marginBottom: '30px' }}>게임 종료!</h2>
+          <h2 style={{ textAlign: 'center', marginBottom: '10px' }}>🎉 게임 종료! 🎉</h2>
+
+          {/* 베스트 아티스트 표시 */}
+          {bestArtist && (bestArtist.totalLikes || 0) > 0 && (
+            <div style={{
+              textAlign: 'center',
+              marginBottom: '30px',
+              padding: '15px',
+              backgroundColor: '#f0e5ff',
+              borderRadius: '8px',
+              border: '2px solid #9c27b0',
+            }}>
+              <div style={{ fontSize: '24px', marginBottom: '5px' }}>🎨 베스트 아티스트 🎨</div>
+              <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#9c27b0' }}>
+                {bestArtist.nickname} ({bestArtist.totalLikes}개 추천)
+              </div>
+            </div>
+          )}
 
           <div style={{ maxWidth: '600px', margin: '0 auto' }}>
             <h3 style={{ marginBottom: '20px' }}>최종 순위</h3>
-            {sortedPlayers.map((player, index) => (
-              <div
-                key={player.playerId}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  padding: '15px 20px',
-                  marginBottom: '10px',
-                  backgroundColor: index === 0 ? '#fff3cd' : '#f8f9fa',
-                  border: index === 0 ? '2px solid #ffc107' : '1px solid #dee2e6',
-                  borderRadius: '8px',
-                }}
-              >
-                <span style={{
-                  fontSize: '24px',
-                  fontWeight: 'bold',
-                  marginRight: '20px',
-                  width: '40px',
-                  textAlign: 'center',
-                }}>
-                  {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}위`}
-                </span>
-                <span style={{
-                  flex: 1,
-                  fontSize: '18px',
-                  fontWeight: player.playerId === playerInfo?.playerId ? 'bold' : 'normal',
-                  color: player.playerId === playerInfo?.playerId ? '#007bff' : '#000',
-                }}>
-                  {player.nickname}
-                  {player.playerId === playerInfo?.playerId && ' (나)'}
-                </span>
-                <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-                  {player.score}점
-                </span>
-              </div>
-            ))}
+            {sortedPlayers.map((player, index) => {
+              const isBestArtist = bestArtist?.playerId === player.playerId && (bestArtist?.totalLikes || 0) > 0;
+              return (
+                <div
+                  key={player.playerId}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: '15px 20px',
+                    marginBottom: '10px',
+                    backgroundColor: index === 0 ? '#fff3cd' : '#f8f9fa',
+                    border: index === 0 ? '2px solid #ffc107' : '1px solid #dee2e6',
+                    borderRadius: '8px',
+                    position: 'relative',
+                  }}
+                >
+                  {/* 베스트 아티스트 왕관 */}
+                  {isBestArtist && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '-10px',
+                      right: '-10px',
+                      fontSize: '32px',
+                      transform: 'rotate(15deg)',
+                    }}>
+                      👑
+                    </div>
+                  )}
+
+                  <span style={{
+                    fontSize: '24px',
+                    fontWeight: 'bold',
+                    marginRight: '20px',
+                    width: '40px',
+                    textAlign: 'center',
+                  }}>
+                    {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}위`}
+                  </span>
+
+                  <div style={{ flex: 1 }}>
+                    <div style={{
+                      fontSize: '18px',
+                      fontWeight: player.playerId === playerInfo?.playerId ? 'bold' : 'normal',
+                      color: player.playerId === playerInfo?.playerId ? '#007bff' : '#000',
+                    }}>
+                      {player.nickname}
+                      {player.playerId === playerInfo?.playerId && ' (나)'}
+                    </div>
+                    {/* 추천수 표시 */}
+                    <div style={{ fontSize: '14px', color: '#666', marginTop: '4px' }}>
+                      👍 추천 {player.totalLikes || 0}개
+                      {(player.totalDislikes || 0) > 0 && ` • 👎 ${player.totalDislikes}개`}
+                    </div>
+                  </div>
+
+                  <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                    {player.score}점
+                  </span>
+                </div>
+              );
+            })}
           </div>
 
-          <div style={{ textAlign: 'center', marginTop: '40px' }}>
+          <div style={{ textAlign: 'center', marginTop: '40px', display: 'flex', gap: '15px', justifyContent: 'center' }}>
+            <button
+              onClick={handleReturnToWaiting}
+              style={{
+                padding: '12px 40px',
+                fontSize: '16px',
+                backgroundColor: '#28a745',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+              }}
+            >
+              대기방으로 돌아가기
+            </button>
             <button
               onClick={() => navigate('/')}
               style={{
                 padding: '12px 40px',
                 fontSize: '16px',
-                backgroundColor: '#007bff',
+                backgroundColor: '#6c757d',
                 color: 'white',
                 border: 'none',
                 borderRadius: '4px',
                 cursor: 'pointer',
               }}
             >
-              메인으로 돌아가기
+              메인으로
             </button>
           </div>
         </div>

@@ -113,14 +113,24 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
 
   // 초기 그림 이벤트 적용 (도중 참가자를 위해)
   useEffect(() => {
-    if (!initialDrawingEvents || initialDrawingEvents.length === 0 || !ctx || isDrawer) return;
+    console.log(`[Canvas] initialDrawingEvents effect - events: ${initialDrawingEvents?.length || 0}, ctx: ${!!ctx}, isDrawer: ${isDrawer}`);
 
-    console.log(`[Canvas] Applying ${initialDrawingEvents.length} initial drawing events`);
+    if (!initialDrawingEvents || initialDrawingEvents.length === 0 || !ctx || isDrawer) {
+      if (!ctx) console.log('[Canvas] No ctx available');
+      if (isDrawer) console.log('[Canvas] User is drawer, skipping initial events');
+      if (!initialDrawingEvents || initialDrawingEvents.length === 0) {
+        console.log('[Canvas] No initial drawing events');
+      }
+      return;
+    }
+
+    console.log(`[Canvas] Applying ${initialDrawingEvents.length} initial drawing events`, initialDrawingEvents);
 
     // 모든 초기 이벤트를 순차적으로 적용
     let localLastPoint: { x: number; y: number } | null = null;
 
-    initialDrawingEvents.forEach((event) => {
+    initialDrawingEvents.forEach((event, index) => {
+      console.log(`[Canvas] Processing event ${index + 1}/${initialDrawingEvents.length}`, event);
       const { t, c, w, p, s } = event;
 
       if (!p || p.length < 2) return;
