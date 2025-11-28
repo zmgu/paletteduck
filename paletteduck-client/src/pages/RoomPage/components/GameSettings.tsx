@@ -38,8 +38,8 @@ export default function GameSettings({ settings, isHost, onSettingsChange }: Gam
           {isHost && (
             <input
               type="range"
-              min={settings.mode === 'CUSTOM' ? GAME_CONSTANTS.MIN_ROUNDS_CUSTOM : GAME_CONSTANTS.MIN_ROUNDS}
-              max={settings.mode === 'CUSTOM' ? GAME_CONSTANTS.MAX_ROUNDS_CUSTOM : GAME_CONSTANTS.MAX_ROUNDS}
+              min={GAME_CONSTANTS.MIN_ROUNDS}
+              max={GAME_CONSTANTS.MAX_ROUNDS}
               value={settings.rounds}
               onChange={(e) => onSettingsChange({ rounds: parseInt(e.target.value) })}
               style={{ width: '100%' }}
@@ -52,7 +52,7 @@ export default function GameSettings({ settings, isHost, onSettingsChange }: Gam
           <label style={{ display: 'block', marginBottom: '5px' }}>
             단어 선택지: {settings.wordChoices}개
           </label>
-          {isHost && settings.mode === 'NORMAL' ? (
+          {isHost && (
             <input
               type="range"
               min={GAME_CONSTANTS.MIN_WORD_CHOICES}
@@ -61,9 +61,7 @@ export default function GameSettings({ settings, isHost, onSettingsChange }: Gam
               onChange={(e) => onSettingsChange({ wordChoices: parseInt(e.target.value) })}
               style={{ width: '100%' }}
             />
-          ) : settings.mode === 'CUSTOM' ? (
-            <span> (고정)</span>
-          ) : null}
+          )}
         </div>
 
         {/* 그리기 시간 */}
@@ -80,30 +78,6 @@ export default function GameSettings({ settings, isHost, onSettingsChange }: Gam
               {GAME_CONSTANTS.DRAW_TIME_OPTIONS.map(time => (
                 <option key={time} value={time}>{time}초</option>
               ))}
-            </select>
-          )}
-        </div>
-
-        {/* 모드 */}
-        <div>
-          <label style={{ display: 'block', marginBottom: '5px' }}>
-            모드: {settings.mode === 'NORMAL' ? '일반' : '커스텀'}
-          </label>
-          {isHost && (
-            <select
-              value={settings.mode}
-              onChange={(e) => {
-                const mode = e.target.value as 'NORMAL' | 'CUSTOM';
-                onSettingsChange({ 
-                  mode,
-                  rounds: mode === 'CUSTOM' ? GAME_CONSTANTS.MIN_ROUNDS_CUSTOM : settings.rounds,
-                  wordChoices: mode === 'CUSTOM' ? GAME_CONSTANTS.WORD_CHOICES_CUSTOM : settings.wordChoices
-                });
-              }}
-              style={{ width: '100%', padding: '8px' }}
-            >
-              <option value="NORMAL">일반 모드</option>
-              <option value="CUSTOM">커스텀 모드</option>
             </select>
           )}
         </div>
