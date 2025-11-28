@@ -24,7 +24,10 @@ export default function GameRoomPage() {
   const playerInfo = useMemo(() => getPlayerInfo(), []);
   const canvasRef = useRef<CanvasHandle>(null);
   const [canvasImageUrl, setCanvasImageUrl] = useState<string>('');
-  const prevPhaseRef = useRef<string | undefined>(undefined);
+
+  // 관전자 도중 참가 판단
+  const [spectatorJoinTurn, setSpectatorJoinTurn] = useState<number | null>(null);
+  const seenWordSelectForTurnRef = useRef<Set<number>>(new Set());
 
   // Extract initial roomInfo from location state
   const initialRoomInfo = location.state?.roomInfo as RoomInfo | undefined;
@@ -76,17 +79,11 @@ export default function GameRoomPage() {
     return () => clearInterval(intervalId);
   }, [gameState?.phase]);
 
-  // 페이즈 전환 시 처리
+  // 새로운 턴 시작 시 캔버스 이미지 초기화
   useLayoutEffect(() => {
-    const currentPhase = gameState?.phase;
-
-    // 새로운 턴 시작 시 이미지 초기화
-    if (currentPhase === 'WORD_SELECT') {
+    if (gameState?.phase === 'WORD_SELECT') {
       setCanvasImageUrl('');
     }
-
-    // 현재 페이즈 저장
-    prevPhaseRef.current = currentPhase;
   }, [gameState?.phase]);
 
   if (!gameState) {
@@ -101,6 +98,32 @@ export default function GameRoomPage() {
   // 관전자 여부 확인
   const currentRoomPlayer = roomInfo?.players?.find(p => p.playerId === playerInfo?.playerId);
   const isSpectator = currentRoomPlayer?.role === 'SPECTATOR';
+
+  // 관전자 도중 참가 감지
+  useEffect(() => {
+    if (!isSpectator) {
+      setSpectatorJoinTurn(null);
+      seenWordSelectForTurnRef.current.clear();
+      return;
+    }
+
+    if (!gameState?.currentTurn) return;
+
+    const currentTurn = gameState.currentTurn.turnNumber;
+    const currentPhase = gameState.phase;
+
+    if (currentPhase === 'WORD_SELECT') {
+      seenWordSelectForTurnRef.current.add(currentTurn);
+    }
+
+    if (currentPhase === 'DRAWING' && !seenWordSelectForTurnRef.current.has(currentTurn) && spectatorJoinTurn === null) {
+      setSpectatorJoinTurn(currentTurn);
+    }
+  }, [isSpectator, gameState, spectatorJoinTurn]);
+
+  const isSpectatorMidJoin = isSpectator &&
+    spectatorJoinTurn !== null &&
+    gameState?.currentTurn?.turnNumber === spectatorJoinTurn;
 
   const isChatDisabled = isDrawer || isSpectator;
 
@@ -145,6 +168,7 @@ export default function GameRoomPage() {
               clearSignal={clearSignal}
               currentVote={currentVote}
               canvasRef={canvasRef}
+              isSpectatorMidJoin={isSpectatorMidJoin}
               onDrawing={isDrawer ? sendDrawing : undefined}
               onClearCanvas={isDrawer ? clearCanvas : undefined}
               onProvideChosungHint={isDrawer ? provideChosungHint : undefined}

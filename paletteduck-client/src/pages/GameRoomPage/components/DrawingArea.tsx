@@ -12,6 +12,7 @@ interface DrawingAreaProps {
   clearSignal: number;
   currentVote?: VoteType;
   canvasRef?: Ref<CanvasHandle>;
+  isSpectatorMidJoin?: boolean;
   onDrawing?: (data: Omit<DrawingData, 'playerId'>) => void;
   onClearCanvas?: () => void;
   onProvideChosungHint?: () => void;
@@ -27,6 +28,7 @@ export default function DrawingArea({
   clearSignal,
   currentVote,
   canvasRef,
+  isSpectatorMidJoin,
   onDrawing,
   onClearCanvas,
   onProvideChosungHint,
@@ -155,6 +157,7 @@ export default function DrawingArea({
           clearSignal={clearSignal}
           onClearRequest={onClearCanvas}
           turnNumber={turnInfo.turnNumber}
+          isSpectatorMidJoin={isSpectatorMidJoin}
         />
       </div>
 
