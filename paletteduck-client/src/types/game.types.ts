@@ -1,6 +1,5 @@
 export type PlayerRole = 'PLAYER' | 'SPECTATOR';
 export type RoomStatus = 'WAITING' | 'PLAYING' | 'FINISHED';
-export type GameMode = 'NORMAL' | 'CUSTOM';
 export type ChatType = 'NORMAL' | 'CORRECT' | 'SYSTEM';
 export type GamePhase = 'COUNTDOWN' | 'WORD_SELECT' | 'DRAWING' | 'TURN_RESULT' | 'ROUND_END' | 'GAME_END';
 export type VoteType = 'LIKE' | 'DISLIKE' | 'NONE';
@@ -33,7 +32,6 @@ export interface GameSettings {
   maxPlayers: number;
   rounds: number;
   wordChoices: number;
-  mode: GameMode;
   drawTime: number;
   maxSpectators: number;
 }
