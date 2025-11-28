@@ -12,6 +12,7 @@ interface CanvasProps {
   clearSignal?: number;
   onClearRequest?: () => void;
   turnNumber?: number;  // 턴 번호 변경 시 자동 초기화
+  isSpectatorMidJoin?: boolean;  // 도중 참가 관전자 여부
 }
 
 export interface CanvasHandle {
@@ -25,15 +26,14 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
   initialDrawingEvents,
   clearSignal,
   onClearRequest,
-  turnNumber
+  turnNumber,
+  isSpectatorMidJoin
 }: CanvasProps, ref) => {
   const [tool, setTool] = useState<Tool>('pen');
   const [color, setColor] = useState('#000000');
   const [width, setWidth] = useState(4);
-  
-  // ✅ 이전 포인트 추적
+
   const lastPointRef = useRef<{ x: number; y: number } | null>(null);
-  // ✅ 중복 실행 방지를 위한 마지막 처리 데이터 추적
   const lastProcessedRef = useRef<string | null>(null);
 
   const {
@@ -47,7 +47,7 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
 
   // 다른 사람의 그림 수신 (실시간)
   useEffect(() => {
-    if (!drawingData || !ctx || isDrawer) return;
+    if (!drawingData || !ctx || isDrawer || isSpectatorMidJoin) return;
 
     const { t, c, w, p, s } = drawingData;
 
@@ -100,7 +100,7 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
       x: p[p.length - 2],
       y: p[p.length - 1]
     };
-  }, [drawingData, ctx, isDrawer]);
+  }, [drawingData, ctx, isDrawer, turnNumber]);
 
   // 턴 번호 변경 시 캔버스 자동 초기화
   useEffect(() => {
@@ -113,24 +113,13 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
 
   // 초기 그림 이벤트 적용 (도중 참가자를 위해)
   useEffect(() => {
-    console.log(`[Canvas] initialDrawingEvents effect - events: ${initialDrawingEvents?.length || 0}, ctx: ${!!ctx}, isDrawer: ${isDrawer}`);
-
-    if (!initialDrawingEvents || initialDrawingEvents.length === 0 || !ctx || isDrawer) {
-      if (!ctx) console.log('[Canvas] No ctx available');
-      if (isDrawer) console.log('[Canvas] User is drawer, skipping initial events');
-      if (!initialDrawingEvents || initialDrawingEvents.length === 0) {
-        console.log('[Canvas] No initial drawing events');
-      }
+    if (!initialDrawingEvents || initialDrawingEvents.length === 0 || !ctx || isDrawer || isSpectatorMidJoin) {
       return;
     }
 
-    console.log(`[Canvas] Applying ${initialDrawingEvents.length} initial drawing events`, initialDrawingEvents);
-
-    // 모든 초기 이벤트를 순차적으로 적용
     let localLastPoint: { x: number; y: number } | null = null;
 
-    initialDrawingEvents.forEach((event, index) => {
-      console.log(`[Canvas] Processing event ${index + 1}/${initialDrawingEvents.length}`, event);
+    initialDrawingEvents.forEach((event) => {
       const { t, c, w, p, s } = event;
 
       if (!p || p.length < 2) return;
@@ -180,7 +169,7 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
     if (localLastPoint) {
       lastPointRef.current = localLastPoint;
     }
-  }, [initialDrawingEvents, ctx, isDrawer]);
+  }, [initialDrawingEvents, ctx, isDrawer, turnNumber]);
 
   // Clear 신호
   useEffect(() => {
@@ -200,7 +189,6 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
     }
   };
 
-  // 외부에서 캔버스 이미지를 캡처할 수 있도록 ref 노출
   useImperativeHandle(ref, () => ({
     captureImage: () => {
       if (!canvasRef.current) return '';
@@ -209,7 +197,7 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
   }));
 
   return (
-    <div style={{ border: '2px solid #ccc', borderRadius: '8px', overflow: 'hidden' }}>
+    <div style={{ border: '2px solid #ccc', borderRadius: '8px', overflow: 'hidden', position: 'relative' }}>
       {isDrawer && (
         <CanvasToolbar
           tool={tool}
@@ -236,6 +224,47 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
         onMouseUp={isDrawer ? () => handleMouseUp(tool, color, width) : undefined}
         onMouseLeave={isDrawer ? () => handleMouseUp(tool, color, width) : undefined}
       />
+
+      {/* 도중 참가 관전자 안내 오버레이 */}
+      {isSpectatorMidJoin && (
+        <div style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(255, 255, 255, 0.95)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: '20px',
+          padding: '40px',
+          textAlign: 'center',
+          pointerEvents: 'none',
+        }}>
+          <div style={{
+            fontSize: '48px',
+          }}>
+            👀
+          </div>
+          <div style={{
+            fontSize: '20px',
+            fontWeight: 'bold',
+            color: '#ff9800',
+            lineHeight: '1.6',
+          }}>
+            입장한 턴의 그림은 보이지 않습니다
+          </div>
+          <div style={{
+            fontSize: '16px',
+            color: '#666',
+            lineHeight: '1.5',
+          }}>
+            다음 턴부터 그림을 볼 수 있습니다
+          </div>
+        </div>
+      )}
     </div>
   );
 });
