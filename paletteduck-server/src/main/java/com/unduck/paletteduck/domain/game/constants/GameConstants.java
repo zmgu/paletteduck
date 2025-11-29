@@ -45,7 +45,7 @@ public final class GameConstants {
 
     // 타이밍 관련 상수
     public static final class Timing {
-        public static final int WORD_SELECT_TIME = 15;
+        public static final int WORD_SELECT_TIME = 20;
         public static final int COUNTDOWN_TIME = 3;
         public static final int ROUND_END_DELAY = 5000;  // 5초 (밀리초 단위)
         public static final int DRAWING_THROTTLE_MS = 50;

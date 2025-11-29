@@ -14,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 public class GameState {
     private String roomId;              // 방 ID
+    private String gameSessionId;       // 게임 세션 ID (게임 재시작 시 변경됨)
     private int currentRound;           // 현재 라운드 (1부터 시작)
     private int totalRounds;            // 전체 라운드 수
     private GamePhase phase;            // 현재 진행 단계
@@ -25,6 +26,7 @@ public class GameState {
 
     public GameState(String roomId, int totalRounds, int drawTime, List<String> turnOrder) {
         this.roomId = roomId;
+        this.gameSessionId = java.util.UUID.randomUUID().toString(); // 새 게임 시작 시 고유 ID 생성
         this.currentRound = 1;
         this.totalRounds = totalRounds;
         this.phase = GamePhase.COUNTDOWN;
