@@ -86,6 +86,20 @@ export default function GameRoomPage() {
     }
   }, [gameState?.phase]);
 
+  // 게임 시작 시 직접 입력 횟수 초기화
+  useEffect(() => {
+    if (!gameState || !roomId || !playerInfo) return;
+
+    if (gameState.currentRound === 1 && gameState.phase === 'COUNTDOWN') {
+      const storageKey = `customWordUsed_${roomId}_${playerInfo.playerId}`;
+      const wasUsed = localStorage.getItem(storageKey);
+
+      if (wasUsed === 'true') {
+        localStorage.removeItem(storageKey);
+      }
+    }
+  }, [gameState?.currentRound, gameState?.phase, roomId, playerInfo]);
+
   if (!gameState) {
     return <div style={{ padding: '20px' }}>게임 로딩 중...</div>;
   }
@@ -151,9 +165,10 @@ export default function GameRoomPage() {
       )}
 
       {gameState.phase === 'WORD_SELECT' && isDrawer && gameState.currentTurn && (
-        <WordSelect 
-          turnInfo={gameState.currentTurn} 
-          onSelectWord={selectWord} 
+        <WordSelect
+          turnInfo={gameState.currentTurn}
+          onSelectWord={selectWord}
+          roomId={roomId!}
         />
       )}
 

@@ -94,16 +94,23 @@ public class GameTimerService {
                 roomId, drawerNickname, wordChoices);
 
         // 단어 선택 타이머 시작
-        self.startWordSelectTimer(roomId, 1);
+        self.startWordSelectTimer(roomId, gameState.getGameSessionId(), 1);
     }
 
     @Async
-    public void startWordSelectTimer(String roomId, int turnNumber) {
+    public void startWordSelectTimer(String roomId, String gameSessionId, int turnNumber) {
         try {
             TimeUnit.SECONDS.sleep(GameConstants.Timing.WORD_SELECT_TIME);
 
             GameState gameState = gameRepository.findById(roomId);
             if (gameState == null || gameState.getCurrentTurn() == null) {
+                return;
+            }
+
+            // ✅ 게임 세션이 다르면 무시 (게임 재시작된 경우)
+            if (!gameSessionId.equals(gameState.getGameSessionId())) {
+                log.debug("Word select timer expired for old game session - room: {}, timer session: {}, current session: {}",
+                    roomId, gameSessionId, gameState.getGameSessionId());
                 return;
             }
 
@@ -159,34 +166,42 @@ public class GameTimerService {
         log.info("Drawing phase started - room: {}, word: {}, time: {}s",
                 roomId, gameState.getCurrentTurn().getWord(), gameState.getDrawTime());
 
+        String gameSessionId = gameState.getGameSessionId();
         int turnNumber = gameState.getCurrentTurn().getTurnNumber();
         int drawTime = gameState.getDrawTime();
 
         // 그리기 타이머 시작
-        self.startDrawingTimer(roomId, turnNumber, drawTime);
+        self.startDrawingTimer(roomId, gameSessionId, turnNumber, drawTime);
 
         // 힌트 타이머 시작 (그리기 시간이 충분히 긴 경우에만)
         if (drawTime >= GameConstants.Timing.FIRST_HINT_DELAY) {
             log.info("Starting first hint timer - room: {}, delay: {}s", roomId, GameConstants.Timing.FIRST_HINT_DELAY);
-            self.startHintTimer(roomId, turnNumber, 1, GameConstants.Timing.FIRST_HINT_DELAY);
+            self.startHintTimer(roomId, gameSessionId, turnNumber, 1, GameConstants.Timing.FIRST_HINT_DELAY);
         } else {
             log.debug("Skipping first hint (drawTime: {}s < required: {}s)", drawTime, GameConstants.Timing.FIRST_HINT_DELAY);
         }
         if (drawTime >= GameConstants.Timing.SECOND_HINT_DELAY) {
             log.info("Starting second hint timer - room: {}, delay: {}s", roomId, GameConstants.Timing.SECOND_HINT_DELAY);
-            self.startHintTimer(roomId, turnNumber, 2, GameConstants.Timing.SECOND_HINT_DELAY);
+            self.startHintTimer(roomId, gameSessionId, turnNumber, 2, GameConstants.Timing.SECOND_HINT_DELAY);
         } else {
             log.debug("Skipping second hint (drawTime: {}s < required: {}s)", drawTime, GameConstants.Timing.SECOND_HINT_DELAY);
         }
     }
 
     @Async
-    public void startDrawingTimer(String roomId, int turnNumber, int drawTime) {
+    public void startDrawingTimer(String roomId, String gameSessionId, int turnNumber, int drawTime) {
         try {
             TimeUnit.SECONDS.sleep(drawTime);
 
             GameState gameState = gameRepository.findById(roomId);
             if (gameState == null || gameState.getCurrentTurn() == null) {
+                return;
+            }
+
+            // ✅ 게임 세션이 다르면 무시 (게임 재시작된 경우)
+            if (!gameSessionId.equals(gameState.getGameSessionId())) {
+                log.debug("Drawing timer expired for old game session - room: {}, timer session: {}, current session: {}",
+                    roomId, gameSessionId, gameState.getGameSessionId());
                 return;
             }
 
@@ -334,7 +349,7 @@ public class GameTimerService {
                 roomId, nextTurnNumber, totalTurns, currentRound, gameState.getTotalRounds(), drawerNickname);
 
         // 단어 선택 타이머 시작
-        self.startWordSelectTimer(roomId, nextTurnNumber);
+        self.startWordSelectTimer(roomId, gameState.getGameSessionId(), nextTurnNumber);
     }
 
     public void endGame(String roomId, GameState gameState) {
@@ -350,12 +365,19 @@ public class GameTimerService {
     }
 
     @Async
-    public void startHintTimer(String roomId, int turnNumber, int hintLevel, int delaySeconds) {
+    public void startHintTimer(String roomId, String gameSessionId, int turnNumber, int hintLevel, int delaySeconds) {
         try {
             TimeUnit.SECONDS.sleep(delaySeconds);
 
             GameState gameState = gameRepository.findById(roomId);
             if (gameState == null || gameState.getCurrentTurn() == null) {
+                return;
+            }
+
+            // 게임 세션이 다르면 무시 (게임 재시작된 경우)
+            if (!gameSessionId.equals(gameState.getGameSessionId())) {
+                log.debug("Hint timer expired for old game session - room: {}, timer session: {}, current session: {}",
+                    roomId, gameSessionId, gameState.getGameSessionId());
                 return;
             }
 
@@ -431,16 +453,24 @@ public class GameTimerService {
             return;
         }
 
-        // 선택지에 있는 단어인지 확인
-        if (!gameState.getCurrentTurn().getWordChoices().contains(word)) {
-            log.warn("Invalid word selection - word: {}", word);
+        // 선택지에 있는 단어인지 확인, 또는 직접 입력한 유효한 단어인지 확인
+        boolean isInWordChoices = gameState.getCurrentTurn().getWordChoices().contains(word);
+        boolean isValidCustomWord = word != null && word.matches("^[가-힣ㄱ-ㅎㅏ-ㅣ]{2,10}$");
+
+        if (!isInWordChoices && !isValidCustomWord) {
+            log.warn("Invalid word selection - word: {}, isInChoices: {}, isValidCustom: {}",
+                    word, isInWordChoices, isValidCustomWord);
             return;
         }
 
         gameState.getCurrentTurn().setWord(word);
         gameRepository.save(roomId, gameState);
 
-        log.info("Word selected - room: {}, word: {}", roomId, word);
+        if (isInWordChoices) {
+            log.info("Word selected from choices - room: {}, word: {}", roomId, word);
+        } else {
+            log.info("Custom word selected - room: {}, word: {}", roomId, word);
+        }
 
         // 즉시 그리기 단계로 전환
         startDrawingPhase(roomId, gameState);
