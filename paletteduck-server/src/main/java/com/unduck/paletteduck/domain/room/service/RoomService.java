@@ -69,6 +69,6 @@ public class RoomService {
     }
 
     private RoomPlayer createHost(String playerId, String nickname) {
-        return new RoomPlayer(playerId, nickname, true, false, PlayerRole.PLAYER, 0, 0, 0);
+        return new RoomPlayer(playerId, nickname, true, false, PlayerRole.PLAYER, 0, 0, 0, System.currentTimeMillis());
     }
 }

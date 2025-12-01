@@ -18,4 +18,5 @@ public class RoomPlayer {
     private int score = 0;
     private int totalLikes = 0;
     private int totalDislikes = 0;
+    private Long joinedAt; // 방 입장 시간 (타임스탬프)
 }

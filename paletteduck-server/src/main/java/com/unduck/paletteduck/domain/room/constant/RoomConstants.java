@@ -13,7 +13,7 @@ public class RoomConstants {
     // 라운드 제한
     public static final int MIN_ROUNDS = 2;
     public static final int MAX_ROUNDS = 10;
-    public static final int DEFAULT_ROUNDS = 3;
+    public static final int DEFAULT_ROUNDS = 2; // 테스트용
 
     // 단어 선택지
     public static final int MIN_WORD_CHOICES = 2;

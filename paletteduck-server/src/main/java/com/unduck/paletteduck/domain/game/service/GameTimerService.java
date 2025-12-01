@@ -8,6 +8,9 @@ import com.unduck.paletteduck.domain.game.dto.TurnEndReason;
 import com.unduck.paletteduck.domain.game.dto.TurnInfo;
 import com.unduck.paletteduck.domain.game.repository.GameRepository;
 import com.unduck.paletteduck.domain.room.dto.RoomInfo;
+import com.unduck.paletteduck.domain.room.dto.RoomPlayer;
+import com.unduck.paletteduck.domain.room.dto.ReturnToWaitingTracker;
+import com.unduck.paletteduck.domain.room.repository.ReturnToWaitingTrackerRepository;
 import com.unduck.paletteduck.domain.room.service.RoomService;
 import com.unduck.paletteduck.domain.word.service.WordService;
 import lombok.RequiredArgsConstructor;
@@ -30,6 +33,7 @@ public class GameTimerService {
     private final WordService wordService;
     private final SimpMessagingTemplate messagingTemplate;
     private final HintService hintService;
+    private final ReturnToWaitingTrackerRepository trackerRepository;
     private GameTimerService self;
 
     @org.springframework.beans.factory.annotation.Autowired
@@ -362,6 +366,23 @@ public class GameTimerService {
         messagingTemplate.convertAndSend(WebSocketTopics.gameState(roomId), gameState);
 
         log.info("Game ended - room: {}", roomId);
+
+        // 대기방 복귀 추적 시작
+        RoomInfo roomInfo = roomService.getRoomInfo(roomId);
+        if (roomInfo != null) {
+            String hostId = roomInfo.getPlayers().stream()
+                    .filter(RoomPlayer::isHost)
+                    .map(RoomPlayer::getPlayerId)
+                    .findFirst()
+                    .orElse(null);
+
+            ReturnToWaitingTracker tracker = new ReturnToWaitingTracker(roomId, hostId);
+            trackerRepository.save(roomId, tracker);
+            log.info("Return tracker created - room: {}, host: {}", roomId, hostId);
+
+            // 90초 후 자동 복귀 타이머 시작
+            self.scheduleAutoReturnToWaiting(roomId);
+        }
     }
 
     @Async
@@ -474,5 +495,48 @@ public class GameTimerService {
 
         // 즉시 그리기 단계로 전환
         startDrawingPhase(roomId, gameState);
+    }
+
+    /**
+     * 90초 후 자동으로 대기방 복귀 처리
+     */
+    @Async
+    public void scheduleAutoReturnToWaiting(String roomId) {
+        try {
+            // 20초 대기 (테스트용)
+            TimeUnit.SECONDS.sleep(20);
+
+            ReturnToWaitingTracker tracker = trackerRepository.findById(roomId);
+            if (tracker == null) {
+                log.debug("Return tracker not found - room might have been manually returned: {}", roomId);
+                return;
+            }
+
+            RoomInfo roomInfo = roomService.getRoomInfo(roomId);
+            if (roomInfo == null) {
+                log.debug("Room not found - room might have been deleted: {}", roomId);
+                trackerRepository.delete(roomId);
+                return;
+            }
+
+            // 한 명이라도 수동 복귀했는지 확인
+            if (!tracker.isAnyoneReturned()) {
+                // 아무도 수동 복귀 안함 -> 방 삭제
+                log.info("No one returned manually - deleting room: {}", roomId);
+                roomService.deleteRoom(roomId);
+                trackerRepository.delete(roomId);
+
+                // 방 삭제 시 null 브로드캐스트 제거 (NullPointerException 방지)
+                // 클라이언트는 카운트다운이 0일 때 방 상태가 WAITING이 아니면 삭제된 것으로 판단
+            } else {
+                // 한 명이라도 수동 복귀함 -> 나머지 자동 복귀는 이미 RoomGameService에서 처리됨
+                log.info("Auto-return timer completed - room maintained: {}", roomId);
+                trackerRepository.delete(roomId);
+            }
+
+        } catch (InterruptedException e) {
+            log.error("Auto-return timer interrupted - roomId: {}", roomId, e);
+            Thread.currentThread().interrupt();
+        }
     }
 }
