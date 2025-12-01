@@ -35,7 +35,7 @@ public class RoomPlayerService {
         // 역할 결정 (참가자 우선)
         PlayerRole role = determineRole(roomInfo);
 
-        RoomPlayer newPlayer = new RoomPlayer(playerId, nickname, false, false, role, 0, 0, 0);
+        RoomPlayer newPlayer = new RoomPlayer(playerId, nickname, false, false, role, 0, 0, 0, System.currentTimeMillis());
         roomInfo.getPlayers().add(newPlayer);
 
         roomRepository.save(roomId, roomInfo);
@@ -155,11 +155,20 @@ public class RoomPlayerService {
     }
 
     private void transferHost(RoomInfo roomInfo, RoomPlayer oldHost) {
-        RoomPlayer newHost = roomInfo.getPlayers().get(0);
+        // joinedAt 기준으로 가장 먼저 들어온 플레이어를 새 방장으로 선정
+        RoomPlayer newHost = roomInfo.getPlayers().stream()
+                .min((p1, p2) -> {
+                    if (p1.getJoinedAt() == null && p2.getJoinedAt() == null) return 0;
+                    if (p1.getJoinedAt() == null) return 1;
+                    if (p2.getJoinedAt() == null) return -1;
+                    return Long.compare(p1.getJoinedAt(), p2.getJoinedAt());
+                })
+                .orElse(roomInfo.getPlayers().get(0)); // fallback
+
         newHost.setHost(true);
         newHost.setReady(false);
 
-        log.info("Host transferred - from: {}, to: {}",
-                oldHost.getNickname(), newHost.getNickname());
+        log.info("Host transferred - from: {}, to: {} (joined at: {})",
+                oldHost.getNickname(), newHost.getNickname(), newHost.getJoinedAt());
     }
 }

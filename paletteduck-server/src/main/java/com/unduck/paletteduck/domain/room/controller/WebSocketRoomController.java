@@ -104,10 +104,10 @@ public class WebSocketRoomController {
     }
 
     @MessageMapping("/room/{roomId}/return-to-waiting")
-    public void returnToWaitingRoom(@DestinationVariable String roomId) {
-        RoomInfo roomInfo = roomGameService.returnToWaitingRoom(roomId);
-        messagingTemplate.convertAndSend(WebSocketTopics.room(roomId), roomInfo);
+    public void returnToWaitingRoom(@DestinationVariable String roomId, @Payload String playerId) {
+        RoomInfo roomInfo = roomGameService.handlePlayerReturnToWaiting(roomId, playerId);
+        // handlePlayerReturnToWaiting()에서 이미 브로드캐스트하므로 여기서는 생략
 
-        log.info("Room returned to waiting - room: {}", roomId);
+        log.info("Player returned to waiting - room: {}, player: {}", roomId, playerId);
     }
 }

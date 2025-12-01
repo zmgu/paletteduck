@@ -24,6 +24,8 @@ export default function GameRoomPage() {
   const playerInfo = useMemo(() => getPlayerInfo(), []);
   const canvasRef = useRef<CanvasHandle>(null);
   const [canvasImageUrl, setCanvasImageUrl] = useState<string>('');
+  const [autoReturnCountdown, setAutoReturnCountdown] = useState<number>(20); // 20초 카운트다운 (테스트용)
+  const wasInGameEnd = useRef<boolean>(false); // GAME_END 상태 추적
 
   // 관전자 도중 참가 판단
   const [spectatorJoinTurn, setSpectatorJoinTurn] = useState<number | null>(null);
@@ -58,12 +60,12 @@ export default function GameRoomPage() {
   }, [roomId, playerInfo?.playerId]);
 
   const handleReturnToWaiting = useCallback(() => {
-    if (!roomId) return;
-    // 대기방 복귀 요청
-    wsClient.send(`/app/room/${roomId}/return-to-waiting`, {});
+    if (!roomId || !playerInfo?.playerId) return;
+    // 대기방 복귀 요청 (playerId 전달)
+    wsClient.send(`/app/room/${roomId}/return-to-waiting`, playerInfo.playerId);
     // 페이지 이동
     navigate(`/room/${roomId}`, { state: { returnFromGame: true } });
-  }, [roomId, navigate]);
+  }, [roomId, playerInfo?.playerId, navigate]);
 
   // DRAWING 페이즈 중 주기적으로 캔버스 이미지 캡처 (백업)
   useEffect(() => {
@@ -140,6 +142,48 @@ export default function GameRoomPage() {
     gameState?.currentTurn?.turnNumber === spectatorJoinTurn;
 
   const isChatDisabled = isDrawer || isSpectator;
+
+  // GAME_END 페이즈에서 20초 카운트다운 및 자동 복귀 처리
+  useEffect(() => {
+    if (gameState?.phase !== 'GAME_END') {
+      setAutoReturnCountdown(20); // 다른 페이즈로 변경되면 리셋 (테스트용)
+      return;
+    }
+
+    // 카운트다운 시작
+    const intervalId = setInterval(() => {
+      setAutoReturnCountdown((prev) => {
+        if (prev <= 1) {
+          // 0초가 되면 타이머만 종료 (메시지 전송하지 않음)
+          // 서버 타이머가 20초에 자동으로 처리함:
+          // - 아무도 수동 복귀 안했으면 → 방 삭제 → null 브로드캐스트 → 모달 표시
+          // - 누군가 수동 복귀했으면 → 방 유지 → WAITING 상태 → 자동 navigate
+          clearInterval(intervalId);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(intervalId);
+  }, [gameState?.phase, roomId, playerInfo?.playerId, navigate]);
+
+  // GAME_END 상태 추적
+  useEffect(() => {
+    if (gameState?.phase === 'GAME_END') {
+      wasInGameEnd.current = true;
+    }
+  }, [gameState?.phase]);
+
+  // 자동 복귀 처리
+  useEffect(() => {
+    if (!wasInGameEnd.current) return; // 게임 종료 후가 아니면 무시
+
+    // 카운트다운이 0이고 방 상태가 WAITING이면 자동으로 대기방으로 이동
+    if (roomInfo?.status === 'WAITING' && autoReturnCountdown === 0) {
+      navigate(`/room/${roomId}`, { state: { returnFromGame: true } });
+    }
+  }, [roomInfo, autoReturnCountdown, roomId, navigate]);
 
   // 현재 사용자의 투표 상태
   const currentVote = gameState.currentTurn?.votes?.[playerInfo?.playerId || ''] || 'NONE';
@@ -403,22 +447,63 @@ export default function GameRoomPage() {
             })}
           </div>
 
-          <div style={{ textAlign: 'center', marginTop: '40px', display: 'flex', gap: '15px', justifyContent: 'center' }}>
-            <button
-              onClick={handleReturnToWaiting}
-              style={{
-                padding: '12px 40px',
-                fontSize: '16px',
-                backgroundColor: '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-              }}
-            >
-              대기방으로 돌아가기
-            </button>
+          {/* 20초 카운트다운 표시 */}
+          <div style={{
+            textAlign: 'center',
+            marginTop: '30px',
+            padding: '15px',
+            backgroundColor: autoReturnCountdown === 0 && roomInfo?.status !== 'WAITING'
+              ? '#f8d7da'
+              : autoReturnCountdown <= 10 ? '#fff3cd' : '#f0f8ff',
+            borderRadius: '8px',
+            border: `2px solid ${
+              autoReturnCountdown === 0 && roomInfo?.status !== 'WAITING'
+                ? '#dc3545'
+                : autoReturnCountdown <= 10 ? '#ffc107' : '#007bff'
+            }`,
+          }}>
+            <div style={{
+              fontSize: '18px',
+              fontWeight: 'bold',
+              color: autoReturnCountdown === 0 && roomInfo?.status !== 'WAITING'
+                ? '#721c24'
+                : autoReturnCountdown <= 10 ? '#856404' : '#004085',
+            }}>
+              {autoReturnCountdown > 0
+                ? `⏰ ${autoReturnCountdown}초 후 자동으로 대기방으로 복귀합니다`
+                : roomInfo?.status === 'WAITING'
+                  ? '복귀 중...'
+                  : '⚠️ 아무도 대기방으로 이동하지 않아 방이 사라졌습니다'}
+            </div>
+            <div style={{ fontSize: '14px', color: '#666', marginTop: '5px' }}>
+              {autoReturnCountdown > 0
+                ? '아래 버튼을 눌러 바로 복귀할 수 있습니다. 아무도 복귀하지 않으면 방이 사라집니다.'
+                : roomInfo?.status === 'WAITING'
+                  ? ''
+                  : '메인 화면으로 이동해주세요.'}
+            </div>
+          </div>
+
+          <div style={{ textAlign: 'center', marginTop: '20px', display: 'flex', gap: '15px', justifyContent: 'center' }}>
+            {/* 방이 삭제되지 않았을 때만 대기방 복귀 버튼 표시 */}
+            {!(autoReturnCountdown === 0 && roomInfo?.status !== 'WAITING') && (
+              <button
+                onClick={handleReturnToWaiting}
+                disabled={autoReturnCountdown === 0}
+                style={{
+                  padding: '12px 40px',
+                  fontSize: '16px',
+                  backgroundColor: autoReturnCountdown === 0 ? '#ccc' : '#28a745',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: autoReturnCountdown === 0 ? 'not-allowed' : 'pointer',
+                  fontWeight: 'bold',
+                }}
+              >
+                대기방으로 돌아가기
+              </button>
+            )}
             <button
               onClick={() => navigate('/')}
               style={{
@@ -441,9 +526,9 @@ export default function GameRoomPage() {
         <summary style={{ cursor: 'pointer', fontSize: '14px', color: '#666' }}>
           디버그 정보 보기
         </summary>
-        <pre style={{ 
-          backgroundColor: '#f5f5f5', 
-          padding: '15px', 
+        <pre style={{
+          backgroundColor: '#f5f5f5',
+          padding: '15px',
           borderRadius: '4px',
           overflow: 'auto',
           fontSize: '12px',
