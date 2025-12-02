@@ -22,6 +22,9 @@ public class ReturnToWaitingTracker {
     private String originalHostId; // 게임 종료 시점의 방장 ID
     private Set<String> returnedPlayerIds = new HashSet<>(); // 이미 복귀한 플레이어 ID 목록
     private boolean anyoneReturned = false; // 한 명이라도 수동 복귀했는지 여부
+    private String firstReturnedPlayerId = null; // 첫 번째로 복귀한 참가자(PLAYER 역할) ID
+    private boolean hasOriginalHostReturned = false; // 원래 방장이 복귀했는지 여부
+    private boolean hasPlayerOrHostReturned = false; // 참가자 또는 방장이 복귀했는지 여부 (관전자 복귀 제한용)
 
     public ReturnToWaitingTracker(String roomId, String originalHostId) {
         this.roomId = roomId;
@@ -29,6 +32,9 @@ public class ReturnToWaitingTracker {
         this.originalHostId = originalHostId;
         this.returnedPlayerIds = new HashSet<>();
         this.anyoneReturned = false;
+        this.firstReturnedPlayerId = null;
+        this.hasOriginalHostReturned = false;
+        this.hasPlayerOrHostReturned = false;
     }
 
     public void addReturnedPlayer(String playerId) {

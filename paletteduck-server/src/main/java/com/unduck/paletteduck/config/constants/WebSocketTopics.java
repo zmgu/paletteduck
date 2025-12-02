@@ -39,4 +39,8 @@ public final class WebSocketTopics {
     public static String gameClear(String roomId) {
         return TOPIC_PREFIX + roomId + "/game/clear";
     }
+
+    public static String roomErrors(String roomId) {
+        return TOPIC_PREFIX + roomId + "/errors";
+    }
 }

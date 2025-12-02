@@ -529,7 +529,45 @@ public class GameTimerService {
                 // 방 삭제 시 null 브로드캐스트 제거 (NullPointerException 방지)
                 // 클라이언트는 카운트다운이 0일 때 방 상태가 WAITING이 아니면 삭제된 것으로 판단
             } else {
-                // 한 명이라도 수동 복귀함 -> 나머지 자동 복귀는 이미 RoomGameService에서 처리됨
+                // 한 명이라도 수동 복귀함 -> 방장 위임 로직 처리
+                if (!tracker.isHasOriginalHostReturned() && tracker.getFirstReturnedPlayerId() != null) {
+                    // 원래 방장이 수동 복귀하지 않았고, 참가자가 먼저 복귀한 경우
+                    // -> 첫 번째로 복귀한 참가자에게 방장 권한 위임
+                    String originalHostId = tracker.getOriginalHostId();
+                    String newHostId = tracker.getFirstReturnedPlayerId();
+
+                    // 원래 방장 찾기 (isHost 여부와 관계없이 ID로 찾기)
+                    // 참가자가 먼저 복귀했을 때 원래 방장의 isHost가 false로 설정되었을 수 있음
+                    RoomPlayer originalHost = roomInfo.getPlayers().stream()
+                            .filter(p -> p.getPlayerId().equals(originalHostId))
+                            .findFirst()
+                            .orElse(null);
+
+                    RoomPlayer newHost = roomInfo.getPlayers().stream()
+                            .filter(p -> p.getPlayerId().equals(newHostId))
+                            .findFirst()
+                            .orElse(null);
+
+                    if (newHost != null) {
+                        // 원래 방장이 있다면 권한 제거 (이미 제거되어 있을 수 있지만 확실히)
+                        if (originalHost != null) {
+                            originalHost.setHost(false);
+                            originalHost.setReady(false);
+                        }
+
+                        // 새로운 방장에게 권한 부여
+                        newHost.setHost(true);
+                        newHost.setReady(false);
+
+                        roomService.saveRoomInfo(roomId, roomInfo);
+
+                        log.info("Host authority delegated on auto-return - from: {} (original, absent), to: {} (first returner)",
+                                originalHost != null ? originalHost.getNickname() : "unknown", newHost.getNickname());
+                    } else {
+                        log.warn("First returned player not found in room - playerId: {}", newHostId);
+                    }
+                }
+
                 log.info("Auto-return timer completed - room maintained: {}", roomId);
                 trackerRepository.delete(roomId);
             }

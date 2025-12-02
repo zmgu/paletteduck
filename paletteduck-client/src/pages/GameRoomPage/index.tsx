@@ -26,6 +26,7 @@ export default function GameRoomPage() {
   const [canvasImageUrl, setCanvasImageUrl] = useState<string>('');
   const [autoReturnCountdown, setAutoReturnCountdown] = useState<number>(20); // 20초 카운트다운 (테스트용)
   const wasInGameEnd = useRef<boolean>(false); // GAME_END 상태 추적
+  const returnErrorOccurred = useRef<boolean>(false); // 복귀 에러 발생 여부
 
   // 관전자 도중 참가 판단
   const [spectatorJoinTurn, setSpectatorJoinTurn] = useState<number | null>(null);
@@ -59,12 +60,48 @@ export default function GameRoomPage() {
     });
   }, [roomId, playerInfo?.playerId]);
 
+  // 에러 메시지 구독 (관전자 복귀 제한 등)
+  useEffect(() => {
+    if (!roomId || !playerInfo?.playerId) return;
+
+    const unsubscribe = wsClient.subscribe(
+      `/topic/room/${roomId}/errors`,
+      (errorMessage: { errorCode: string; message: string; targetPlayerId: string }) => {
+        // 내가 대상인 에러 메시지만 처리
+        if (errorMessage.targetPlayerId !== playerInfo.playerId) {
+          return;
+        }
+
+        console.error('WebSocket error received:', errorMessage);
+
+        if (errorMessage.errorCode === 'RETURN_TO_WAITING_FAILED') {
+          returnErrorOccurred.current = true;
+          alert(errorMessage.message);
+        }
+      }
+    );
+
+    return () => {
+      unsubscribe();
+    };
+  }, [roomId, playerInfo?.playerId]);
+
   const handleReturnToWaiting = useCallback(() => {
     if (!roomId || !playerInfo?.playerId) return;
+
+    // 에러 플래그 초기화
+    returnErrorOccurred.current = false;
+
     // 대기방 복귀 요청 (playerId 전달)
     wsClient.send(`/app/room/${roomId}/return-to-waiting`, playerInfo.playerId);
-    // 페이지 이동
-    navigate(`/room/${roomId}`, { state: { returnFromGame: true } });
+
+    // 에러가 발생하지 않으면 페이지 이동
+    // 에러 메시지가 도착할 시간을 충분히 줌
+    setTimeout(() => {
+      if (!returnErrorOccurred.current) {
+        navigate(`/room/${roomId}`, { state: { returnFromGame: true } });
+      }
+    }, 500);  // 200ms → 500ms로 증가
   }, [roomId, playerInfo?.playerId, navigate]);
 
   // DRAWING 페이즈 중 주기적으로 캔버스 이미지 캡처 (백업)

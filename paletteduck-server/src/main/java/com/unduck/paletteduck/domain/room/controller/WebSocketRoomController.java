@@ -105,9 +105,23 @@ public class WebSocketRoomController {
 
     @MessageMapping("/room/{roomId}/return-to-waiting")
     public void returnToWaitingRoom(@DestinationVariable String roomId, @Payload String playerId) {
-        RoomInfo roomInfo = roomGameService.handlePlayerReturnToWaiting(roomId, playerId);
-        // handlePlayerReturnToWaiting()에서 이미 브로드캐스트하므로 여기서는 생략
+        try {
+            RoomInfo roomInfo = roomGameService.handlePlayerReturnToWaiting(roomId, playerId);
+            // handlePlayerReturnToWaiting()에서 이미 브로드캐스트하므로 여기서는 생략
 
-        log.info("Player returned to waiting - room: {}, player: {}", roomId, playerId);
+            log.info("Player returned to waiting - room: {}, player: {}", roomId, playerId);
+        } catch (IllegalStateException e) {
+            // 예외 발생 시 방 전체에 에러 메시지 브로드캐스트 (클라이언트에서 필터링)
+            log.warn("Failed to return to waiting - room: {}, player: {}, error: {}", roomId, playerId, e.getMessage());
+
+            // 에러 메시지를 방 전체에 브로드캐스트 (targetPlayerId로 대상 지정)
+            ErrorMessage errorMessage = new ErrorMessage("RETURN_TO_WAITING_FAILED", e.getMessage(), playerId);
+            messagingTemplate.convertAndSend(
+                WebSocketTopics.roomErrors(roomId),
+                errorMessage
+            );
+
+            log.info("Error message sent to room - roomId: {}, targetPlayerId: {}", roomId, playerId);
+        }
     }
 }
