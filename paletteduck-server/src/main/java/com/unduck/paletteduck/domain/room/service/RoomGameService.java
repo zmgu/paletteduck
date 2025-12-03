@@ -30,7 +30,7 @@ public class RoomGameService {
     private final RoomRepository roomRepository;
     private final RoomValidator roomValidator;
     private final GameService gameService;
-    private final GameTimerService gameTimerService;
+    private final com.unduck.paletteduck.domain.game.service.AsyncGameTimerScheduler asyncGameTimerScheduler;
     private final ReturnToWaitingTrackerRepository trackerRepository;
     private final SimpMessagingTemplate messagingTemplate;
 
@@ -65,7 +65,7 @@ public class RoomGameService {
         GameState gameState = gameService.initializeGame(roomInfo);
 
         // 카운트다운 타이머 시작
-        gameTimerService.startCountdown(roomId);
+        asyncGameTimerScheduler.startCountdown(roomId);
 
         log.info("Game started for room: {}", roomId);
 
