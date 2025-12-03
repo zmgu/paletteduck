@@ -51,6 +51,8 @@ public final class GameConstants {
         public static final int DRAWING_THROTTLE_MS = 50;
         public static final int FIRST_HINT_DELAY = 20;  // 첫 번째 힌트 (초성 일부) - 20초 후
         public static final int SECOND_HINT_DELAY = 40; // 두 번째 힌트 (전체 초성) - 40초 후
+        public static final int AUTO_RETURN_TO_WAITING_TIME = 20; // 자동 대기방 복귀 시간 (초)
+        public static final int ALL_CORRECT_TURN_END_DELAY = 100; // 모든 플레이어 정답 시 턴 종료 지연 (밀리초)
 
         private Timing() {}
     }

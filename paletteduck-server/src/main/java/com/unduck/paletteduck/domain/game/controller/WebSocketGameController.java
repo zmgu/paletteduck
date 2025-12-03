@@ -289,7 +289,8 @@ public class WebSocketGameController {
 
             // 비동기로 턴 종료 (브로드캐스트가 완료된 후)
             asyncGameTimerScheduler.endTurnWithDelay(roomId, gameState,
-                    com.unduck.paletteduck.domain.game.dto.TurnEndReason.ALL_CORRECT, 100);
+                    com.unduck.paletteduck.domain.game.dto.TurnEndReason.ALL_CORRECT,
+                    GameConstants.Timing.ALL_CORRECT_TURN_END_DELAY);
         }
     }
 

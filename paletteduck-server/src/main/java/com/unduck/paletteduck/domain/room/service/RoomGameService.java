@@ -12,6 +12,7 @@ import com.unduck.paletteduck.domain.room.dto.RoomStatus;
 import com.unduck.paletteduck.domain.room.dto.PlayerRole;
 import com.unduck.paletteduck.domain.room.repository.ReturnToWaitingTrackerRepository;
 import com.unduck.paletteduck.domain.room.repository.RoomRepository;
+import com.unduck.paletteduck.domain.room.util.RoomPlayerUtil;
 import com.unduck.paletteduck.domain.room.validator.RoomValidator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -246,10 +247,7 @@ public class RoomGameService {
      * 플레이어 찾기 (없으면 예외)
      */
     private RoomPlayer findPlayerOrThrow(RoomInfo roomInfo, String playerId) {
-        return roomInfo.getPlayers().stream()
-                .filter(p -> p.getPlayerId().equals(playerId))
-                .findFirst()
-                .orElseThrow(() -> new IllegalStateException("Player not found in room: " + playerId));
+        return RoomPlayerUtil.findPlayerByIdOrThrow(roomInfo, playerId);
     }
 
     /**
@@ -307,8 +305,12 @@ public class RoomGameService {
             tracker.setFirstReturnedPlayerId(playerId);
             log.info("First player returned (candidate for host delegation) - playerId: {}", playerId);
 
-            // 원래 방장의 권한 일시 제거
-            removeOriginalHostAuthority(roomId, roomInfo, playerId);
+            // 원래 방장이 아직 복귀하지 않았을 때만 권한 일시 제거
+            if (!tracker.isHasOriginalHostReturned()) {
+                removeOriginalHostAuthority(roomId, roomInfo, playerId);
+            } else {
+                log.info("Original host already returned, keeping host authority - playerId: {}", playerId);
+            }
         }
 
         log.info("Player returned but host authority not transferred yet - playerId: {}", playerId);
