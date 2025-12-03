@@ -3,7 +3,6 @@ package com.unduck.paletteduck.domain.chat.dto;
 import lombok.*;
 
 @Getter
-@Setter
 @ToString
 @Builder
 @NoArgsConstructor
@@ -13,6 +12,7 @@ public class ChatMessage {
     private String playerId;
     private String nickname;
     private String message;
+    @Builder.Default
     private ChatType type = ChatType.NORMAL;
     private Boolean isCorrect;
     private Boolean senderIsCorrect;  // 발신자가 정답을 맞춘 상태인지 여부

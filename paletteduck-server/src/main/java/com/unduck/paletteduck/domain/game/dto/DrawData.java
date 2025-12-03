@@ -1,14 +1,14 @@
 package com.unduck.paletteduck.domain.game.dto;
 
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
-import lombok.Setter;
 
 import java.util.List;
 
 @Getter
-@Setter
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class DrawData {
@@ -19,7 +19,7 @@ public class DrawData {
     private List<Point> points; // 경로 좌표들
 
     @Getter
-    @Setter
+    @Builder
     @NoArgsConstructor
     @AllArgsConstructor
     public static class Point {

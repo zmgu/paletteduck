@@ -5,9 +5,10 @@ interface TurnResultProps {
   turnInfo: TurnInfo;
   players: Player[];
   canvasImageUrl: string;
+  isSpectatorMidJoin?: boolean;  // 도중 참가 관전자 여부
 }
 
-export default function TurnResult({ turnInfo, players, canvasImageUrl }: TurnResultProps) {
+export default function TurnResult({ turnInfo, players, canvasImageUrl, isSpectatorMidJoin }: TurnResultProps) {
   // 이번 턴에서 점수를 획득한 플레이어만 필터링 및 점수순 정렬
   const scoredPlayers = players
     .filter(p => (turnInfo.turnScores?.[p.playerId] || 0) > 0)
@@ -88,8 +89,35 @@ export default function TurnResult({ turnInfo, players, canvasImageUrl }: TurnRe
         {/* 왼쪽: 그림 */}
         <div style={{ flex: 1 }}>
           <h3>출제된 그림</h3>
-          <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'center' }}>
-            {canvasImageUrl ? (
+          <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'center', position: 'relative' }}>
+            {isSpectatorMidJoin ? (
+              <div
+                style={{
+                  border: '2px solid #ccc',
+                  borderRadius: '8px',
+                  width: CANVAS_CONFIG.WIDTH,
+                  height: CANVAS_CONFIG.HEIGHT,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: '20px',
+                  backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                  padding: '40px',
+                  textAlign: 'center',
+                }}
+              >
+                <div style={{ fontSize: '48px' }}>👀</div>
+                <div style={{
+                  fontSize: '20px',
+                  fontWeight: 'bold',
+                  color: '#ff9800',
+                  lineHeight: '1.6',
+                }}>
+                  다음 턴부터 그림을 볼 수 있습니다
+                </div>
+              </div>
+            ) : canvasImageUrl ? (
               <img
                 src={canvasImageUrl}
                 alt="턴 결과 그림"

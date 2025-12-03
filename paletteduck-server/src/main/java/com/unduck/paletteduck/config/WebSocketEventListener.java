@@ -82,12 +82,13 @@ public class WebSocketEventListener {
                         messagingTemplate.convertAndSend(WebSocketTopics.room(roomIdToLeave), updatedRoomInfo);
 
                         // 퇴장 메시지 브로드캐스트 (관전자 포함 모든 플레이어)
-                        ChatMessage chatMessage = new ChatMessage();
-                        chatMessage.setPlayerId("");
-                        chatMessage.setNickname("");
-                        chatMessage.setMessage(leavingNickname + "님이 방을 나갔습니다.");
-                        chatMessage.setType(ChatType.SYSTEM);
-                        chatMessage.setTimestamp(System.currentTimeMillis());
+                        ChatMessage chatMessage = ChatMessage.builder()
+                                .playerId("")
+                                .nickname("")
+                                .message(leavingNickname + "님이 방을 나갔습니다.")
+                                .type(ChatType.SYSTEM)
+                                .timestamp(System.currentTimeMillis())
+                                .build();
 
                         messagingTemplate.convertAndSend(WebSocketTopics.roomChat(roomIdToLeave), chatMessage);
 
