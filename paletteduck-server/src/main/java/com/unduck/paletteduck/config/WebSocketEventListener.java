@@ -6,7 +6,6 @@ import com.unduck.paletteduck.domain.chat.dto.ChatType;
 import com.unduck.paletteduck.domain.game.dto.GameState;
 import com.unduck.paletteduck.domain.game.dto.TurnEndReason;
 import com.unduck.paletteduck.domain.game.service.GameService;
-import com.unduck.paletteduck.domain.game.service.GameTimerService;
 import com.unduck.paletteduck.domain.room.dto.PlayerRole;
 import com.unduck.paletteduck.domain.room.dto.RoomInfo;
 import com.unduck.paletteduck.domain.room.dto.RoomPlayer;
@@ -32,7 +31,8 @@ public class WebSocketEventListener {
     private final RoomService roomService;
     private final RoomPlayerService roomPlayerService;
     private final GameService gameService;
-    private final GameTimerService gameTimerService;
+    private final com.unduck.paletteduck.domain.game.service.TurnManager turnManager;
+    private final com.unduck.paletteduck.domain.game.service.GamePhaseManager phaseManager;
     private final SimpMessagingTemplate messagingTemplate;
 
     @EventListener
@@ -116,7 +116,7 @@ public class WebSocketEventListener {
                                         if (gameState.getCurrentTurn() != null &&
                                             gameState.getCurrentTurn().getDrawerId().equals(playerId)) {
                                             log.info("Current drawer left - ending turn immediately. RoomId: {}", roomIdToLeave);
-                                            gameTimerService.endTurn(roomIdToLeave, gameState, TurnEndReason.DRAWER_LEFT);
+                                            turnManager.endTurn(roomIdToLeave, gameState, TurnEndReason.DRAWER_LEFT);
                                         } else {
                                             // GameState 저장 및 브로드캐스트
                                             gameService.updateGameState(roomIdToLeave, gameState);
@@ -133,7 +133,7 @@ public class WebSocketEventListener {
                                 // 플레이어가 1명 이하만 남았다면 게임 종료
                                 if (remainingPlayers <= 1) {
                                     log.info("Only {} player(s) remaining - ending game. RoomId: {}", remainingPlayers, roomIdToLeave);
-                                    gameTimerService.endGame(roomIdToLeave, gameState);
+                                    phaseManager.endGame(roomIdToLeave, gameState);
                                 }
                             }
                         }

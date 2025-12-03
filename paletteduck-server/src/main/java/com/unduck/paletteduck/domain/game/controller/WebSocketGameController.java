@@ -30,6 +30,7 @@ public class WebSocketGameController {
 
     private final GameService gameService;
     private final GameTimerService gameTimerService;
+    private final com.unduck.paletteduck.domain.game.service.AsyncGameTimerScheduler asyncGameTimerScheduler;
     private final SimpMessagingTemplate messagingTemplate;
     private final com.unduck.paletteduck.domain.room.service.RoomService roomService;
     private final com.unduck.paletteduck.domain.game.service.GameScoringService gameScoringService;
@@ -287,7 +288,7 @@ public class WebSocketGameController {
             log.info("All players guessed correctly - ending turn early. Room: {}", roomId);
 
             // 비동기로 턴 종료 (브로드캐스트가 완료된 후)
-            gameTimerService.endTurnWithDelay(roomId, gameState,
+            asyncGameTimerScheduler.endTurnWithDelay(roomId, gameState,
                     com.unduck.paletteduck.domain.game.dto.TurnEndReason.ALL_CORRECT, 100);
         }
     }
