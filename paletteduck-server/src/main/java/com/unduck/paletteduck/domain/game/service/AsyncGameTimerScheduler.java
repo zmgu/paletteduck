@@ -12,6 +12,7 @@ import com.unduck.paletteduck.domain.room.dto.RoomPlayer;
 import com.unduck.paletteduck.domain.room.dto.ReturnToWaitingTracker;
 import com.unduck.paletteduck.domain.room.repository.ReturnToWaitingTrackerRepository;
 import com.unduck.paletteduck.domain.room.service.RoomService;
+import com.unduck.paletteduck.domain.room.util.RoomPlayerUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.ApplicationEventPublisher;
@@ -181,7 +182,7 @@ public class AsyncGameTimerScheduler {
     @Async
     public void scheduleAutoReturnToWaiting(String roomId) {
         try {
-            TimeUnit.SECONDS.sleep(20); // TODO: GameConstants로 이동
+            TimeUnit.SECONDS.sleep(GameConstants.Timing.AUTO_RETURN_TO_WAITING_TIME);
 
             ReturnToWaitingTracker tracker = trackerRepository.findById(roomId);
             if (tracker == null) {
@@ -299,9 +300,6 @@ public class AsyncGameTimerScheduler {
      * 플레이어 ID로 찾기
      */
     private RoomPlayer findPlayerById(RoomInfo roomInfo, String playerId) {
-        return roomInfo.getPlayers().stream()
-                .filter(p -> p.getPlayerId().equals(playerId))
-                .findFirst()
-                .orElse(null);
+        return RoomPlayerUtil.findPlayerById(roomInfo, playerId).orElse(null);
     }
 }
