@@ -2,6 +2,8 @@ package com.unduck.paletteduck.domain.game.repository;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unduck.paletteduck.domain.game.dto.GameState;
+import com.unduck.paletteduck.exception.BusinessException;
+import com.unduck.paletteduck.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -27,8 +29,8 @@ public class GameRepository {
             redisTemplate.opsForValue().set(key, json, GAME_TTL);
             log.debug("GameState saved: {}", roomId);
         } catch (Exception e) {
-            log.error("Failed to save GameState", e);
-            throw new RuntimeException("Failed to save game state", e);
+            log.error("Failed to save GameState for room: {}", roomId, e);
+            throw new BusinessException(ErrorCode.DATA_SERIALIZATION_ERROR, e);
         }
     }
 
@@ -41,8 +43,8 @@ public class GameRepository {
             }
             return objectMapper.readValue(json, GameState.class);
         } catch (Exception e) {
-            log.error("Failed to load GameState", e);
-            throw new RuntimeException("Failed to load game state", e);
+            log.error("Failed to load GameState for room: {}", roomId, e);
+            throw new BusinessException(ErrorCode.DATA_SERIALIZATION_ERROR, e);
         }
     }
 

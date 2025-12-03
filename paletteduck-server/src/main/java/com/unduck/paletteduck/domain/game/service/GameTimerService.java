@@ -34,6 +34,12 @@ public class GameTimerService {
     private final SimpMessagingTemplate messagingTemplate;
     private final HintService hintService;
     private final ReturnToWaitingTrackerRepository trackerRepository;
+
+    /**
+     * Self-injection for @Async method calls
+     * TODO: 향후 AsyncGameTimerService를 별도로 분리하여 self-injection 제거 필요
+     * 현재는 @Async 프록시를 통한 비동기 메서드 호출을 위해 필요함
+     */
     private GameTimerService self;
 
     @org.springframework.beans.factory.annotation.Autowired
@@ -229,6 +235,21 @@ public class GameTimerService {
         } catch (InterruptedException e) {
             log.error("Drawing timer interrupted - roomId: {}", roomId, e);
             Thread.currentThread().interrupt();
+        }
+    }
+
+    /**
+     * 지연 후 턴 종료 (비동기)
+     * 모든 플레이어가 정답을 맞춘 경우 사용
+     */
+    @Async
+    public void endTurnWithDelay(String roomId, GameState gameState, TurnEndReason reason, int delayMillis) {
+        try {
+            TimeUnit.MILLISECONDS.sleep(delayMillis);
+            endTurn(roomId, gameState, reason);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt();
+            log.warn("Delayed turn end interrupted for room: {}", roomId);
         }
     }
 

@@ -22,9 +22,6 @@ public class GameController {
     private final GameService gameService;
     private final SimpMessagingTemplate messagingTemplate;
     private final JwtUtil jwtUtil;
-    private String roomId;
-    private String token;
-    private Map<String, Object> data;
 
     /**
      * 게임 상태 조회 (게임 진행 중인 방에 입장 시 사용)
@@ -43,10 +40,6 @@ public class GameController {
             @PathVariable String roomId,
             @RequestHeader("Authorization") String token,
             @RequestBody Map<String, Object> data) {
-        this.roomId = roomId;
-        this.token = token;
-        this.data = data;
-
         String jwt = token.replace("Bearer ", "");
         String playerId = jwtUtil.getPlayerIdFromToken(jwt);
 

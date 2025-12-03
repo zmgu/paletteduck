@@ -287,15 +287,8 @@ public class WebSocketGameController {
             log.info("All players guessed correctly - ending turn early. Room: {}", roomId);
 
             // 비동기로 턴 종료 (브로드캐스트가 완료된 후)
-            new Thread(() -> {
-                try {
-                    Thread.sleep(100);
-                    gameTimerService.endTurn(roomId, gameState,
-                        com.unduck.paletteduck.domain.game.dto.TurnEndReason.ALL_CORRECT);
-                } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
-                }
-            }).start();
+            gameTimerService.endTurnWithDelay(roomId, gameState,
+                    com.unduck.paletteduck.domain.game.dto.TurnEndReason.ALL_CORRECT, 100);
         }
     }
 

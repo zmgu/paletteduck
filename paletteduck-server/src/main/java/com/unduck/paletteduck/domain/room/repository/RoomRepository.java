@@ -4,6 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unduck.paletteduck.domain.room.constant.RoomConstants;
 import com.unduck.paletteduck.domain.room.dto.RoomInfo;
+import com.unduck.paletteduck.exception.BusinessException;
+import com.unduck.paletteduck.exception.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -32,7 +34,7 @@ public class RoomRepository {
             log.debug("Room saved - roomId: {}", roomId);
         } catch (JsonProcessingException e) {
             log.error("Failed to save room - roomId: {}", roomId, e);
-            throw new RuntimeException("Failed to save room info", e);
+            throw new BusinessException(ErrorCode.DATA_SERIALIZATION_ERROR, e);
         }
     }
 
@@ -52,7 +54,7 @@ public class RoomRepository {
             return objectMapper.readValue(roomJson, RoomInfo.class);
         } catch (JsonProcessingException e) {
             log.error("Failed to parse room - roomId: {}", roomId, e);
-            throw new RuntimeException("Failed to get room info", e);
+            throw new BusinessException(ErrorCode.DATA_SERIALIZATION_ERROR, e);
         }
     }
 
