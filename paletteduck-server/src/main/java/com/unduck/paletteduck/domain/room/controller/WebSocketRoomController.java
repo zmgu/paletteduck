@@ -99,8 +99,17 @@ public class WebSocketRoomController {
 
     @MessageMapping("/room/{roomId}/chat")
     public void sendChat(@DestinationVariable String roomId, @Payload ChatMessage message) {
-        message.setTimestamp(System.currentTimeMillis());
-        messagingTemplate.convertAndSend(WebSocketTopics.roomChat(roomId), message);
+        ChatMessage timestampedMessage = ChatMessage.builder()
+                .messageId(message.getMessageId())
+                .playerId(message.getPlayerId())
+                .nickname(message.getNickname())
+                .message(message.getMessage())
+                .type(message.getType())
+                .isCorrect(message.getIsCorrect())
+                .senderIsCorrect(message.getSenderIsCorrect())
+                .timestamp(System.currentTimeMillis())
+                .build();
+        messagingTemplate.convertAndSend(WebSocketTopics.roomChat(roomId), timestampedMessage);
     }
 
     @MessageMapping("/room/{roomId}/return-to-waiting")

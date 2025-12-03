@@ -371,6 +371,7 @@ export default function GameRoomPage() {
           turnInfo={gameState.currentTurn}
           players={gameState.players}
           canvasImageUrl={canvasImageUrl}
+          isSpectatorMidJoin={isSpectatorMidJoin}
         />
       )}
 
