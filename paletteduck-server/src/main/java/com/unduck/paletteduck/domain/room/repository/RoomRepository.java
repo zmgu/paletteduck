@@ -31,7 +31,7 @@ public class RoomRepository {
             String roomJson = objectMapper.writeValueAsString(roomInfo);
             String key = ROOM_KEY_PREFIX + roomId;
             redisTemplate.opsForValue().set(key, roomJson, Duration.ofHours(RoomConstants.ROOM_TTL_HOURS));
-            log.debug("Room saved - roomId: {}", roomId);
+            log.info("Room saved - roomId: {}, isPublic: {}, JSON: {}", roomId, roomInfo.isPublic(), roomJson);
         } catch (JsonProcessingException e) {
             log.error("Failed to save room - roomId: {}", roomId, e);
             throw new BusinessException(ErrorCode.DATA_SERIALIZATION_ERROR, e);
@@ -51,7 +51,9 @@ public class RoomRepository {
         }
 
         try {
-            return objectMapper.readValue(roomJson, RoomInfo.class);
+            RoomInfo roomInfo = objectMapper.readValue(roomJson, RoomInfo.class);
+            log.info("Room loaded - roomId: {}, isPublic: {}, JSON: {}", roomId, roomInfo.isPublic(), roomJson);
+            return roomInfo;
         } catch (JsonProcessingException e) {
             log.error("Failed to parse room - roomId: {}", roomId, e);
             throw new BusinessException(ErrorCode.DATA_SERIALIZATION_ERROR, e);
@@ -73,5 +75,33 @@ public class RoomRepository {
     public boolean exists(String roomId) {
         String key = ROOM_KEY_PREFIX + roomId;
         return Boolean.TRUE.equals(redisTemplate.hasKey(key));
+    }
+
+    /**
+     * 모든 방 정보 조회
+     */
+    public java.util.List<RoomInfo> findAll() {
+        java.util.List<RoomInfo> rooms = new java.util.ArrayList<>();
+
+        // room: 패턴으로 시작하는 모든 키 조회
+        java.util.Set<String> keys = redisTemplate.keys(ROOM_KEY_PREFIX + "*");
+
+        if (keys == null || keys.isEmpty()) {
+            log.debug("No rooms found");
+            return rooms;
+        }
+
+        log.debug("Found {} room keys", keys.size());
+
+        // 각 키에 대해 방 정보 조회
+        for (String key : keys) {
+            String roomId = key.replace(ROOM_KEY_PREFIX, "");
+            RoomInfo roomInfo = findById(roomId);
+            if (roomInfo != null) {
+                rooms.add(roomInfo);
+            }
+        }
+
+        return rooms;
     }
 }
