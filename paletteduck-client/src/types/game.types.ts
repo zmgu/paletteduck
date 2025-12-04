@@ -17,6 +17,18 @@ export interface RoomCreateResponse {
   inviteCode: string;
 }
 
+export interface RoomListResponse {
+  roomId: string;
+  inviteCode: string;
+  status: RoomStatus;
+  currentPlayers: number;
+  maxPlayers: number;
+  hostNickname: string;
+  currentRound: number | null;
+  totalRounds: number | null;
+  createdAt: number;
+}
+
 export interface RoomPlayer {
   playerId: string;
   nickname: string;

@@ -7,6 +7,7 @@ import com.unduck.paletteduck.domain.game.constants.GameConstants;
 import com.unduck.paletteduck.domain.room.dto.RoomCreateRequest;
 import com.unduck.paletteduck.domain.room.dto.RoomCreateResponse;
 import com.unduck.paletteduck.domain.room.dto.RoomInfo;
+import com.unduck.paletteduck.domain.room.dto.RoomListResponse;
 import com.unduck.paletteduck.domain.room.service.RoomPlayerService;
 import com.unduck.paletteduck.domain.room.service.RoomService;
 import com.unduck.paletteduck.util.JwtUtil;
@@ -15,6 +16,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -164,6 +167,14 @@ public class RoomController {
 
         log.info("Random room join successful - roomId: {}, playerId: {}", roomId, playerId);
         return ResponseEntity.ok(new RandomJoinResponse(roomId, randomRoom.getInviteCode()));
+    }
+
+    @GetMapping("/list")
+    public ResponseEntity<List<RoomListResponse>> getRoomList() {
+        log.info("Get public room list request");
+        List<RoomListResponse> roomList = roomService.getPublicRoomList();
+        log.info("Returning {} public rooms", roomList.size());
+        return ResponseEntity.ok(roomList);
     }
 
     // 에러 응답용 DTO
