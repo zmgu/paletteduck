@@ -88,6 +88,9 @@ public class RoomGameService {
             return;
         }
 
+        // 설정 변경 가능 여부 검증
+        roomValidator.validateSettingsUpdate(roomInfo, settings);
+
         roomInfo.setSettings(settings);
         roomRepository.save(roomId, roomInfo);
     }
