@@ -3,6 +3,8 @@ package com.unduck.paletteduck.domain.room.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unduck.paletteduck.domain.game.dto.GameSettings;
+import com.unduck.paletteduck.domain.game.dto.GameState;
+import com.unduck.paletteduck.domain.game.repository.GameRepository;
 import com.unduck.paletteduck.domain.room.dto.*;
 import com.unduck.paletteduck.domain.room.repository.RoomRepository;
 import lombok.RequiredArgsConstructor;
@@ -12,8 +14,10 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -21,6 +25,7 @@ import java.util.UUID;
 public class RoomService {
 
     private final RoomRepository roomRepository;
+    private final GameRepository gameRepository;
 
     /**
      * 방 생성
@@ -170,6 +175,68 @@ public class RoomService {
         return (int) room.getPlayers().stream()
                 .filter(player -> player.getRole() == PlayerRole.PLAYER)
                 .count();
+    }
+
+    /**
+     * 공개방 목록 조회
+     * - 공개방만 필터링
+     * - WAITING + PLAYING 모두 포함
+     * - 최신순 정렬
+     */
+    public List<RoomListResponse> getPublicRoomList() {
+        List<RoomInfo> allRooms = roomRepository.findAll();
+
+        log.info("Fetching public room list - total rooms: {}", allRooms.size());
+
+        List<RoomListResponse> publicRooms = allRooms.stream()
+                .filter(room -> room.isPublic())  // 공개방만
+                .map(this::convertToRoomListResponse)
+                .sorted(Comparator.comparing(RoomListResponse::getCreatedAt).reversed())  // 최신순
+                .collect(Collectors.toList());
+
+        log.info("Public rooms found: {}", publicRooms.size());
+        return publicRooms;
+    }
+
+    /**
+     * RoomInfo를 RoomListResponse로 변환
+     */
+    private RoomListResponse convertToRoomListResponse(RoomInfo room) {
+        // 방장 찾기
+        RoomPlayer host = room.getPlayers().stream()
+                .filter(RoomPlayer::isHost)
+                .findFirst()
+                .orElse(null);
+
+        String hostNickname = host != null ? host.getNickname() : "Unknown";
+        Long createdAt = host != null ? host.getJoinedAt() : System.currentTimeMillis();
+
+        // 참가자 수 계산
+        int currentPlayers = countParticipants(room);
+
+        // 게임 진행 정보 (PLAYING일 때만)
+        Integer currentRound = null;
+        Integer totalRounds = null;
+
+        if (room.getStatus() == RoomStatus.PLAYING) {
+            GameState gameState = gameRepository.findById(room.getRoomId());
+            if (gameState != null) {
+                currentRound = gameState.getCurrentRound();
+                totalRounds = gameState.getTotalRounds();
+            }
+        }
+
+        return RoomListResponse.builder()
+                .roomId(room.getRoomId())
+                .inviteCode(room.getInviteCode())
+                .status(room.getStatus())
+                .currentPlayers(currentPlayers)
+                .maxPlayers(room.getSettings().getMaxPlayers())
+                .hostNickname(hostNickname)
+                .currentRound(currentRound)
+                .totalRounds(totalRounds)
+                .createdAt(createdAt)
+                .build();
     }
 
     // Private 헬퍼 메서드
