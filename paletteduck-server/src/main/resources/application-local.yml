@@ -1,6 +1,6 @@
 spring:
   data:
     redis:
-      host: localhost
+      host: 127.0.0.1  # IPv4 명시 (localhost 대신)
       port: 6379
       timeout: 3000ms
