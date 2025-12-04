@@ -9,7 +9,9 @@ export default function MainPage() {
   const [nickname, setNickname] = useState('');
   const [showRoomTypeModal, setShowRoomTypeModal] = useState(false);
   const [showRoomListModal, setShowRoomListModal] = useState(false);
+  const [showInviteCodeModal, setShowInviteCodeModal] = useState(false);
   const [roomList, setRoomList] = useState<RoomListResponse[]>([]);
+  const [inviteCode, setInviteCode] = useState('');
 
   useEffect(() => {
     const playerInfo = getPlayerInfo();
@@ -80,6 +82,43 @@ export default function MainPage() {
     }
   };
 
+  const handleShowInviteCodeModal = () => {
+    setInviteCode('');
+    setShowInviteCodeModal(true);
+  };
+
+  const handleJoinByInviteCode = async () => {
+    if (!inviteCode.trim()) {
+      alert('초대코드를 입력해주세요.');
+      return;
+    }
+
+    // URL에서 초대코드 추출 (전체 URL을 복사한 경우 대응)
+    let code = inviteCode.trim();
+
+    // URL 형식인 경우 roomId 추출: http://localhost:5173/room/c5e64178
+    const urlMatch = code.match(/\/room\/([^/?#]+)/);
+    if (urlMatch) {
+      code = urlMatch[1];
+    }
+
+    try {
+      const { data } = await apiClient.post<RoomCreateResponse>('/room/join-by-code', {
+        inviteCode: code
+      });
+      setShowInviteCodeModal(false);
+      setInviteCode('');
+      navigate(`/room/${data.roomId}/lobby`);
+    } catch (err: any) {
+      if (err.response?.status === 404) {
+        alert('초대코드에 해당하는 방을 찾을 수 없습니다.');
+      } else {
+        console.error('Failed to join room by invite code', err);
+        alert('방 입장에 실패했습니다.');
+      }
+    }
+  };
+
   return (
     <div style={{ padding: '20px' }}>
       <h1>PaletteDuck - 메인</h1>
@@ -108,8 +147,8 @@ export default function MainPage() {
         </button>
 
         <button
+          onClick={handleShowInviteCodeModal}
           style={{ padding: '15px', fontSize: '16px' }}
-          disabled
         >
           초대코드 입력
         </button>
@@ -299,6 +338,94 @@ export default function MainPage() {
             >
               닫기
             </button>
+          </div>
+        </div>
+      )}
+
+      {/* 초대코드 입력 모달 */}
+      {showInviteCodeModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1000
+          }}
+          onClick={() => setShowInviteCodeModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: 'white',
+              padding: '30px',
+              borderRadius: '8px',
+              maxWidth: '400px',
+              width: '90%'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h2 style={{ marginTop: 0, marginBottom: '20px' }}>초대코드 입력</h2>
+            <p style={{ marginBottom: '20px', color: '#666' }}>
+              방의 초대코드 또는 URL을 입력하세요
+            </p>
+
+            <input
+              type="text"
+              value={inviteCode}
+              onChange={(e) => setInviteCode(e.target.value)}
+              onKeyPress={(e) => {
+                if (e.key === 'Enter') {
+                  handleJoinByInviteCode();
+                }
+              }}
+              placeholder="예: c5e64178 또는 http://localhost:5173/room/c5e64178"
+              autoFocus
+              style={{
+                width: '100%',
+                padding: '12px',
+                fontSize: '16px',
+                border: '1px solid #ddd',
+                borderRadius: '4px',
+                marginBottom: '20px',
+                boxSizing: 'border-box'
+              }}
+            />
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+              <button
+                onClick={handleJoinByInviteCode}
+                style={{
+                  padding: '15px',
+                  fontSize: '16px',
+                  backgroundColor: '#4CAF50',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                입장하기
+              </button>
+
+              <button
+                onClick={() => setShowInviteCodeModal(false)}
+                style={{
+                  padding: '10px',
+                  fontSize: '14px',
+                  backgroundColor: '#f5f5f5',
+                  border: '1px solid #ddd',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                취소
+              </button>
+            </div>
           </div>
         </div>
       )}
