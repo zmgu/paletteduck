@@ -177,9 +177,67 @@ public class RoomController {
         return ResponseEntity.ok(roomList);
     }
 
+    @PostMapping("/join-by-code")
+    public ResponseEntity<?> joinByInviteCode(
+            @RequestHeader("Authorization") String token,
+            @RequestBody InviteCodeRequest request) {
+        String jwt = token.replace("Bearer ", "");
+        String playerId = jwtUtil.getPlayerIdFromToken(jwt);
+        String nickname = jwtUtil.getNicknameFromToken(jwt);
+
+        log.info("Join by invite code request - inviteCode: {}, playerId: {}, nickname: {}",
+                request.inviteCode(), playerId, nickname);
+
+        // 초대코드로 방 찾기
+        RoomInfo room = roomService.findRoomByInviteCode(request.inviteCode());
+
+        if (room == null) {
+            log.info("Room not found for invite code: {}", request.inviteCode());
+            return ResponseEntity.status(404)
+                    .body(new ErrorResponse("초대코드에 해당하는 방을 찾을 수 없습니다."));
+        }
+
+        String roomId = room.getRoomId();
+        log.info("Room found by invite code - roomId: {}, inviteCode: {}", roomId, request.inviteCode());
+
+        // 방 입장 처리
+        boolean alreadyInRoom = room.getPlayers().stream()
+                .anyMatch(p -> p.getPlayerId().equals(playerId));
+
+        if (!alreadyInRoom) {
+            roomPlayerService.joinRoom(roomId, playerId, nickname);
+
+            // 입장 메시지 브로드캐스트
+            ChatMessage joinMessage = ChatMessage.builder()
+                    .messageId(java.util.UUID.randomUUID().toString())
+                    .playerId(GameConstants.SystemPlayer.ID)
+                    .nickname(GameConstants.SystemPlayer.NAME)
+                    .message(nickname + "님이 입장했습니다.")
+                    .type(ChatType.SYSTEM)
+                    .isCorrect(false)
+                    .timestamp(System.currentTimeMillis())
+                    .build();
+
+            messagingTemplate.convertAndSend(WebSocketTopics.roomChat(roomId), joinMessage);
+
+            // 방 정보 갱신 브로드캐스트
+            RoomInfo updatedRoomInfo = roomService.getRoomInfo(roomId);
+            messagingTemplate.convertAndSend(WebSocketTopics.room(roomId), updatedRoomInfo);
+        }
+
+        log.info("Join by invite code successful - roomId: {}, playerId: {}", roomId, playerId);
+        return ResponseEntity.ok(new JoinByCodeResponse(roomId, room.getInviteCode()));
+    }
+
     // 에러 응답용 DTO
     private record ErrorResponse(String message) {}
 
     // 랜덤 입장 응답용 DTO
     private record RandomJoinResponse(String roomId, String inviteCode) {}
+
+    // 초대코드 입력 요청용 DTO
+    private record InviteCodeRequest(String inviteCode) {}
+
+    // 초대코드 입장 응답용 DTO
+    private record JoinByCodeResponse(String roomId, String inviteCode) {}
 }

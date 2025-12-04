@@ -1,7 +1,5 @@
 package com.unduck.paletteduck.domain.room.service;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.unduck.paletteduck.domain.game.dto.GameSettings;
 import com.unduck.paletteduck.domain.game.dto.GameState;
 import com.unduck.paletteduck.domain.game.repository.GameRepository;
@@ -9,10 +7,8 @@ import com.unduck.paletteduck.domain.room.dto.*;
 import com.unduck.paletteduck.domain.room.repository.RoomRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -196,6 +192,28 @@ public class RoomService {
 
         log.info("Public rooms found: {}", publicRooms.size());
         return publicRooms;
+    }
+
+    /**
+     * 초대코드로 방 찾기
+     */
+    public RoomInfo findRoomByInviteCode(String inviteCode) {
+        List<RoomInfo> allRooms = roomRepository.findAll();
+
+        log.info("Finding room by invite code: {}", inviteCode);
+
+        RoomInfo room = allRooms.stream()
+                .filter(r -> r.getInviteCode().equals(inviteCode))
+                .findFirst()
+                .orElse(null);
+
+        if (room != null) {
+            log.info("Room found by invite code - roomId: {}, inviteCode: {}", room.getRoomId(), inviteCode);
+        } else {
+            log.warn("Room not found for invite code: {}", inviteCode);
+        }
+
+        return room;
     }
 
     /**
