@@ -51,6 +51,7 @@ export default function RoomPage() {  // export default 확인
         <GameSettings
           settings={roomInfo.settings}
           isHost={isHost}
+          currentPlayerCount={players.length}
           onSettingsChange={(newSettings) => updateSettings(newSettings, roomInfo.settings)}
         />
       </div>

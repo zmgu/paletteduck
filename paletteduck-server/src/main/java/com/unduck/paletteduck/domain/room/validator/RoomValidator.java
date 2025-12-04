@@ -92,6 +92,38 @@ public class RoomValidator {
     }
 
     /**
+     * 게임 설정 변경 가능 여부 검증
+     */
+    public void validateSettingsUpdate(RoomInfo roomInfo, com.unduck.paletteduck.domain.game.dto.GameSettings newSettings) {
+        // 현재 참가자 수 확인
+        long currentPlayerCount = roomInfo.getPlayers().stream()
+                .filter(p -> p.getRole() == PlayerRole.PLAYER)
+                .count();
+
+        // 최대 참가자 수가 현재 참가자 수보다 적으면 안됨
+        if (newSettings.getMaxPlayers() < currentPlayerCount) {
+            log.warn("Cannot set maxPlayers below current player count - current: {}, requested: {}",
+                    currentPlayerCount, newSettings.getMaxPlayers());
+            throw new IllegalStateException(
+                    "Cannot set maxPlayers (" + newSettings.getMaxPlayers() +
+                    ") below current player count (" + currentPlayerCount + ")");
+        }
+
+        // 최대 관전자 수 확인
+        long currentSpectatorCount = roomInfo.getPlayers().stream()
+                .filter(p -> p.getRole() == PlayerRole.SPECTATOR)
+                .count();
+
+        if (newSettings.getMaxSpectators() < currentSpectatorCount) {
+            log.warn("Cannot set maxSpectators below current spectator count - current: {}, requested: {}",
+                    currentSpectatorCount, newSettings.getMaxSpectators());
+            throw new IllegalStateException(
+                    "Cannot set maxSpectators (" + newSettings.getMaxSpectators() +
+                    ") below current spectator count (" + currentSpectatorCount + ")");
+        }
+    }
+
+    /**
      * 플레이어 찾기 (없으면 예외)
      */
     private RoomPlayer findPlayerOrThrow(RoomInfo roomInfo, String playerId) {

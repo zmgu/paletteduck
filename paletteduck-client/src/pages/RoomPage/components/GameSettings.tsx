@@ -4,10 +4,11 @@ import type { GameSettings } from '../../../types/game.types';
 interface GameSettingsProps {
   settings: GameSettings;
   isHost: boolean;
+  currentPlayerCount: number;
   onSettingsChange: (newSettings: Partial<GameSettings>) => void;
 }
 
-export default function GameSettings({ settings, isHost, onSettingsChange }: GameSettingsProps) {
+export default function GameSettings({ settings, isHost, currentPlayerCount, onSettingsChange }: GameSettingsProps) {
   return (
     <div style={{ flex: 1, border: '1px solid #ccc', padding: '15px', borderRadius: '8px' }}>
       <h2>게임 설정 {isHost && <span style={{ fontSize: '14px', color: '#666' }}>(방장)</span>}</h2>
@@ -21,7 +22,7 @@ export default function GameSettings({ settings, isHost, onSettingsChange }: Gam
           {isHost && (
             <input
               type="range"
-              min={GAME_CONSTANTS.MIN_PLAYERS}
+              min={Math.max(GAME_CONSTANTS.MIN_PLAYERS, currentPlayerCount)}
               max={GAME_CONSTANTS.MAX_PLAYERS}
               value={settings.maxPlayers}
               onChange={(e) => onSettingsChange({ maxPlayers: parseInt(e.target.value) })}
