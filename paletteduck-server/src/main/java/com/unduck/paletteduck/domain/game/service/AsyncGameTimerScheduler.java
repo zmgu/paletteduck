@@ -9,7 +9,7 @@ import com.unduck.paletteduck.domain.game.event.*;
 import com.unduck.paletteduck.domain.game.repository.GameRepository;
 import com.unduck.paletteduck.domain.room.dto.RoomInfo;
 import com.unduck.paletteduck.domain.room.dto.RoomPlayer;
-import com.unduck.paletteduck.domain.room.dto.ReturnToWaitingTracker;
+import com.unduck.paletteduck.domain.room.model.ReturnToWaitingTracker;
 import com.unduck.paletteduck.domain.room.repository.ReturnToWaitingTrackerRepository;
 import com.unduck.paletteduck.domain.room.service.RoomService;
 import com.unduck.paletteduck.domain.room.util.RoomPlayerUtil;

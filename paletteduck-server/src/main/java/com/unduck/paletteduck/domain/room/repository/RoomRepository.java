@@ -2,7 +2,7 @@ package com.unduck.paletteduck.domain.room.repository;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.unduck.paletteduck.domain.room.constant.RoomConstants;
+import com.unduck.paletteduck.domain.room.constants.RoomConstants;
 import com.unduck.paletteduck.domain.room.dto.RoomInfo;
 import com.unduck.paletteduck.exception.BusinessException;
 import com.unduck.paletteduck.exception.ErrorCode;

@@ -1,9 +1,10 @@
 package com.unduck.paletteduck.domain.room.validator;
 
-import com.unduck.paletteduck.domain.room.constant.RoomConstants;
+import com.unduck.paletteduck.domain.room.constants.RoomConstants;
 import com.unduck.paletteduck.domain.room.dto.PlayerRole;
 import com.unduck.paletteduck.domain.room.dto.RoomInfo;
 import com.unduck.paletteduck.domain.room.dto.RoomPlayer;
+import com.unduck.paletteduck.domain.room.util.RoomPlayerUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -16,7 +17,7 @@ public class RoomValidator {
      */
     public void validateGameStart(RoomInfo roomInfo, String playerId) {
         // 방장 권한 확인
-        RoomPlayer player = findPlayerOrThrow(roomInfo, playerId);
+        RoomPlayer player = RoomPlayerUtil.findPlayerByIdOrThrow(roomInfo, playerId);
         if (!player.isHost()) {
             log.warn("Not host - playerId: {}", playerId);
             throw new IllegalStateException("Only host can start game");
@@ -121,15 +122,5 @@ public class RoomValidator {
                     "Cannot set maxSpectators (" + newSettings.getMaxSpectators() +
                     ") below current spectator count (" + currentSpectatorCount + ")");
         }
-    }
-
-    /**
-     * 플레이어 찾기 (없으면 예외)
-     */
-    private RoomPlayer findPlayerOrThrow(RoomInfo roomInfo, String playerId) {
-        return roomInfo.getPlayers().stream()
-                .filter(p -> p.getPlayerId().equals(playerId))
-                .findFirst()
-                .orElseThrow(() -> new IllegalArgumentException("Player not found: " + playerId));
     }
 }

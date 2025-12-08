@@ -1,4 +1,4 @@
-package com.unduck.paletteduck.domain.room.constant;
+package com.unduck.paletteduck.domain.room.constants;
 
 public class RoomConstants {
 

@@ -41,26 +41,27 @@ public class GameScoringService {
                 .count();
 
         // 등수별 기본 점수
-        int baseScore;
-        if (correctCount == 1) {
-            baseScore = GameConstants.Score.FIRST_CORRECT;
-        } else if (correctCount == 2) {
-            baseScore = GameConstants.Score.SECOND_CORRECT;
-        } else if (correctCount == 3) {
-            baseScore = GameConstants.Score.THIRD_CORRECT;
-        } else if (correctCount == 4) {
-            baseScore = GameConstants.Score.FOURTH_CORRECT;
-        } else if (correctCount == 5) {
-            baseScore = GameConstants.Score.FIFTH_CORRECT;
-        } else {
-            baseScore = GameConstants.Score.SIXTH_OR_LATER_CORRECT;
-        }
+        int baseScore = getCorrectAnswerBaseScore((int) correctCount);
 
         // 힌트 차감 계산
         int penalty = calculateHintPenalty(gameState.getCurrentTurn());
 
         // 최종 점수 (최소 0점)
         return Math.max(GameConstants.Score.MIN_SCORE, baseScore - penalty);
+    }
+
+    /**
+     * 정답자 등수에 따른 기본 점수
+     */
+    private int getCorrectAnswerBaseScore(int correctOrder) {
+        switch (correctOrder) {
+            case 1: return GameConstants.Score.FIRST_CORRECT;
+            case 2: return GameConstants.Score.SECOND_CORRECT;
+            case 3: return GameConstants.Score.THIRD_CORRECT;
+            case 4: return GameConstants.Score.FOURTH_CORRECT;
+            case 5: return GameConstants.Score.FIFTH_CORRECT;
+            default: return GameConstants.Score.SIXTH_OR_LATER_CORRECT;
+        }
     }
 
     /**

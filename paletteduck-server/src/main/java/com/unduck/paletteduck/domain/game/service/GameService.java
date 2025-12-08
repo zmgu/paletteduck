@@ -5,6 +5,7 @@ import com.unduck.paletteduck.domain.game.dto.GameState;
 import com.unduck.paletteduck.domain.game.dto.Player;
 import com.unduck.paletteduck.domain.game.dto.TurnInfo;
 import com.unduck.paletteduck.domain.game.repository.GameRepository;
+import com.unduck.paletteduck.domain.game.util.HintUpdater;
 import com.unduck.paletteduck.domain.room.dto.RoomInfo;
 import com.unduck.paletteduck.domain.room.dto.RoomPlayer;
 import com.unduck.paletteduck.domain.room.dto.PlayerRole;
@@ -113,18 +114,10 @@ public class GameService {
         turnInfo.getRevealedChosungPositions().add(position);
 
         // 힌트 배열 및 문자열 업데이트
-        String[] hintArray = hintService.generateHintArray(word,
-                turnInfo.getRevealedChosungPositions(),
-                turnInfo.getRevealedLetterPositions());
-        turnInfo.setHintArray(hintArray);
-
-        String hint = hintService.generateHintDisplay(word,
-                turnInfo.getRevealedChosungPositions(),
-                turnInfo.getRevealedLetterPositions());
-        turnInfo.setCurrentHint(hint);
+        HintUpdater.updateHints(turnInfo, word, hintService);
 
         gameRepository.save(roomId, gameState);
-        log.info("Manual chosung hint provided - room: {}, hint: {}", roomId, hint);
+        log.info("Manual chosung hint provided - room: {}, hint: {}", roomId, turnInfo.getCurrentHint());
         return true;
     }
 
@@ -169,18 +162,10 @@ public class GameService {
         turnInfo.getRevealedLetterPositions().add(position);
 
         // 힌트 배열 및 문자열 업데이트
-        String[] hintArray = hintService.generateHintArray(word,
-                turnInfo.getRevealedChosungPositions(),
-                turnInfo.getRevealedLetterPositions());
-        turnInfo.setHintArray(hintArray);
-
-        String hint = hintService.generateHintDisplay(word,
-                turnInfo.getRevealedChosungPositions(),
-                turnInfo.getRevealedLetterPositions());
-        turnInfo.setCurrentHint(hint);
+        HintUpdater.updateHints(turnInfo, word, hintService);
 
         gameRepository.save(roomId, gameState);
-        log.info("Manual letter hint provided - room: {}, hint: {}", roomId, hint);
+        log.info("Manual letter hint provided - room: {}, hint: {}", roomId, turnInfo.getCurrentHint());
         return true;
     }
 }
