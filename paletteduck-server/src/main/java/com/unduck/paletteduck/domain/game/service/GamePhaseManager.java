@@ -7,7 +7,8 @@ import com.unduck.paletteduck.domain.game.dto.GameState;
 import com.unduck.paletteduck.domain.game.dto.TurnInfo;
 import com.unduck.paletteduck.domain.game.event.*;
 import com.unduck.paletteduck.domain.game.repository.GameRepository;
-import com.unduck.paletteduck.domain.room.dto.ReturnToWaitingTracker;
+import com.unduck.paletteduck.domain.game.util.HintUpdater;
+import com.unduck.paletteduck.domain.room.model.ReturnToWaitingTracker;
 import com.unduck.paletteduck.domain.room.dto.RoomInfo;
 import com.unduck.paletteduck.domain.room.dto.RoomPlayer;
 import com.unduck.paletteduck.domain.room.repository.ReturnToWaitingTrackerRepository;
@@ -251,20 +252,12 @@ public class GamePhaseManager {
                 turnInfo.getRevealedChosungPositions().add(position);
                 turnInfo.setHintLevel(2);
 
-                String[] hintArray = hintService.generateHintArray(word,
-                        turnInfo.getRevealedChosungPositions(),
-                        turnInfo.getRevealedLetterPositions());
-                turnInfo.setHintArray(hintArray);
-
-                String hint = hintService.generateHintDisplay(word,
-                        turnInfo.getRevealedChosungPositions(),
-                        turnInfo.getRevealedLetterPositions());
-                turnInfo.setCurrentHint(hint);
+                HintUpdater.updateHints(turnInfo, word, hintService);
 
                 gameRepository.save(roomId, gameState);
                 messagingTemplate.convertAndSend(WebSocketTopics.gameState(roomId), gameState);
 
-                log.info("Auto hint (chosung) - room: {}, turn: {}, hint: {}", roomId, turnNumber, hint);
+                log.info("Auto hint (chosung) - room: {}, turn: {}, hint: {}", roomId, turnNumber, turnInfo.getCurrentHint());
             }
         }
     }

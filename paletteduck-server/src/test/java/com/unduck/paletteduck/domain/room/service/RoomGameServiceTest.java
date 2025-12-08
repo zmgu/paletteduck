@@ -5,6 +5,7 @@ import com.unduck.paletteduck.domain.game.dto.GameState;
 import com.unduck.paletteduck.domain.game.service.AsyncGameTimerScheduler;
 import com.unduck.paletteduck.domain.game.service.GameService;
 import com.unduck.paletteduck.domain.room.dto.*;
+import com.unduck.paletteduck.domain.room.model.ReturnToWaitingTracker;
 import com.unduck.paletteduck.domain.room.repository.ReturnToWaitingTrackerRepository;
 import com.unduck.paletteduck.domain.room.repository.RoomRepository;
 import com.unduck.paletteduck.domain.room.validator.RoomValidator;

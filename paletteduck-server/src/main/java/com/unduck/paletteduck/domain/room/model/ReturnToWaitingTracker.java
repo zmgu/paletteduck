@@ -1,4 +1,4 @@
-package com.unduck.paletteduck.domain.room.dto;
+package com.unduck.paletteduck.domain.room.model;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -9,7 +9,7 @@ import java.util.HashSet;
 import java.util.Set;
 
 /**
- * 게임 종료 후 대기방 복귀를 추적하는 DTO
+ * 게임 종료 후 대기방 복귀를 추적하는 도메인 모델
  * Redis에 저장되어 90초 타이머 및 복귀 상태를 관리
  */
 @Getter

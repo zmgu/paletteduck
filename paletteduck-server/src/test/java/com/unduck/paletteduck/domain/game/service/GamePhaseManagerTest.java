@@ -6,7 +6,7 @@ import com.unduck.paletteduck.domain.game.dto.GameState;
 import com.unduck.paletteduck.domain.game.dto.TurnInfo;
 import com.unduck.paletteduck.domain.game.repository.GameRepository;
 import com.unduck.paletteduck.domain.room.dto.PlayerRole;
-import com.unduck.paletteduck.domain.room.dto.ReturnToWaitingTracker;
+import com.unduck.paletteduck.domain.room.model.ReturnToWaitingTracker;
 import com.unduck.paletteduck.domain.room.dto.RoomInfo;
 import com.unduck.paletteduck.domain.room.dto.RoomPlayer;
 import com.unduck.paletteduck.domain.room.repository.ReturnToWaitingTrackerRepository;

@@ -2,8 +2,7 @@ package com.unduck.paletteduck.domain.room.controller;
 
 import com.unduck.paletteduck.config.constants.WebSocketTopics;
 import com.unduck.paletteduck.domain.chat.dto.ChatMessage;
-import com.unduck.paletteduck.domain.chat.dto.ChatType;
-import com.unduck.paletteduck.domain.game.constants.GameConstants;
+import com.unduck.paletteduck.domain.chat.service.ChatMessageFactory;
 import com.unduck.paletteduck.domain.room.dto.RoomCreateRequest;
 import com.unduck.paletteduck.domain.room.dto.RoomCreateResponse;
 import com.unduck.paletteduck.domain.room.dto.RoomInfo;
@@ -29,6 +28,7 @@ public class RoomController {
     private final RoomPlayerService roomPlayerService;
     private final JwtUtil jwtUtil;
     private final SimpMessagingTemplate messagingTemplate;
+    private final ChatMessageFactory chatMessageFactory;
 
     @PostMapping("/create")
     public ResponseEntity<RoomCreateResponse> createRoom(
@@ -78,16 +78,7 @@ public class RoomController {
             roomPlayerService.joinRoom(roomId, playerId, nickname);
 
             // 입장 메시지 브로드캐스트
-            ChatMessage joinMessage = ChatMessage.builder()
-                    .messageId(java.util.UUID.randomUUID().toString())
-                    .playerId(GameConstants.SystemPlayer.ID)
-                    .nickname(GameConstants.SystemPlayer.NAME)
-                    .message(nickname + "님이 입장했습니다.")
-                    .type(ChatType.SYSTEM)
-                    .isCorrect(false)
-                    .timestamp(System.currentTimeMillis())
-                    .build();
-
+            ChatMessage joinMessage = chatMessageFactory.createPlayerJoinMessage(nickname);
             messagingTemplate.convertAndSend(WebSocketTopics.roomChat(roomId), joinMessage);
 
             // 방 정보 갱신 브로드캐스트
@@ -148,16 +139,7 @@ public class RoomController {
             roomPlayerService.joinRoom(roomId, playerId, nickname);
 
             // 입장 메시지 브로드캐스트
-            ChatMessage joinMessage = ChatMessage.builder()
-                    .messageId(java.util.UUID.randomUUID().toString())
-                    .playerId(GameConstants.SystemPlayer.ID)
-                    .nickname(GameConstants.SystemPlayer.NAME)
-                    .message(nickname + "님이 입장했습니다.")
-                    .type(ChatType.SYSTEM)
-                    .isCorrect(false)
-                    .timestamp(System.currentTimeMillis())
-                    .build();
-
+            ChatMessage joinMessage = chatMessageFactory.createPlayerJoinMessage(nickname);
             messagingTemplate.convertAndSend(WebSocketTopics.roomChat(roomId), joinMessage);
 
             // 방 정보 갱신 브로드캐스트
@@ -208,16 +190,7 @@ public class RoomController {
             roomPlayerService.joinRoom(roomId, playerId, nickname);
 
             // 입장 메시지 브로드캐스트
-            ChatMessage joinMessage = ChatMessage.builder()
-                    .messageId(java.util.UUID.randomUUID().toString())
-                    .playerId(GameConstants.SystemPlayer.ID)
-                    .nickname(GameConstants.SystemPlayer.NAME)
-                    .message(nickname + "님이 입장했습니다.")
-                    .type(ChatType.SYSTEM)
-                    .isCorrect(false)
-                    .timestamp(System.currentTimeMillis())
-                    .build();
-
+            ChatMessage joinMessage = chatMessageFactory.createPlayerJoinMessage(nickname);
             messagingTemplate.convertAndSend(WebSocketTopics.roomChat(roomId), joinMessage);
 
             // 방 정보 갱신 브로드캐스트

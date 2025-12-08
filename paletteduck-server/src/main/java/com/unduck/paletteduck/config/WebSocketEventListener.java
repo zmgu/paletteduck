@@ -2,7 +2,7 @@ package com.unduck.paletteduck.config;
 
 import com.unduck.paletteduck.config.constants.WebSocketTopics;
 import com.unduck.paletteduck.domain.chat.dto.ChatMessage;
-import com.unduck.paletteduck.domain.chat.dto.ChatType;
+import com.unduck.paletteduck.domain.chat.service.ChatMessageFactory;
 import com.unduck.paletteduck.domain.game.dto.GameState;
 import com.unduck.paletteduck.domain.game.dto.TurnEndReason;
 import com.unduck.paletteduck.domain.game.service.GameService;
@@ -13,6 +13,7 @@ import com.unduck.paletteduck.domain.room.dto.RoomStatus;
 import com.unduck.paletteduck.domain.room.service.RoomPlayerService;
 import com.unduck.paletteduck.domain.room.service.RoomService;
 import com.unduck.paletteduck.domain.room.service.SessionMappingService;
+import com.unduck.paletteduck.domain.room.util.RoomPlayerUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.event.EventListener;
@@ -34,6 +35,7 @@ public class WebSocketEventListener {
     private final com.unduck.paletteduck.domain.game.service.TurnManager turnManager;
     private final com.unduck.paletteduck.domain.game.service.GamePhaseManager phaseManager;
     private final SimpMessagingTemplate messagingTemplate;
+    private final ChatMessageFactory chatMessageFactory;
 
     @EventListener
     public void handleWebSocketConnectListener(SessionConnectEvent event) {
@@ -63,10 +65,7 @@ public class WebSocketEventListener {
                 // 방 정보 가져오기
                 RoomInfo roomInfo = roomService.getRoomInfo(roomIdToLeave);
                 if (roomInfo != null) {
-                    RoomPlayer leavingPlayer = roomInfo.getPlayers().stream()
-                            .filter(p -> p.getPlayerId().equals(playerId))
-                            .findFirst()
-                            .orElse(null);
+                    RoomPlayer leavingPlayer = RoomPlayerUtil.findPlayerById(roomInfo, playerId).orElse(null);
 
                     String leavingNickname = leavingPlayer != null ? leavingPlayer.getNickname() : "Unknown";
                     PlayerRole leavingRole = leavingPlayer != null ? leavingPlayer.getRole() : null;
@@ -82,14 +81,7 @@ public class WebSocketEventListener {
                         messagingTemplate.convertAndSend(WebSocketTopics.room(roomIdToLeave), updatedRoomInfo);
 
                         // 퇴장 메시지 브로드캐스트 (관전자 포함 모든 플레이어)
-                        ChatMessage chatMessage = ChatMessage.builder()
-                                .playerId("")
-                                .nickname("")
-                                .message(leavingNickname + "님이 방을 나갔습니다.")
-                                .type(ChatType.SYSTEM)
-                                .timestamp(System.currentTimeMillis())
-                                .build();
-
+                        ChatMessage chatMessage = chatMessageFactory.createPlayerLeaveMessage(leavingNickname);
                         messagingTemplate.convertAndSend(WebSocketTopics.roomChat(roomIdToLeave), chatMessage);
 
                         log.info("Broadcasted leave message - roomId: {}, nickname: {}, role: {}, roomStatus: {}",

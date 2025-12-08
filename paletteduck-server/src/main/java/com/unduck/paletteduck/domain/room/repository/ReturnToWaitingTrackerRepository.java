@@ -2,7 +2,7 @@ package com.unduck.paletteduck.domain.room.repository;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.unduck.paletteduck.domain.room.dto.ReturnToWaitingTracker;
+import com.unduck.paletteduck.domain.room.model.ReturnToWaitingTracker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;

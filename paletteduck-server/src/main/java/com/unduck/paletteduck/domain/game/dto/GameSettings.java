@@ -1,6 +1,6 @@
 package com.unduck.paletteduck.domain.game.dto;
 
-import com.unduck.paletteduck.domain.room.constant.RoomConstants;
+import com.unduck.paletteduck.domain.room.constants.RoomConstants;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;

@@ -1,6 +1,7 @@
 package com.unduck.paletteduck.domain.room.controller;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.unduck.paletteduck.domain.chat.service.ChatMessageFactory;
 import com.unduck.paletteduck.domain.game.dto.GameSettings;
 import com.unduck.paletteduck.domain.room.dto.*;
 import com.unduck.paletteduck.domain.room.service.RoomPlayerService;
@@ -49,6 +50,9 @@ class RoomControllerTest {
 
     @MockBean
     private SimpMessagingTemplate messagingTemplate;
+
+    @MockBean
+    private ChatMessageFactory chatMessageFactory;
 
     @Test
     @Tag("api-room-create")

@@ -1,4 +1,4 @@
-package com.unduck.paletteduck.config.service;
+package com.unduck.paletteduck.infrastructure;
 
 import com.unduck.paletteduck.config.constants.WebSocketTopics;
 import com.unduck.paletteduck.domain.chat.dto.ChatMessage;
