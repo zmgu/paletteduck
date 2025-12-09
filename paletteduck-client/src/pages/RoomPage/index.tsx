@@ -10,7 +10,7 @@ import ChatBox from './components/ChatBox';
 export default function RoomPage() {  // export default 확인
   const { roomId } = useParams<{ roomId: string }>();
   const { roomInfo, currentPlayerId, chatMessages, loading } = useRoomConnection(roomId!);
-  const { toggleReady, changeRole, updateSettings, startGame, sendChat, copyInviteCode } = useRoomActions(roomId!, currentPlayerId);
+  const { toggleReady, changeRole, updateSettings, startGame, sendChat, copyInviteCode, leaveRoom } = useRoomActions(roomId!, currentPlayerId);
 
   if (loading || !roomInfo) {
     return <div>로딩 중...</div>;
@@ -62,21 +62,21 @@ export default function RoomPage() {  // export default 확인
       />
 
       <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-        <button 
-          onClick={() => copyInviteCode(roomInfo.inviteCode)} 
+        <button
+          onClick={() => copyInviteCode(roomInfo.inviteCode)}
           style={{ flex: 1, padding: '15px', fontSize: '16px' }}
         >
           초대 코드 복사
         </button>
-        
+
         {isHost ? (
-          <button 
+          <button
             onClick={startGame}
-            style={{ 
-              flex: 1, 
-              padding: '15px', 
-              fontSize: '16px', 
-              backgroundColor: canStartGame ? '#4caf50' : '#ccc', 
+            style={{
+              flex: 1,
+              padding: '15px',
+              fontSize: '16px',
+              backgroundColor: canStartGame ? '#4caf50' : '#ccc',
               color: 'white',
               cursor: canStartGame ? 'pointer' : 'not-allowed'
             }}
@@ -85,11 +85,11 @@ export default function RoomPage() {  // export default 확인
             시작하기
           </button>
         ) : currentPlayer?.role === 'PLAYER' ? (
-          <button 
+          <button
             onClick={toggleReady}
-            style={{ 
-              flex: 1, 
-              padding: '15px', 
+            style={{
+              flex: 1,
+              padding: '15px',
               fontSize: '16px',
               backgroundColor: currentPlayer.ready ? '#ff9800' : '#2196f3',
               color: 'white'
@@ -98,6 +98,19 @@ export default function RoomPage() {  // export default 확인
             {currentPlayer.ready ? '준비 취소' : '준비 완료'}
           </button>
         ) : null}
+
+        <button
+          onClick={leaveRoom}
+          style={{
+            flex: 1,
+            padding: '15px',
+            fontSize: '16px',
+            backgroundColor: '#f44336',
+            color: 'white'
+          }}
+        >
+          방 나가기
+        </button>
       </div>
     </div>
   );

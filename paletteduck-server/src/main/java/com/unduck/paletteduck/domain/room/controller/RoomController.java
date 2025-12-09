@@ -98,7 +98,26 @@ public class RoomController {
         String playerId = jwtUtil.getPlayerIdFromToken(jwt);
 
         log.info("Leave room request - roomId: {}, playerId: {}", roomId, playerId);
-        roomPlayerService.leaveRoom(roomId, playerId);
+
+        // 퇴장하는 플레이어의 닉네임 가져오기
+        RoomInfo roomInfo = roomService.getRoomInfo(roomId);
+        String nickname = roomInfo != null ?
+            roomInfo.getPlayers().stream()
+                .filter(p -> p.getPlayerId().equals(playerId))
+                .findFirst()
+                .map(p -> p.getNickname())
+                .orElse("Unknown") : "Unknown";
+
+        // 방 나가기 처리
+        RoomInfo updatedRoomInfo = roomPlayerService.leaveRoom(roomId, playerId);
+
+        // 방이 삭제되지 않았다면 퇴장 메시지와 방 정보 브로드캐스트
+        if (updatedRoomInfo != null) {
+            ChatMessage leaveMessage = chatMessageFactory.createPlayerLeaveMessage(nickname);
+            messagingTemplate.convertAndSend(WebSocketTopics.roomChat(roomId), leaveMessage);
+            messagingTemplate.convertAndSend(WebSocketTopics.room(roomId), updatedRoomInfo);
+        }
+
         return ResponseEntity.ok().build();
     }
 
