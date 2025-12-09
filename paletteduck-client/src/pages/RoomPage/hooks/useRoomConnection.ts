@@ -12,7 +12,8 @@ export const useRoomConnection = (roomId: string) => {
   const [roomInfo, setRoomInfo] = useState<RoomInfo | null>(null);
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
   const [loading, setLoading] = useState(true);
-  
+  const previousHostId = useRef<string | null>(null);
+
   const playerInfo = getPlayerInfo();
 
   useEffect(() => {
@@ -86,7 +87,9 @@ export const useRoomConnection = (roomId: string) => {
       wsClient.send(WS_DESTINATIONS.ROOM_UPDATE(roomId));
 
       // 구독 설정
-      wsClient.subscribe(WS_TOPICS.ROOM(roomId), (data: RoomInfo) => setRoomInfo(data));
+      wsClient.subscribe(WS_TOPICS.ROOM(roomId), (data: RoomInfo) => {
+        setRoomInfo(data);
+      });
       wsClient.subscribe(WS_TOPICS.ROOM_CHAT(roomId), (data: ChatMessage) =>
         setChatMessages((prev) => [...prev, data])
       );
@@ -113,6 +116,43 @@ export const useRoomConnection = (roomId: string) => {
       console.error('Failed to leave room:', error);
     }
   };
+
+  // 방장 변경 감지 및 시스템 메시지 추가
+  useEffect(() => {
+    if (!roomInfo || !roomInfo.players.length) return;
+
+    const currentHost = roomInfo.players.find(p => p.host);
+    if (!currentHost) return;
+
+    // 첫 로드 시 방장 알림
+    if (previousHostId.current === null) {
+      previousHostId.current = currentHost.playerId;
+      const systemMessage: ChatMessage = {
+        messageId: `system-host-${Date.now()}`,
+        playerId: 'system',
+        nickname: '시스템',
+        message: `${currentHost.nickname}님이 방장입니다.`,
+        type: 'SYSTEM',
+        timestamp: Date.now()
+      };
+      setChatMessages([systemMessage]);
+      return;
+    }
+
+    // 방장이 바뀐 경우
+    if (previousHostId.current !== currentHost.playerId) {
+      previousHostId.current = currentHost.playerId;
+      const systemMessage: ChatMessage = {
+        messageId: `system-host-change-${Date.now()}`,
+        playerId: 'system',
+        nickname: '시스템',
+        message: `${currentHost.nickname}님이 방장이 되었습니다.`,
+        type: 'SYSTEM',
+        timestamp: Date.now()
+      };
+      setChatMessages(prev => [...prev, systemMessage]);
+    }
+  }, [roomInfo?.players]);
 
   return {
     roomInfo,
