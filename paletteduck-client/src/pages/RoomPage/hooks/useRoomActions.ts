@@ -1,8 +1,11 @@
 import { wsClient } from '../../../utils/wsClient';
 import { WS_DESTINATIONS } from '../../../constants/wsDestinations';
 import type { PlayerRole, GameSettings } from '../../../types/game.types';
+import apiClient from '../../../utils/apiClient';
+import { useNavigate } from 'react-router-dom';
 
 export const useRoomActions = (roomId: string, currentPlayerId: string) => {
+  const navigate = useNavigate();
   
   // 준비 완료 토글
   const toggleReady = () => {
@@ -54,6 +57,17 @@ const copyInviteCode = (inviteCode: string) => {
     });
 };
 
+  // 방 나가기
+  const leaveRoom = async () => {
+    try {
+      await apiClient.post(`/room/${roomId}/leave`);
+      navigate('/main');
+    } catch (err) {
+      console.error('Failed to leave room', err);
+      alert('방 나가기에 실패했습니다.');
+    }
+  };
+
   return {
     toggleReady,
     changeRole,
@@ -61,5 +75,6 @@ const copyInviteCode = (inviteCode: string) => {
     startGame,
     sendChat,
     copyInviteCode,
+    leaveRoom,
   };
 };
