@@ -57,6 +57,7 @@ export interface RoomInfo {
 }
 
 export interface ChatMessage {
+  messageId?: string;
   playerId: string;
   nickname: string;
   message: string;
