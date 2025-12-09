@@ -19,10 +19,9 @@ export default function ChatBox({ messages, onSendMessage }: ChatBoxProps) {
   };
 
   return (
-    <div style={{ marginTop: '20px', border: '1px solid #ccc', padding: '15px', borderRadius: '8px' }}>
-      <h3>채팅</h3>
-      <div style={{ 
-        height: '200px', 
+    <div>
+      <div style={{
+        height: '280px', 
         overflowY: 'auto', 
         border: '1px solid #eee', 
         padding: '10px', 

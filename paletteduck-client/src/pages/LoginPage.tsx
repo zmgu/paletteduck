@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import apiClient, { getPlayerInfo } from '../utils/apiClient';
 import type { PlayerJoinResponse } from '../types/game.types';
+import duckImage from '../assets/duck.png';
 
 export default function LoginPage() {
   const [nickname, setNickname] = useState('');
@@ -44,25 +45,31 @@ export default function LoginPage() {
   };
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      flexDirection: 'column', 
-      alignItems: 'center', 
-      justifyContent: 'center', 
-      height: '100vh' 
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '100vh'
     }}>
-      <h1>PaletteDuck</h1>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+      <img src={duckImage} alt="Duck" style={{ width: '150px', marginBottom: '20px' }} />
+      <h1 style={{ textAlign: 'center', margin: '10px 0' }}>PaletteDuck</h1>
+      <form onSubmit={handleSubmit} style={{
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '10px',
+        width: '300px'
+      }}>
         <input
           type="text"
           value={nickname}
           onChange={(e) => setNickname(e.target.value)}
           placeholder="닉네임 입력"
           maxLength={10}
-          style={{ padding: '10px', fontSize: '16px' }}
+          style={{ padding: '10px', fontSize: '16px', width: '100%', boxSizing: 'border-box' }}
         />
-        {error && <span style={{ color: 'red' }}>{error}</span>}
-        <button type="submit" style={{ padding: '10px', fontSize: '16px' }}>
+        {error && <span style={{ color: 'red', textAlign: 'center', width: '100%' }}>{error}</span>}
+        <button type="submit" style={{ padding: '10px', fontSize: '16px', width: '100%' }}>
           입장
         </button>
       </form>
