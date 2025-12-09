@@ -39,3 +39,4 @@ temp/
 *.war
 *.zip
 *.tar
+.claude/

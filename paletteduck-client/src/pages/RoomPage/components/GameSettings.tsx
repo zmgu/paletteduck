@@ -9,77 +9,81 @@ interface GameSettingsProps {
 }
 
 export default function GameSettings({ settings, isHost, currentPlayerCount, onSettingsChange }: GameSettingsProps) {
+  const minPlayers = Math.max(GAME_CONSTANTS.MIN_PLAYERS, currentPlayerCount);
+
   return (
     <div style={{ flex: 1, border: '1px solid #ccc', padding: '15px', borderRadius: '8px' }}>
-      <h2>게임 설정 {isHost && <span style={{ fontSize: '14px', color: '#666' }}>(방장)</span>}</h2>
       <div style={{ marginTop: '15px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-        
+
         {/* 참가자 수 */}
-        <div>
-          <label style={{ display: 'block', marginBottom: '5px' }}>
-            참가자 수: {settings.maxPlayers}명
-          </label>
-          {isHost && (
-            <input
-              type="range"
-              min={Math.max(GAME_CONSTANTS.MIN_PLAYERS, currentPlayerCount)}
-              max={GAME_CONSTANTS.MAX_PLAYERS}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <label style={{ flex: 1 }}>참가자 수</label>
+          {isHost ? (
+            <select
               value={settings.maxPlayers}
               onChange={(e) => onSettingsChange({ maxPlayers: parseInt(e.target.value) })}
-              style={{ width: '100%' }}
-            />
+              style={{ flex: 1, padding: '8px', borderRadius: '4px' }}
+            >
+              {Array.from({ length: GAME_CONSTANTS.MAX_PLAYERS - minPlayers + 1 }, (_, i) => minPlayers + i).map(num => (
+                <option key={num} value={num}>{num}명</option>
+              ))}
+            </select>
+          ) : (
+            <span style={{ flex: 1, textAlign: 'right' }}>{settings.maxPlayers}명</span>
           )}
         </div>
 
         {/* 라운드 */}
-        <div>
-          <label style={{ display: 'block', marginBottom: '5px' }}>
-            라운드: {settings.rounds}라운드
-          </label>
-          {isHost && (
-            <input
-              type="range"
-              min={GAME_CONSTANTS.MIN_ROUNDS}
-              max={GAME_CONSTANTS.MAX_ROUNDS}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <label style={{ flex: 1 }}>라운드</label>
+          {isHost ? (
+            <select
               value={settings.rounds}
               onChange={(e) => onSettingsChange({ rounds: parseInt(e.target.value) })}
-              style={{ width: '100%' }}
-            />
+              style={{ flex: 1, padding: '8px', borderRadius: '4px' }}
+            >
+              {Array.from({ length: GAME_CONSTANTS.MAX_ROUNDS - GAME_CONSTANTS.MIN_ROUNDS + 1 }, (_, i) => GAME_CONSTANTS.MIN_ROUNDS + i).map(num => (
+                <option key={num} value={num}>{num}라운드</option>
+              ))}
+            </select>
+          ) : (
+            <span style={{ flex: 1, textAlign: 'right' }}>{settings.rounds}라운드</span>
           )}
         </div>
 
         {/* 단어 선택지 */}
-        <div>
-          <label style={{ display: 'block', marginBottom: '5px' }}>
-            단어 선택지: {settings.wordChoices}개
-          </label>
-          {isHost && (
-            <input
-              type="range"
-              min={GAME_CONSTANTS.MIN_WORD_CHOICES}
-              max={GAME_CONSTANTS.MAX_WORD_CHOICES}
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <label style={{ flex: 1 }}>단어 선택지</label>
+          {isHost ? (
+            <select
               value={settings.wordChoices}
               onChange={(e) => onSettingsChange({ wordChoices: parseInt(e.target.value) })}
-              style={{ width: '100%' }}
-            />
+              style={{ flex: 1, padding: '8px', borderRadius: '4px' }}
+            >
+              {Array.from({ length: GAME_CONSTANTS.MAX_WORD_CHOICES - GAME_CONSTANTS.MIN_WORD_CHOICES + 1 }, (_, i) => GAME_CONSTANTS.MIN_WORD_CHOICES + i).map(num => (
+                <option key={num} value={num}>{num}개</option>
+              ))}
+            </select>
+          ) : (
+            <span style={{ flex: 1, textAlign: 'right' }}>{settings.wordChoices}개</span>
           )}
         </div>
 
         {/* 그리기 시간 */}
-        <div>
-          <label style={{ display: 'block', marginBottom: '5px' }}>
-            그리기 시간: {settings.drawTime}초
-          </label>
-          {isHost && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <label style={{ flex: 1 }}>그리기 시간</label>
+          {isHost ? (
             <select
               value={settings.drawTime}
               onChange={(e) => onSettingsChange({ drawTime: parseInt(e.target.value) })}
-              style={{ width: '100%', padding: '8px' }}
+              style={{ flex: 1, padding: '8px', borderRadius: '4px' }}
             >
               {GAME_CONSTANTS.DRAW_TIME_OPTIONS.map(time => (
                 <option key={time} value={time}>{time}초</option>
               ))}
             </select>
+          ) : (
+            <span style={{ flex: 1, textAlign: 'right' }}>{settings.drawTime}초</span>
           )}
         </div>
       </div>

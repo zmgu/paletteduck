@@ -3,13 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import { getPlayerInfo } from '../utils/apiClient';
 import apiClient from '../utils/apiClient';
 import type { RoomCreateResponse, RoomListResponse } from '../types/game.types';
+import duckImage from '../assets/duck.png';
 
 export default function MainPage() {
   const navigate = useNavigate();
   const [nickname, setNickname] = useState('');
   const [showRoomTypeModal, setShowRoomTypeModal] = useState(false);
-  const [showRoomListModal, setShowRoomListModal] = useState(false);
+  const [showJoinRoomModal, setShowJoinRoomModal] = useState(false);
   const [showInviteCodeModal, setShowInviteCodeModal] = useState(false);
+  const [showAlertModal, setShowAlertModal] = useState(false);
+  const [alertMessage, setAlertMessage] = useState('');
   const [roomList, setRoomList] = useState<RoomListResponse[]>([]);
   const [inviteCode, setInviteCode] = useState('');
 
@@ -42,43 +45,22 @@ export default function MainPage() {
       navigate(`/room/${data.roomId}/lobby`);
     } catch (err) {
       console.error('Failed to create room', err);
-      alert('방 만들기에 실패했습니다.');
+      setShowRoomTypeModal(false);
+      setAlertMessage('방 만들기에 실패했습니다.');
+      setShowAlertModal(true);
     }
   };
 
-  const handleRandomJoin = async () => {
-    try {
-      const { data } = await apiClient.post<RoomCreateResponse>('/room/random');
-      navigate(`/room/${data.roomId}/lobby`);
-    } catch (err: any) {
-      if (err.response?.status === 404) {
-        alert('사용 가능한 공개방이 없습니다.');
-      } else {
-        console.error('Failed to join random room', err);
-        alert('랜덤 방 입장에 실패했습니다.');
-      }
-    }
-  };
-
-  const handleShowRoomList = async () => {
+  const handleShowJoinRoomModal = async () => {
     try {
       const { data } = await apiClient.get<RoomListResponse[]>('/room/list');
       setRoomList(data);
-      setShowRoomListModal(true);
+      setShowJoinRoomModal(true);
+      setInviteCode('');
     } catch (err) {
       console.error('Failed to fetch room list', err);
-      alert('방 목록을 불러오는데 실패했습니다.');
-    }
-  };
-
-  const handleJoinRoom = async (roomId: string) => {
-    try {
-      await apiClient.post(`/room/${roomId}/join`);
-      setShowRoomListModal(false);
-      navigate(`/room/${roomId}/lobby`);
-    } catch (err) {
-      console.error('Failed to join room', err);
-      alert('방 입장에 실패했습니다.');
+      setAlertMessage('방 목록을 불러오는데 실패했습니다.');
+      setShowAlertModal(true);
     }
   };
 
@@ -87,16 +69,42 @@ export default function MainPage() {
     setShowInviteCodeModal(true);
   };
 
+  const handleRandomJoin = async () => {
+    try {
+      const { data } = await apiClient.post<RoomCreateResponse>('/room/random');
+      navigate(`/room/${data.roomId}/lobby`);
+    } catch (err: any) {
+      if (err.response?.status === 404) {
+        setAlertMessage('사용 가능한 공개방이 없습니다.');
+        setShowAlertModal(true);
+      } else {
+        console.error('Failed to join random room', err);
+        setAlertMessage('랜덤 방 입장에 실패했습니다.');
+        setShowAlertModal(true);
+      }
+    }
+  };
+
+  const handleJoinRoom = async (roomId: string) => {
+    try {
+      await apiClient.post(`/room/${roomId}/join`);
+      setShowJoinRoomModal(false);
+      navigate(`/room/${roomId}/lobby`);
+    } catch (err) {
+      console.error('Failed to join room', err);
+      setAlertMessage('방 입장에 실패했습니다.');
+      setShowAlertModal(true);
+    }
+  };
+
   const handleJoinByInviteCode = async () => {
     if (!inviteCode.trim()) {
-      alert('초대코드를 입력해주세요.');
+      setAlertMessage('초대코드를 입력해주세요.');
+      setShowAlertModal(true);
       return;
     }
 
-    // URL에서 초대코드 추출 (전체 URL을 복사한 경우 대응)
     let code = inviteCode.trim();
-
-    // URL 형식인 경우 roomId 추출: http://localhost:5173/room/c5e64178
     const urlMatch = code.match(/\/room\/([^/?#]+)/);
     if (urlMatch) {
       code = urlMatch[1];
@@ -107,55 +115,78 @@ export default function MainPage() {
         inviteCode: code
       });
       setShowInviteCodeModal(false);
+      setShowJoinRoomModal(false);
       setInviteCode('');
       navigate(`/room/${data.roomId}/lobby`);
     } catch (err: any) {
       if (err.response?.status === 404) {
-        alert('초대코드에 해당하는 방을 찾을 수 없습니다.');
+        setAlertMessage('초대코드에 해당하는 방을 찾을 수 없습니다.');
+        setShowAlertModal(true);
       } else {
         console.error('Failed to join room by invite code', err);
-        alert('방 입장에 실패했습니다.');
+        setAlertMessage('방 입장에 실패했습니다.');
+        setShowAlertModal(true);
       }
     }
   };
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h1>PaletteDuck - 메인</h1>
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '100vh',
+      padding: '20px'
+    }}>
+      <img src={duckImage} alt="Duck" style={{ width: '120px', marginBottom: '15px' }} />
+      <h1 style={{ margin: '10px 0' }}>PaletteDuck</h1>
       <p>환영합니다, {nickname}님!</p>
 
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '20px', maxWidth: '300px' }}>
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '20px', width: '300px' }}>
         <button
           onClick={handleCreateRoomClick}
-          style={{ padding: '15px', fontSize: '16px' }}
+          style={{
+            padding: '20px',
+            fontSize: '18px',
+            backgroundColor: '#4CAF50',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontWeight: 'bold'
+          }}
         >
-          방 만들기
+          🎨 방 만들기
         </button>
 
         <button
-          onClick={handleRandomJoin}
-          style={{ padding: '15px', fontSize: '16px' }}
+          onClick={handleShowJoinRoomModal}
+          style={{
+            padding: '20px',
+            fontSize: '18px',
+            backgroundColor: '#2196F3',
+            color: 'white',
+            border: 'none',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            fontWeight: 'bold'
+          }}
         >
-          랜덤 방 입장
-        </button>
-
-        <button
-          onClick={handleShowRoomList}
-          style={{ padding: '15px', fontSize: '16px' }}
-        >
-          방 목록
-        </button>
-
-        <button
-          onClick={handleShowInviteCodeModal}
-          style={{ padding: '15px', fontSize: '16px' }}
-        >
-          초대코드 입력
+          🚪 방 참가하기
         </button>
 
         <button
           onClick={handleChangeNickname}
-          style={{ padding: '10px', fontSize: '14px', marginTop: '20px' }}
+          style={{
+            padding: '12px',
+            fontSize: '14px',
+            backgroundColor: '#f5f5f5',
+            border: '1px solid #ddd',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            marginTop: '10px'
+          }}
         >
           닉네임 변경하기
         </button>
@@ -243,8 +274,8 @@ export default function MainPage() {
         </div>
       )}
 
-      {/* 방 목록 모달 */}
-      {showRoomListModal && (
+      {/* 방 참가 모달 */}
+      {showJoinRoomModal && (
         <div
           style={{
             position: 'fixed',
@@ -258,7 +289,7 @@ export default function MainPage() {
             justifyContent: 'center',
             zIndex: 1000
           }}
-          onClick={() => setShowRoomListModal(false)}
+          onClick={() => setShowJoinRoomModal(false)}
         >
           <div
             style={{
@@ -268,71 +299,118 @@ export default function MainPage() {
               maxWidth: '800px',
               width: '90%',
               maxHeight: '80vh',
-              overflow: 'auto'
+              display: 'flex',
+              flexDirection: 'column'
             }}
             onClick={(e) => e.stopPropagation()}
           >
-            <h2 style={{ marginTop: 0, marginBottom: '20px' }}>공개방 목록</h2>
+            <h2 style={{ marginTop: 0, marginBottom: '20px' }}>방 참가하기</h2>
 
-            {roomList.length === 0 ? (
-              <p style={{ textAlign: 'center', color: '#666', padding: '40px 0' }}>
-                공개방이 없습니다.
-              </p>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                {roomList.map((room) => (
-                  <div
-                    key={room.roomId}
-                    onClick={() => handleJoinRoom(room.roomId)}
-                    style={{
-                      padding: '15px',
-                      border: '1px solid #ddd',
-                      borderRadius: '4px',
-                      cursor: 'pointer',
-                      backgroundColor: '#f9f9f9',
-                      transition: 'background-color 0.2s'
-                    }}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
-                    onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f9f9f9'}
-                  >
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <div>
-                        <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '5px' }}>
-                          방장: {room.hostNickname}
-                        </div>
-                        <div style={{ fontSize: '14px', color: '#666' }}>
-                          상태: {room.status === 'WAITING' ? '대기중' : '게임중'} |
-                          인원: {room.currentPlayers}/{room.maxPlayers}
-                          {room.status === 'PLAYING' && room.currentRound !== null && room.totalRounds !== null && (
-                            <> | 라운드: {room.currentRound}/{room.totalRounds}</>
-                          )}
-                        </div>
-                      </div>
-                      <div style={{
-                        padding: '8px 16px',
-                        backgroundColor: room.status === 'WAITING' ? '#4CAF50' : '#2196F3',
-                        color: 'white',
+            {/* 상단 버튼 영역 */}
+            <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+              <button
+                onClick={handleRandomJoin}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  fontSize: '15px',
+                  backgroundColor: '#FF9800',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                🎲 랜덤 방 입장
+              </button>
+
+              <button
+                onClick={handleShowInviteCodeModal}
+                style={{
+                  flex: 1,
+                  padding: '12px',
+                  fontSize: '15px',
+                  backgroundColor: '#673AB7',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer'
+                }}
+              >
+                🔑 초대코드 입력
+              </button>
+            </div>
+
+            {/* 방 목록 영역 */}
+            <div style={{
+              flex: 1,
+              overflowY: 'auto',
+              marginBottom: '20px',
+              minHeight: '200px'
+            }}>
+              <h3 style={{ marginTop: 0, marginBottom: '15px', fontSize: '16px', color: '#666' }}>
+                공개방 목록
+              </h3>
+
+              {roomList.length === 0 ? (
+                <p style={{ textAlign: 'center', color: '#999', padding: '40px 0' }}>
+                  공개방이 없습니다.
+                </p>
+              ) : (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {roomList.map((room) => (
+                    <div
+                      key={room.roomId}
+                      onClick={() => handleJoinRoom(room.roomId)}
+                      style={{
+                        padding: '15px',
+                        border: '1px solid #ddd',
                         borderRadius: '4px',
-                        fontSize: '14px'
-                      }}>
-                        {room.status === 'WAITING' ? '입장' : '관전'}
+                        cursor: 'pointer',
+                        backgroundColor: '#f9f9f9',
+                        transition: 'background-color 0.2s'
+                      }}
+                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
+                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#f9f9f9'}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <div>
+                          <div style={{ fontSize: '16px', fontWeight: 'bold', marginBottom: '5px' }}>
+                            방장: {room.hostNickname}
+                          </div>
+                          <div style={{ fontSize: '14px', color: '#666' }}>
+                            상태: {room.status === 'WAITING' ? '대기중' : '게임중'} |
+                            인원: {room.currentPlayers}/{room.maxPlayers}
+                            {room.status === 'PLAYING' && room.currentRound !== null && room.totalRounds !== null && (
+                              <> | 라운드: {room.currentRound}/{room.totalRounds}</>
+                            )}
+                          </div>
+                        </div>
+                        <div style={{
+                          padding: '8px 16px',
+                          backgroundColor: room.status === 'WAITING' ? '#4CAF50' : '#2196F3',
+                          color: 'white',
+                          borderRadius: '4px',
+                          fontSize: '14px'
+                        }}>
+                          {room.status === 'WAITING' ? '입장' : '관전'}
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            )}
+                  ))}
+                </div>
+              )}
+            </div>
 
             <button
-              onClick={() => setShowRoomListModal(false)}
+              onClick={() => setShowJoinRoomModal(false)}
               style={{
-                padding: '10px',
+                padding: '12px',
                 fontSize: '14px',
                 backgroundColor: '#f5f5f5',
                 border: '1px solid #ddd',
                 borderRadius: '4px',
                 cursor: 'pointer',
-                marginTop: '20px',
                 width: '100%'
               }}
             >
@@ -351,11 +429,11 @@ export default function MainPage() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            zIndex: 1000
+            zIndex: 1100
           }}
           onClick={() => setShowInviteCodeModal(false)}
         >
@@ -364,13 +442,14 @@ export default function MainPage() {
               backgroundColor: 'white',
               padding: '30px',
               borderRadius: '8px',
-              maxWidth: '400px',
-              width: '90%'
+              maxWidth: '500px',
+              width: '90%',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
             }}
             onClick={(e) => e.stopPropagation()}
           >
             <h2 style={{ marginTop: 0, marginBottom: '20px' }}>초대코드 입력</h2>
-            <p style={{ marginBottom: '20px', color: '#666' }}>
+            <p style={{ marginBottom: '20px', color: '#666', fontSize: '14px' }}>
               방의 초대코드 또는 URL을 입력하세요
             </p>
 
@@ -383,7 +462,7 @@ export default function MainPage() {
                   handleJoinByInviteCode();
                 }
               }}
-              placeholder="예: c5e64178 또는 http://localhost:5173/room/c5e64178"
+              placeholder="예: c5e64178 또는 전체 URL"
               autoFocus
               style={{
                 width: '100%',
@@ -396,11 +475,12 @@ export default function MainPage() {
               }}
             />
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+            <div style={{ display: 'flex', gap: '10px' }}>
               <button
                 onClick={handleJoinByInviteCode}
                 style={{
-                  padding: '15px',
+                  flex: 1,
+                  padding: '12px',
                   fontSize: '16px',
                   backgroundColor: '#4CAF50',
                   color: 'white',
@@ -415,8 +495,9 @@ export default function MainPage() {
               <button
                 onClick={() => setShowInviteCodeModal(false)}
                 style={{
-                  padding: '10px',
-                  fontSize: '14px',
+                  flex: 1,
+                  padding: '12px',
+                  fontSize: '16px',
                   backgroundColor: '#f5f5f5',
                   border: '1px solid #ddd',
                   borderRadius: '4px',
@@ -426,6 +507,62 @@ export default function MainPage() {
                 취소
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* 알림 모달 */}
+      {showAlertModal && (
+        <div
+          style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.6)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 1100
+          }}
+          onClick={() => setShowAlertModal(false)}
+        >
+          <div
+            style={{
+              backgroundColor: 'white',
+              padding: '30px',
+              borderRadius: '8px',
+              maxWidth: '400px',
+              width: '90%',
+              boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{
+              fontSize: '18px',
+              marginBottom: '20px',
+              textAlign: 'center',
+              color: '#333'
+            }}>
+              {alertMessage}
+            </div>
+
+            <button
+              onClick={() => setShowAlertModal(false)}
+              style={{
+                width: '100%',
+                padding: '12px',
+                fontSize: '16px',
+                backgroundColor: '#2196F3',
+                color: 'white',
+                border: 'none',
+                borderRadius: '4px',
+                cursor: 'pointer'
+              }}
+            >
+              확인
+            </button>
           </div>
         </div>
       )}
