@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getPlayerInfo } from '../utils/apiClient';
 import apiClient from '../utils/apiClient';
 import type { RoomCreateResponse, RoomListResponse } from '../types/game.types';
-import duckImage from '../assets/duck.png';
+import duckImage from '../assets/duck_painting_canvas.png';
 
 export default function MainPage() {
   const navigate = useNavigate();

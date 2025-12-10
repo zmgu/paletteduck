@@ -49,9 +49,6 @@ export const useRoomActions = (roomId: string, currentPlayerId: string) => {
 const copyInviteCode = (inviteCode: string) => {
   const url = `${window.location.origin}/room/${inviteCode}`;
   navigator.clipboard.writeText(url)
-    .then(() => {
-      alert('초대 링크가 복사되었습니다!');
-    })
     .catch(() => {
       alert('복사에 실패했습니다.');
     });

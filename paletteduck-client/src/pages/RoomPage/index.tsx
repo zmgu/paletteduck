@@ -1,4 +1,5 @@
 import { useParams } from 'react-router-dom';
+import { useState } from 'react';
 import { getPlayerInfo } from '../../utils/apiClient';
 import { useRoomConnection } from './hooks/useRoomConnection';
 import { useRoomActions } from './hooks/useRoomActions';
@@ -11,6 +12,16 @@ export default function RoomPage() {
   const { roomId } = useParams<{ roomId: string }>();
   const { roomInfo, currentPlayerId, chatMessages, loading } = useRoomConnection(roomId!);
   const { toggleReady, changeRole, updateSettings, startGame, sendChat, copyInviteCode, leaveRoom } = useRoomActions(roomId!, currentPlayerId);
+  const [isCopied, setIsCopied] = useState(false);
+
+  // 초대코드 복사 핸들러
+  const handleCopyInviteCode = (inviteCode: string) => {
+    copyInviteCode(inviteCode);
+    setIsCopied(true);
+    setTimeout(() => {
+      setIsCopied(false);
+    }, 3000);
+  };
 
   if (loading || !roomInfo) {
     return <div>로딩 중...</div>;
@@ -31,87 +42,192 @@ export default function RoomPage() {
       flexDirection: 'column',
       alignItems: 'center',
       justifyContent: 'center',
-      padding: '10px'
+      padding: '10px',
+      position: 'relative'
     }}>
+      {/* 방 나가기 버튼 - 왼쪽 상단 고정 */}
+      <button
+        onClick={leaveRoom}
+        style={{
+          position: 'fixed',
+          top: '20px',
+          left: '20px',
+          padding: '12px 24px',
+          fontSize: '14px',
+          backgroundColor: '#3d2626',
+          color: 'white',
+          border: 'none',
+          borderRadius: '4px',
+          cursor: 'pointer',
+          fontWeight: 'bold',
+          zIndex: 1000
+        }}
+      >
+        방 나가기
+      </button>
+
       {/* 헤더 영역 */}
       <div style={{
-        width: '1000px',
-        height: '80px',
+        width: '1120px',
+        height: '60px',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundColor: 'rgba(255, 255, 255, 0.1)',
+        backgroundColor: '#d4d4d4',
         borderRadius: '8px 8px 0 0'
       }}>
-        <h1 style={{ margin: 0, fontSize: '24px', color: 'white' }}>
-          대기방 - {roomInfo.roomId}
+        <h1 style={{ margin: 0, fontSize: '20px', color: '#333' }}>
+          헤더
         </h1>
       </div>
 
       {/* 메인 레이아웃 */}
       <div style={{
-        width: '1000px',
-        height: '600px',
-        display: 'flex',
+        width: '1120px',
+        height: '640px',
+        display: 'grid',
+        gridTemplateColumns: '240px 580px 300px',
+        gridTemplateRows: '250px 1fr',
         gap: '0',
-        backgroundColor: 'rgba(255, 255, 255, 0.05)',
+        backgroundColor: '#f0f0f0',
         borderRadius: '0 0 8px 8px',
         overflow: 'hidden'
       }}>
-        {/* 왼쪽: 참가자 목록 */}
+        {/* 왼쪽: 참가자 목록 + 버튼 영역 (전체 높이) */}
         <div style={{
-          width: '220px',
+          gridRow: '1 / 3',
           display: 'flex',
           flexDirection: 'column',
-          backgroundColor: 'rgba(150, 130, 130, 0.3)',
-          borderRight: '2px solid rgba(255, 255, 255, 0.1)'
+          backgroundColor: '#6b7561',
+          borderRight: '2px solid #ddd'
         }}>
+          {/* 참가자 목록 */}
           <div style={{ flex: 1, overflowY: 'auto', padding: '6px' }}>
             <PlayerList
               players={players}
               currentPlayerId={currentPlayerId}
               maxPlayers={roomInfo.settings.maxPlayers}
-              canChangeToPlayer={currentPlayer?.role === 'SPECTATOR' && players.length < roomInfo.settings.maxPlayers}
-              onChangeToPlayer={() => changeRole('PLAYER')}
             />
+          </div>
+
+          {/* 참가자/관전자 변경 버튼들 */}
+          <div style={{ display: 'flex', gap: '0' }}>
+            <button
+              onClick={() => changeRole('PLAYER')}
+              style={{
+                flex: 1,
+                padding: '12px',
+                fontSize: '13px',
+                backgroundColor: '#8a8a8a',
+                color: 'white',
+                border: 'none',
+                borderTop: '2px solid #ddd',
+                borderRight: '1px solid #ddd',
+                cursor: currentPlayer?.role === 'SPECTATOR' && players.length < roomInfo.settings.maxPlayers ? 'pointer' : 'not-allowed',
+                fontWeight: 'bold',
+                opacity: currentPlayer?.role === 'SPECTATOR' && players.length < roomInfo.settings.maxPlayers ? 1 : 0.5
+              }}
+              disabled={!(currentPlayer?.role === 'SPECTATOR' && players.length < roomInfo.settings.maxPlayers)}
+            >
+              참가자로 변경 ({players.length}/{roomInfo.settings.maxPlayers})
+            </button>
+            <button
+              onClick={() => changeRole('SPECTATOR')}
+              style={{
+                flex: 1,
+                padding: '12px',
+                fontSize: '13px',
+                backgroundColor: '#8a8a8a',
+                color: 'white',
+                border: 'none',
+                borderTop: '2px solid #ddd',
+                cursor: currentPlayer?.role === 'PLAYER' && spectators.length < roomInfo.settings.maxSpectators ? 'pointer' : 'not-allowed',
+                fontWeight: 'bold',
+                opacity: currentPlayer?.role === 'PLAYER' && spectators.length < roomInfo.settings.maxSpectators ? 1 : 0.5
+              }}
+              disabled={!(currentPlayer?.role === 'PLAYER' && spectators.length < roomInfo.settings.maxSpectators)}
+            >
+              관전자로 변경 ({spectators.length}/{roomInfo.settings.maxSpectators})
+            </button>
           </div>
         </div>
 
-        {/* 중앙: 게임 설정 + 버튼들 */}
+        {/* 중앙 상단: 이미지 영역 */}
         <div style={{
-          width: '460px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: '#b97a7a',
+          borderRight: '2px solid #ddd',
+          borderBottom: '2px solid #ddd'
+        }}>
+          <span style={{ fontSize: '18px', color: '#fff', fontWeight: 'bold' }}>이미지</span>
+        </div>
+
+        {/* 우측 상단: 게임설정 */}
+        <div style={{
           display: 'flex',
           flexDirection: 'column',
-          backgroundColor: 'rgba(180, 100, 100, 0.3)',
-          borderRight: '2px solid rgba(255, 255, 255, 0.1)'
+          backgroundColor: '#2a1a2a',
+          borderBottom: '2px solid #ddd',
+          overflowY: 'auto',
+          padding: '10px'
         }}>
-          {/* 게임 설정 영역 */}
+          <GameSettings
+            settings={roomInfo.settings}
+            isHost={isHost}
+            currentPlayerCount={players.length}
+            onSettingsChange={(newSettings) => updateSettings(newSettings, roomInfo.settings)}
+          />
+        </div>
+
+        {/* 중앙 하단: 관전자 목록 + 버튼 영역 */}
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          backgroundColor: '#b8dbb8',
+          borderRight: '2px solid #ddd'
+        }}>
           <div style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
-            <GameSettings
-              settings={roomInfo.settings}
-              isHost={isHost}
-              currentPlayerCount={players.length}
-              onSettingsChange={(newSettings) => updateSettings(newSettings, roomInfo.settings)}
+            <SpectatorList
+              spectators={spectators}
+              currentPlayerId={currentPlayerId}
+              maxSpectators={roomInfo.settings.maxSpectators}
             />
           </div>
 
-          {/* 준비 완료 / 시작하기 버튼 */}
-          <div style={{
-            padding: '10px',
-            backgroundColor: 'rgba(180, 180, 50, 0.4)',
-            borderTop: '2px solid rgba(255, 255, 255, 0.1)'
-          }}>
+          {/* 초대코드 복사 / 준비 완료/시작하기 버튼들 */}
+          <div style={{ display: 'flex', gap: '0' }}>
+            <button
+              onClick={() => handleCopyInviteCode(roomInfo.inviteCode)}
+              style={{
+                flex: 1,
+                padding: '12px',
+                fontSize: '13px',
+                backgroundColor: isCopied ? '#4caf50' : '#7a5a9a',
+                color: 'white',
+                border: 'none',
+                borderTop: '2px solid #ddd',
+                borderRight: '1px solid #ddd',
+                cursor: 'pointer',
+                fontWeight: 'bold',
+                transition: 'background-color 0.3s'
+              }}
+            >
+              {isCopied ? '초대코드 복사 완료' : '초대코드 복사'}
+            </button>
+
             {isHost ? (
               <button
                 onClick={startGame}
                 style={{
-                  width: '100%',
-                  padding: '15px',
-                  fontSize: '16px',
-                  backgroundColor: canStartGame ? '#4caf50' : '#ccc',
+                  flex: 1,
+                  padding: '12px',
+                  fontSize: '13px',
+                  backgroundColor: canStartGame ? '#d97aa0' : '#ccc',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '4px',
+                  borderTop: '2px solid #ddd',
                   cursor: canStartGame ? 'pointer' : 'not-allowed',
                   fontWeight: 'bold'
                 }}
@@ -123,124 +239,49 @@ export default function RoomPage() {
               <button
                 onClick={toggleReady}
                 style={{
-                  width: '100%',
-                  padding: '15px',
-                  fontSize: '16px',
-                  backgroundColor: currentPlayer.ready ? '#ff9800' : '#2196f3',
+                  flex: 1,
+                  padding: '12px',
+                  fontSize: '13px',
+                  backgroundColor: currentPlayer.ready ? '#ff9800' : '#d97aa0',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '4px',
+                  borderTop: '2px solid #ddd',
                   cursor: 'pointer',
                   fontWeight: 'bold'
                 }}
               >
                 {currentPlayer.ready ? '준비 취소' : '준비 완료'}
               </button>
-            ) : null}
-          </div>
-
-          {/* 초대코드 복사 / 방 나가기 버튼 */}
-          <div style={{
-            display: 'flex',
-            gap: '0',
-            borderTop: '2px solid rgba(255, 255, 255, 0.1)'
-          }}>
-            <button
-              onClick={() => copyInviteCode(roomInfo.inviteCode)}
-              style={{
-                marginBottom: '8px',
+            ) : (
+              <div style={{
                 flex: 1,
-                padding: '10px',
-                fontSize: '14px',
-                backgroundColor: 'rgba(60, 80, 150, 0.6)',
-                color: 'white',
-                border: 'none',
-                borderRight: '1px solid rgba(255, 255, 255, 0.1)',
-                cursor: 'pointer',
+                padding: '12px',
+                fontSize: '13px',
+                backgroundColor: '#e0e0e0',
+                color: '#888',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderTop: '2px solid #ddd',
                 fontWeight: 'bold'
-              }}
-            >
-              초대코드 복사
-            </button>
-
-            <button
-              onClick={leaveRoom}
-              style={{
-                marginBottom: '8px',
-                flex: 1,
-                padding: '10px',
-                fontSize: '14px',
-                backgroundColor: 'rgba(100, 40, 40, 0.6)',
-                color: 'white',
-                border: 'none',
-                cursor: 'pointer',
-                fontWeight: 'bold'
-              }}
-            >
-              방 나가기
-            </button>
+              }}>
+                -
+              </div>
+            )}
           </div>
         </div>
 
-        {/* 오른쪽: 관전자 목록 + 채팅창 */}
+        {/* 우측 하단: 채팅창 */}
         <div style={{
-          width: '320px',
           display: 'flex',
-          flexDirection: 'column'
+          flexDirection: 'column',
+          backgroundColor: '#4a8c4a',
+          padding: '6px'
         }}>
-          {/* 관전자 목록 */}
-          <div style={{
-            height: '240px',
-            display: 'flex',
-            flexDirection: 'column',
-            backgroundColor: 'rgba(50, 30, 50, 0.5)',
-            borderBottom: '2px solid rgba(255, 255, 255, 0.1)'
-          }}>
-            <div style={{
-              padding: '10px',
-              backgroundColor: 'rgba(30, 20, 30, 0.7)',
-              borderBottom: '2px solid rgba(255, 255, 255, 0.1)',
-              fontWeight: 'bold',
-              color: 'white',
-              fontSize: '14px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between'
-            }}>
-              <span style={{ fontSize: '16px' }}>👀</span>
-              <span style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                padding: '2px 8px',
-                borderRadius: '10px',
-                fontSize: '12px'
-              }}>
-                {spectators.length}/{roomInfo.settings.maxSpectators}
-              </span>
-            </div>
-            <div style={{ flex: 1, overflowY: 'auto', padding: '10px' }}>
-              <SpectatorList
-                spectators={spectators}
-                currentPlayerId={currentPlayerId}
-                maxSpectators={roomInfo.settings.maxSpectators}
-                canChangeToSpectator={currentPlayer?.role === 'PLAYER' && spectators.length < roomInfo.settings.maxSpectators}
-                onChangeToSpectator={() => changeRole('SPECTATOR')}
-              />
-            </div>
-          </div>
-
-          {/* 채팅창 */}
-          <div style={{
-            flex: 1,
-            backgroundColor: 'rgba(80, 120, 80, 0.3)',
-            display: 'flex',
-            flexDirection: 'column',
-            padding: '8px'
-          }}>
-            <ChatBox
-              messages={chatMessages}
-              onSendMessage={(message) => sendChat(message, playerInfo?.nickname || '')}
-            />
-          </div>
+          <ChatBox
+            messages={chatMessages}
+            onSendMessage={(message) => sendChat(message, playerInfo?.nickname || '')}
+          />
         </div>
       </div>
     </div>

@@ -21,7 +21,7 @@ export default function ChatBox({ messages, onSendMessage }: ChatBoxProps) {
   return (
     <div>
       <div style={{
-        height: '280px', 
+        height: '316px', 
         overflowY: 'auto', 
         border: '1px solid #eee', 
         padding: '10px', 
@@ -29,8 +29,9 @@ export default function ChatBox({ messages, onSendMessage }: ChatBoxProps) {
         backgroundColor: '#fafafa' 
       }}>
         {messages.map((msg, idx) => (
-          <div key={idx} style={{ 
+          <div key={idx} style={{
             marginBottom: '5px',
+            fontSize: '12px',
             color: msg.type === 'SYSTEM' ? 'green' : msg.type === 'CORRECT' ? 'gray' : 'black'
           }}>
             {msg.type === 'SYSTEM' ? (
@@ -41,15 +42,15 @@ export default function ChatBox({ messages, onSendMessage }: ChatBoxProps) {
           </div>
         ))}
       </div>
-      <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '10px' }}>
+      <form onSubmit={handleSubmit} style={{ display: 'flex', gap: '6px' }}>
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder={`메시지 입력 (최대 ${GAME_CONSTANTS.MAX_CHAT_LENGTH}자)`}
           maxLength={GAME_CONSTANTS.MAX_CHAT_LENGTH}
-          style={{ flex: 1, padding: '10px' }}
+          style={{ flex: 1, padding: '6px', fontSize: '12px' }}
         />
-        <button type="submit" style={{ padding: '10px 20px' }}>전송</button>
+        <button type="submit" style={{ padding: '6px 12px', fontSize: '12px' }}>전송</button>
       </form>
     </div>
   );

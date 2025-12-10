@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import apiClient, { getPlayerInfo } from '../utils/apiClient';
 import type { PlayerJoinResponse } from '../types/game.types';
-import duckImage from '../assets/duck.png';
+import duckImage from '../assets/duck_painting_canvas.png';
 
 export default function LoginPage() {
   const [nickname, setNickname] = useState('');
