@@ -171,7 +171,7 @@ export default function RoomPage() {
           backgroundColor: '#2a1a2a',
           borderBottom: '2px solid #ddd',
           overflowY: 'auto',
-          padding: '10px'
+          padding: '8px'
         }}>
           <GameSettings
             settings={roomInfo.settings}

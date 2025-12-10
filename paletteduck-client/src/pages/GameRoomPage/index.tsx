@@ -239,10 +239,7 @@ export default function GameRoomPage() {
     <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto' }}>
       {/* 게임 종료 화면이 아닐 때만 표시 */}
       {gameState.phase !== 'GAME_END' && (
-        <>
-          <h1>게임 진행 중</h1>
-          <GameHeader gameState={gameState} timeLeft={timeLeft} isDrawer={isDrawer} />
-        </>
+        <GameHeader gameState={gameState} timeLeft={timeLeft} isDrawer={isDrawer} />
       )}
 
       {gameState.phase === 'WORD_SELECT' && isDrawer && gameState.currentTurn && (
