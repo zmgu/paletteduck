@@ -3,8 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import GameHeader from './GameRoomPage/components/GameHeader';
 import WordSelect from './GameRoomPage/components/WordSelect';
 import DrawingArea from './GameRoomPage/components/DrawingArea';
+import Canvas from './GameRoomPage/components/Canvas';
 import ChatBox from './GameRoomPage/components/ChatBox';
 import TurnResult from './GameRoomPage/components/TurnResult';
+import SpectatorList from './RoomPage/components/SpectatorList';
+import PlayerList from './RoomPage/components/PlayerList';
 import type { GameState, RoomInfo, ChatMessage, GamePhase } from '../types/game.types';
 import type { CanvasHandle } from './GameRoomPage/components/Canvas/Canvas';
 
@@ -366,9 +369,9 @@ export default function GameRoomPreview() {
   }, gameState.players?.[0]);
 
   return (
-    <div style={{ padding: '20px', maxWidth: '1400px', margin: '0 auto' }}>
-      {/* 게임 종료 화면이 아닐 때만 표시 */}
-      {gameState.phase !== 'GAME_END' && (
+    <div style={{ padding: '10px', margin: '0 auto' }}>
+      {/* 게임 종료 및 DRAWING 화면이 아닐 때만 표시 */}
+      {gameState.phase !== 'GAME_END' && gameState.phase !== 'DRAWING' && (
         <GameHeader gameState={gameState} timeLeft={timeLeft} isDrawer={isDrawer} />
       )}
 
@@ -394,90 +397,304 @@ export default function GameRoomPreview() {
       )}
 
       {gameState.phase === 'DRAWING' && gameState.currentTurn && (
-        <div style={{ display: 'flex', gap: '20px', marginTop: '20px' }}>
-          <div style={{ flex: 1 }}>
-            <DrawingArea
-              turnInfo={gameState.currentTurn}
-              isDrawer={isDrawer}
-              drawingData={null}
-              initialDrawingEvents={[]}
-              clearSignal={0}
-              currentVote={currentVote}
-              canvasRef={canvasRef}
-              isSpectatorMidJoin={false}
-              onDrawing={isDrawer ? () => {} : undefined}
-              onClearCanvas={isDrawer ? () => console.log('Clear canvas') : undefined}
-              onProvideChosungHint={isDrawer ? () => console.log('Chosung hint') : undefined}
-              onProvideLetterHint={isDrawer ? () => console.log('Letter hint') : undefined}
-              onVote={handleVote}
-            />
+        <div style={{
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}>
+          {/* 헤더 영역 */}
+          <div style={{
+            width: '1320px',
+            height: '70px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: '#d4d4d4',
+            borderRadius: '8px 8px 0 0'
+          }}>
+            <h1 style={{ margin: 0, fontSize: '20px', color: '#333' }}>
+              헤더
+            </h1>
           </div>
 
-          <div style={{ width: '350px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
-            {/* 관전자 목록 */}
-            {mockRoomInfo && mockRoomInfo.players?.filter(p => p && p.role === 'SPECTATOR').length > 0 && (
-              <div>
-                <h3 style={{ marginBottom: '10px' }}>
-                  👀 관전자 ({mockRoomInfo.players.filter(p => p && p.role === 'SPECTATOR').length})
-                </h3>
-                <div style={{
-                  backgroundColor: '#f8f9fa',
-                  border: '1px solid #dee2e6',
-                  borderRadius: '4px',
-                  padding: '10px',
-                  maxHeight: '150px',
-                  overflowY: 'auto'
-                }}>
-                  {mockRoomInfo.players
-                    .filter(p => p && p.role === 'SPECTATOR' && p.playerId)
-                    .map((spectator, index) => (
-                      <div
-                        key={spectator.playerId || `spectator-${index}`}
-                        style={{
-                          padding: '5px 10px',
-                          marginBottom: '5px',
-                          backgroundColor: 'white',
-                          borderRadius: '4px',
-                          border: '1px solid #e0e0e0',
-                          fontSize: '14px'
-                        }}
-                      >
-                        {spectator.nickname}
-                      </div>
-                    ))}
-                </div>
-              </div>
-            )}
+          {/* 서브 헤더 영역 */}
+          <div style={{
+            width: '1320px',
+            height: '50px',
+            display: 'flex',
+            alignItems: 'center',
+            backgroundColor: '#e8e8e8',
+            padding: '0 20px',
+            gap: '20px',
+            borderBottom: '2px solid #ddd',
+            boxSizing: 'border-box'
+          }}>
+            {/* 라운드 */}
+            <div style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '18px',
+              fontWeight: 'bold',
+              color: '#333'
+            }}>
+              라운드 {gameState.currentRound}/{gameState.totalRounds}
+            </div>
 
-            {/* 채팅 */}
-            <div style={{ flex: 1 }}>
-              <h3>채팅</h3>
+            {/* 정답/힌트 */}
+            <div style={{
+              flex: 2,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '24px',
+              fontWeight: 'bold',
+              color: '#333',
+              letterSpacing: '8px',
+              backgroundColor: '#fff',
+              padding: '10px 20px',
+              borderRadius: '8px',
+              border: '2px solid #ddd'
+            }}>
+              {isDrawer ? gameState.currentTurn.word : (gameState.currentTurn.currentHint || '???')}
+            </div>
+
+            {/* 빈 공간 */}
+            <div style={{ flex: 1 }}></div>
+          </div>
+
+          {/* 메인 레이아웃 */}
+          <div style={{
+            width: '1320px',
+            height: '700px',
+            display: 'grid',
+            gridTemplateColumns: '200px 820px 300px',
+            gridTemplateRows: '1fr',
+            gap: '0',
+            backgroundColor: '#f0f0f0',
+            borderRadius: '0 0 8px 8px'
+          }}>
+            {/* 왼쪽: 플레이어 목록 (전체 높이) */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              backgroundColor: '#6b7561',
+              borderRight: '2px solid #ddd'
+            }}>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '6px' }}>
+                <PlayerList
+                  players={mockRoomInfo.players.filter(p => p.role === 'PLAYER')}
+                  currentPlayerId={playerInfo?.playerId || ''}
+                  maxPlayers={mockRoomInfo.settings.maxPlayers}
+                />
+              </div>
+            </div>
+
+            {/* 중앙: 캔버스 (전체 높이) */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              backgroundColor: '#b8dbb8',
+              borderRight: '2px solid #ddd',
+              padding: '2px',
+              gap: '2px',
+              position: 'relative'
+            }}>
+              {/* 시간 오버레이 */}
+              <div style={{
+                position: 'absolute',
+                top: '10px',
+                right: '10px',
+                backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                color: timeLeft <= 10 ? '#ff5252' : '#fff',
+                padding: '10px 20px',
+                borderRadius: '8px',
+                fontSize: '28px',
+                fontWeight: 'bold',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+                zIndex: 10
+              }}>
+                {timeLeft}초
+              </div>
+
+              <div style={{
+                width: '820px',
+                height: '620px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                <Canvas
+                  ref={canvasRef}
+                  isDrawer={isDrawer}
+                  onDrawing={isDrawer ? () => {} : undefined}
+                  drawingData={null}
+                  initialDrawingEvents={[]}
+                  clearSignal={0}
+                  onClearRequest={isDrawer ? () => console.log('Clear canvas') : undefined}
+                  turnNumber={gameState.currentTurn.turnNumber}
+                  isSpectatorMidJoin={false}
+                />
+              </div>
+
+              {/* 출제자용 힌트 버튼 */}
+              {isDrawer && (
+                <div style={{
+                  display: 'flex',
+                  gap: '10px',
+                  justifyContent: 'center',
+                  padding: '10px'
+                }}>
+                  <button
+                    onClick={() => console.log('Chosung hint')}
+                    disabled={gameState.currentTurn.hintLevel < 2}
+                    style={{
+                      padding: '10px 20px',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      backgroundColor: gameState.currentTurn.hintLevel >= 2 ? '#ff9800' : '#ccc',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: gameState.currentTurn.hintLevel >= 2 ? 'pointer' : 'not-allowed',
+                      opacity: gameState.currentTurn.hintLevel >= 2 ? 1 : 0.6
+                    }}
+                  >
+                    💡 초성 힌트 {gameState.currentTurn.hintLevel < 2 && '(40초 후)'}
+                  </button>
+                  <button
+                    onClick={() => console.log('Letter hint')}
+                    disabled={gameState.currentTurn.hintLevel >= 2}
+                    style={{
+                      padding: '10px 20px',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      backgroundColor: gameState.currentTurn.hintLevel >= 2 ? '#f44336' : '#ccc',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: gameState.currentTurn.hintLevel >= 2 ? 'pointer' : 'not-allowed',
+                      opacity: gameState.currentTurn.hintLevel >= 2 ? 1 : 0.6
+                    }}
+                  >
+                    🔥 글자 힌트 {gameState.currentTurn.hintLevel < 2 && '(40초 후)'}
+                  </button>
+                </div>
+              )}
+
+              {/* 참가자용 추천/비추천 버튼 */}
+              {!isDrawer && (
+                <div style={{
+                  display: 'flex',
+                  gap: '10px',
+                  justifyContent: 'center',
+                  padding: '10px'
+                }}>
+                  <button
+                    onClick={() => handleVote('LIKE')}
+                    disabled={isCorrect}
+                    style={{
+                      padding: '12px 30px',
+                      fontSize: '16px',
+                      fontWeight: 'bold',
+                      backgroundColor: currentVote === 'LIKE' ? '#4caf50' : '#fff',
+                      color: currentVote === 'LIKE' ? '#fff' : '#333',
+                      border: '2px solid #4caf50',
+                      borderRadius: '4px',
+                      cursor: isCorrect ? 'not-allowed' : 'pointer',
+                      opacity: isCorrect ? 0.5 : 1
+                    }}
+                  >
+                    👍 추천
+                  </button>
+                  <button
+                    onClick={() => handleVote('DISLIKE')}
+                    disabled={isCorrect}
+                    style={{
+                      padding: '12px 30px',
+                      fontSize: '16px',
+                      fontWeight: 'bold',
+                      backgroundColor: currentVote === 'DISLIKE' ? '#f44336' : '#fff',
+                      color: currentVote === 'DISLIKE' ? '#fff' : '#333',
+                      border: '2px solid #f44336',
+                      borderRadius: '4px',
+                      cursor: isCorrect ? 'not-allowed' : 'pointer',
+                      opacity: isCorrect ? 0.5 : 1
+                    }}
+                  >
+                    👎 비추천
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* 우측: 관전자 목록 + 채팅창 */}
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0',
+              height: '100%',
+              maxHeight: '700px',
+              boxSizing: 'border-box',
+              overflow: 'hidden'
+            }}>
+              {/* 관전자 목록 */}
+              <div style={{
+                flex: '1',
+                display: 'flex',
+                flexDirection: 'column',
+                backgroundColor: '#2a1a2a',
+                borderBottom: '2px solid #ddd',
+                overflowY: 'auto',
+                padding: '8px',
+                minHeight: 0
+              }}>
+                <SpectatorList
+                  spectators={mockRoomInfo.players.filter(p => p.role === 'SPECTATOR')}
+                  currentPlayerId={playerInfo?.playerId || ''}
+                  maxSpectators={mockRoomInfo.settings.maxSpectators}
+                />
+              </div>
+
+              {/* 채팅창 */}
+              <div style={{
+                flex: '2.5',
+                display: 'flex',
+                flexDirection: 'column',
+                backgroundColor: '#4a8c4a',
+                padding: '6px',
+                minHeight: 0
+              }}>
               {isCorrect && (
                 <div style={{
-                  padding: '10px',
+                  padding: '8px',
                   backgroundColor: '#d4edda',
                   border: '1px solid #28a745',
                   borderRadius: '4px',
-                  marginBottom: '10px',
+                  marginBottom: '6px',
                   textAlign: 'center',
                   fontWeight: 'bold',
                   color: '#155724',
+                  fontSize: '12px'
                 }}>
-                  🎉 정답을 맞췄습니다!
+                  🎉 정답 맞춤!
                 </div>
               )}
               {isDrawer && (
                 <div style={{
-                  padding: '10px',
+                  padding: '8px',
                   backgroundColor: '#d1ecf1',
                   border: '1px solid #0c5460',
                   borderRadius: '4px',
-                  marginBottom: '10px',
+                  marginBottom: '6px',
                   textAlign: 'center',
                   fontWeight: 'bold',
                   color: '#0c5460',
+                  fontSize: '12px'
                 }}>
-                  출제자는 채팅을 볼 수 없습니다
+                  출제자는 채팅 불가
                 </div>
               )}
               <ChatBox
@@ -488,6 +705,7 @@ export default function GameRoomPreview() {
                 isCorrect={isCorrect}
                 isDrawer={isDrawer}
               />
+            </div>
             </div>
           </div>
         </div>
