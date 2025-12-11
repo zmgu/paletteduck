@@ -22,20 +22,21 @@ export default function CanvasToolbar({
   onClear,
 }: CanvasToolbarProps) {
   return (
-    <div style={{ 
-      padding: '10px', 
-      backgroundColor: '#f5f5f5', 
-      display: 'flex', 
-      gap: '10px',
+    <div style={{
+      padding: '6px',
+      backgroundColor: '#f5f5f5',
+      display: 'flex',
+      gap: '6px',
       alignItems: 'center',
       flexWrap: 'wrap'
     }}>
       {/* 도구 선택 */}
-      <div style={{ display: 'flex', gap: '5px' }}>
+      <div style={{ display: 'flex', gap: '4px' }}>
         <button
           onClick={() => onToolChange('pen')}
           style={{
-            padding: '8px 16px',
+            padding: '10px 12px',
+            fontSize: '14px',
             backgroundColor: tool === 'pen' ? '#2196f3' : '#fff',
             color: tool === 'pen' ? '#fff' : '#000',
             border: '1px solid #ccc',
@@ -43,12 +44,13 @@ export default function CanvasToolbar({
             cursor: 'pointer',
           }}
         >
-          🖊️ 펜
+          🖊️
         </button>
         <button
           onClick={() => onToolChange('eraser')}
           style={{
-            padding: '8px 16px',
+            padding: '10px 12px',
+            fontSize: '14px',
             backgroundColor: tool === 'eraser' ? '#2196f3' : '#fff',
             color: tool === 'eraser' ? '#fff' : '#000',
             border: '1px solid #ccc',
@@ -56,26 +58,25 @@ export default function CanvasToolbar({
             cursor: 'pointer',
           }}
         >
-          🧹 지우개
+          🧹
         </button>
       </div>
 
       {/* 굵기 선택 */}
-      <div style={{ display: 'flex', gap: '5px', alignItems: 'center' }}>
-        <span>굵기:</span>
+      <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
         {LINE_WIDTHS.map(({ value, label }) => (
           <button
             key={value}
             onClick={() => onWidthChange(value)}
             style={{
-              width: '30px',
-              height: '30px',
+              width: '33px',
+              height: '33px',
               backgroundColor: width === value ? '#2196f3' : '#fff',
               color: width === value ? '#fff' : '#000',
               border: '1px solid #ccc',
               borderRadius: '4px',
               cursor: 'pointer',
-              fontSize: '12px',
+              fontSize: '11px',
             }}
           >
             {label}
@@ -84,14 +85,14 @@ export default function CanvasToolbar({
       </div>
 
       {/* 색상 선택 */}
-      <div style={{ display: 'flex', gap: '5px' }}>
+      <div style={{ display: 'flex', gap: '4px' }}>
         {COLORS.map(c => (
           <button
             key={c}
             onClick={() => onColorChange(c)}
             style={{
-              width: '30px',
-              height: '30px',
+              width: '33px',
+              height: '33px',
               backgroundColor: c,
               border: color === c ? '3px solid #2196f3' : '1px solid #ccc',
               borderRadius: '4px',
@@ -102,11 +103,12 @@ export default function CanvasToolbar({
       </div>
 
       {/* 전체 삭제 */}
-      <div style={{ display: 'flex', gap: '5px', marginLeft: 'auto' }}>
+      <div style={{ display: 'flex', gap: '4px', marginLeft: 'auto' }}>
         <button
           onClick={onClear}
           style={{
-            padding: '8px 16px',
+            padding: '10px 12px',
+            fontSize: '14px',
             backgroundColor: '#f44336',
             color: '#fff',
             border: 'none',
@@ -114,7 +116,7 @@ export default function CanvasToolbar({
             cursor: 'pointer',
           }}
         >
-          🗑️ 전체삭제
+          🗑️
         </button>
       </div>
     </div>

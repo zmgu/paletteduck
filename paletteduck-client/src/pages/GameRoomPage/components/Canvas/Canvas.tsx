@@ -198,18 +198,6 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
 
   return (
     <div style={{ border: '2px solid #ccc', borderRadius: '8px', overflow: 'hidden', position: 'relative' }}>
-      {isDrawer && (
-        <CanvasToolbar
-          tool={tool}
-          color={color}
-          width={width}
-          onToolChange={setTool}
-          onColorChange={setColor}
-          onWidthChange={setWidth}
-          onClear={handleClear}
-        />
-      )}
-
       <canvas
         ref={canvasRef}
         width={CANVAS_CONFIG.WIDTH}
@@ -224,6 +212,18 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
         onMouseUp={isDrawer ? () => handleMouseUp(tool, color, width) : undefined}
         onMouseLeave={isDrawer ? () => handleMouseUp(tool, color, width) : undefined}
       />
+
+      {isDrawer && (
+        <CanvasToolbar
+          tool={tool}
+          color={color}
+          width={width}
+          onToolChange={setTool}
+          onColorChange={setColor}
+          onWidthChange={setWidth}
+          onClear={handleClear}
+        />
+      )}
 
       {/* 도중 참가 관전자 안내 오버레이 */}
       {isSpectatorMidJoin && (

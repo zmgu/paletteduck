@@ -45,6 +45,118 @@ const mockPlayers = [
     totalLikes: 1,
     totalDislikes: 2,
   },
+  {
+    playerId: 'player5',
+    nickname: '아티스트',
+    score: 170,
+    isCorrect: false,
+    totalLikes: 4,
+    totalDislikes: 0,
+  },
+  {
+    playerId: 'player6',
+    nickname: '천재화가',
+    score: 190,
+    isCorrect: true,
+    totalLikes: 6,
+    totalDislikes: 1,
+  },
+  {
+    playerId: 'player7',
+    nickname: '미술가',
+    score: 160,
+    isCorrect: false,
+    totalLikes: 3,
+    totalDislikes: 0,
+  },
+  {
+    playerId: 'player8',
+    nickname: '그림왕',
+    score: 210,
+    isCorrect: true,
+    totalLikes: 7,
+    totalDislikes: 0,
+  },
+  {
+    playerId: 'player9',
+    nickname: '붓장인',
+    score: 140,
+    isCorrect: false,
+    totalLikes: 2,
+    totalDislikes: 0,
+  },
+  {
+    playerId: 'player10',
+    nickname: '스케치마스터',
+    score: 175,
+    isCorrect: true,
+    totalLikes: 5,
+    totalDislikes: 1,
+  },
+  {
+    playerId: 'player11',
+    nickname: '색칠왕',
+    score: 165,
+    isCorrect: false,
+    totalLikes: 4,
+    totalDislikes: 0,
+  },
+  {
+    playerId: 'player12',
+    nickname: '드로잉고수',
+    score: 195,
+    isCorrect: true,
+    totalLikes: 6,
+    totalDislikes: 0,
+  },
+  {
+    playerId: 'player13',
+    nickname: '펜촉달인',
+    score: 130,
+    isCorrect: false,
+    totalLikes: 2,
+    totalDislikes: 1,
+  },
+  {
+    playerId: 'player14',
+    nickname: '크레용신짱',
+    score: 185,
+    isCorrect: true,
+    totalLikes: 5,
+    totalDislikes: 0,
+  },
+  {
+    playerId: 'player15',
+    nickname: '물감왕자',
+    score: 155,
+    isCorrect: false,
+    totalLikes: 3,
+    totalDislikes: 1,
+  },
+  {
+    playerId: 'player16',
+    nickname: '낙서의신',
+    score: 200,
+    isCorrect: true,
+    totalLikes: 7,
+    totalDislikes: 1,
+  },
+  {
+    playerId: 'player17',
+    nickname: '그림귀재',
+    score: 145,
+    isCorrect: false,
+    totalLikes: 3,
+    totalDislikes: 0,
+  },
+  {
+    playerId: 'player18',
+    nickname: '아트킹',
+    score: 205,
+    isCorrect: true,
+    totalLikes: 8,
+    totalDislikes: 0,
+  },
 ];
 
 const mockRoomInfo: RoomInfo = {
@@ -52,7 +164,7 @@ const mockRoomInfo: RoomInfo = {
   inviteCode: 'ABC123',
   status: 'PLAYING',
   settings: {
-    maxPlayers: 6,
+    maxPlayers: 18,
     rounds: 3,
     wordChoices: 3,
     drawTime: 80,
@@ -100,6 +212,146 @@ const mockRoomInfo: RoomInfo = {
       totalDislikes: 2,
     },
     {
+      playerId: 'player5',
+      nickname: '아티스트',
+      host: false,
+      ready: true,
+      role: 'PLAYER',
+      score: 170,
+      totalLikes: 4,
+      totalDislikes: 0,
+    },
+    {
+      playerId: 'player6',
+      nickname: '천재화가',
+      host: false,
+      ready: true,
+      role: 'PLAYER',
+      score: 190,
+      totalLikes: 6,
+      totalDislikes: 1,
+    },
+    {
+      playerId: 'player7',
+      nickname: '미술가',
+      host: false,
+      ready: true,
+      role: 'PLAYER',
+      score: 160,
+      totalLikes: 3,
+      totalDislikes: 0,
+    },
+    {
+      playerId: 'player8',
+      nickname: '그림왕',
+      host: false,
+      ready: true,
+      role: 'PLAYER',
+      score: 210,
+      totalLikes: 7,
+      totalDislikes: 0,
+    },
+    {
+      playerId: 'player9',
+      nickname: '붓장인',
+      host: false,
+      ready: true,
+      role: 'PLAYER',
+      score: 140,
+      totalLikes: 2,
+      totalDislikes: 0,
+    },
+    {
+      playerId: 'player10',
+      nickname: '스케치마스터',
+      host: false,
+      ready: true,
+      role: 'PLAYER',
+      score: 175,
+      totalLikes: 5,
+      totalDislikes: 1,
+    },
+    {
+      playerId: 'player11',
+      nickname: '색칠왕',
+      host: false,
+      ready: true,
+      role: 'PLAYER',
+      score: 165,
+      totalLikes: 4,
+      totalDislikes: 0,
+    },
+    {
+      playerId: 'player12',
+      nickname: '드로잉고수',
+      host: false,
+      ready: true,
+      role: 'PLAYER',
+      score: 195,
+      totalLikes: 6,
+      totalDislikes: 0,
+    },
+    {
+      playerId: 'player13',
+      nickname: '펜촉달인',
+      host: false,
+      ready: true,
+      role: 'PLAYER',
+      score: 130,
+      totalLikes: 2,
+      totalDislikes: 1,
+    },
+    {
+      playerId: 'player14',
+      nickname: '크레용신짱',
+      host: false,
+      ready: true,
+      role: 'PLAYER',
+      score: 185,
+      totalLikes: 5,
+      totalDislikes: 0,
+    },
+    {
+      playerId: 'player15',
+      nickname: '물감왕자',
+      host: false,
+      ready: true,
+      role: 'PLAYER',
+      score: 155,
+      totalLikes: 3,
+      totalDislikes: 1,
+    },
+    {
+      playerId: 'player16',
+      nickname: '낙서의신',
+      host: false,
+      ready: true,
+      role: 'PLAYER',
+      score: 200,
+      totalLikes: 7,
+      totalDislikes: 1,
+    },
+    {
+      playerId: 'player17',
+      nickname: '그림귀재',
+      host: false,
+      ready: true,
+      role: 'PLAYER',
+      score: 145,
+      totalLikes: 3,
+      totalDislikes: 0,
+    },
+    {
+      playerId: 'player18',
+      nickname: '아트킹',
+      host: false,
+      ready: true,
+      role: 'PLAYER',
+      score: 205,
+      totalLikes: 8,
+      totalDislikes: 0,
+    },
+    {
       playerId: 'spectator1',
       nickname: '관전자1',
       host: false,
@@ -112,6 +364,86 @@ const mockRoomInfo: RoomInfo = {
     {
       playerId: 'spectator2',
       nickname: '관전자2',
+      host: false,
+      ready: false,
+      role: 'SPECTATOR',
+      score: 0,
+      totalLikes: 0,
+      totalDislikes: 0,
+    },
+    {
+      playerId: 'spectator3',
+      nickname: '관전자3',
+      host: false,
+      ready: false,
+      role: 'SPECTATOR',
+      score: 0,
+      totalLikes: 0,
+      totalDislikes: 0,
+    },
+    {
+      playerId: 'spectator4',
+      nickname: '구경꾼',
+      host: false,
+      ready: false,
+      role: 'SPECTATOR',
+      score: 0,
+      totalLikes: 0,
+      totalDislikes: 0,
+    },
+    {
+      playerId: 'spectator5',
+      nickname: '방구석관전러',
+      host: false,
+      ready: false,
+      role: 'SPECTATOR',
+      score: 0,
+      totalLikes: 0,
+      totalDislikes: 0,
+    },
+    {
+      playerId: 'spectator6',
+      nickname: '지켜보는자',
+      host: false,
+      ready: false,
+      role: 'SPECTATOR',
+      score: 0,
+      totalLikes: 0,
+      totalDislikes: 0,
+    },
+    {
+      playerId: 'spectator7',
+      nickname: '몰래보기',
+      host: false,
+      ready: false,
+      role: 'SPECTATOR',
+      score: 0,
+      totalLikes: 0,
+      totalDislikes: 0,
+    },
+    {
+      playerId: 'spectator8',
+      nickname: '관람객A',
+      host: false,
+      ready: false,
+      role: 'SPECTATOR',
+      score: 0,
+      totalLikes: 0,
+      totalDislikes: 0,
+    },
+    {
+      playerId: 'spectator9',
+      nickname: '눈팅러',
+      host: false,
+      ready: false,
+      role: 'SPECTATOR',
+      score: 0,
+      totalLikes: 0,
+      totalDislikes: 0,
+    },
+    {
+      playerId: 'spectator10',
+      nickname: '조용한관전자',
       host: false,
       ready: false,
       role: 'SPECTATOR',
@@ -135,14 +467,154 @@ const mockMessages: ChatMessage[] = [
     nickname: '나',
     message: '바나나?',
     type: 'NORMAL',
-    timestamp: Date.now() - 45000,
+    timestamp: Date.now() - 58000,
   },
   {
     playerId: 'player4',
     nickname: '플레이어4',
     message: '오렌지',
     type: 'NORMAL',
+    timestamp: Date.now() - 56000,
+  },
+  {
+    playerId: 'player5',
+    nickname: '아티스트',
+    message: '포도인가요?',
+    type: 'NORMAL',
+    timestamp: Date.now() - 54000,
+  },
+  {
+    playerId: 'player2',
+    nickname: '그림쟁이',
+    message: '딸기!',
+    type: 'NORMAL',
+    timestamp: Date.now() - 52000,
+  },
+  {
+    playerId: 'player6',
+    nickname: '천재화가',
+    message: '멜론?',
+    type: 'NORMAL',
+    timestamp: Date.now() - 50000,
+  },
+  {
+    playerId: 'player1',
+    nickname: '나',
+    message: '수박인가',
+    type: 'NORMAL',
+    timestamp: Date.now() - 48000,
+  },
+  {
+    playerId: 'player4',
+    nickname: '플레이어4',
+    message: '키위',
+    type: 'NORMAL',
+    timestamp: Date.now() - 46000,
+  },
+  {
+    playerId: 'player5',
+    nickname: '아티스트',
+    message: '망고',
+    type: 'NORMAL',
+    timestamp: Date.now() - 44000,
+  },
+  {
+    playerId: 'player3',
+    nickname: '정답맞춤',
+    message: '복숭아?',
+    type: 'NORMAL',
+    timestamp: Date.now() - 42000,
+  },
+  {
+    playerId: 'player6',
+    nickname: '천재화가',
+    message: '자두',
+    type: 'NORMAL',
+    timestamp: Date.now() - 40000,
+  },
+  {
+    playerId: 'player2',
+    nickname: '그림쟁이',
+    message: '레몬',
+    type: 'NORMAL',
+    timestamp: Date.now() - 38000,
+  },
+  {
+    playerId: 'player1',
+    nickname: '나',
+    message: '귤',
+    type: 'NORMAL',
+    timestamp: Date.now() - 36000,
+  },
+  {
+    playerId: 'player4',
+    nickname: '플레이어4',
+    message: '배',
+    type: 'NORMAL',
+    timestamp: Date.now() - 34000,
+  },
+  {
+    playerId: 'player5',
+    nickname: '아티스트',
+    message: '감',
+    type: 'NORMAL',
+    timestamp: Date.now() - 32000,
+  },
+  {
+    playerId: 'player6',
+    nickname: '천재화가',
+    message: '파인애플',
+    type: 'NORMAL',
     timestamp: Date.now() - 30000,
+  },
+  {
+    playerId: 'player3',
+    nickname: '정답맞춤',
+    message: '체리?',
+    type: 'NORMAL',
+    timestamp: Date.now() - 28000,
+  },
+  {
+    playerId: 'player2',
+    nickname: '그림쟁이',
+    message: '블루베리',
+    type: 'NORMAL',
+    timestamp: Date.now() - 26000,
+  },
+  {
+    playerId: 'player1',
+    nickname: '나',
+    message: '라즈베리',
+    type: 'NORMAL',
+    timestamp: Date.now() - 24000,
+  },
+  {
+    playerId: 'player4',
+    nickname: '플레이어4',
+    message: '석류',
+    type: 'NORMAL',
+    timestamp: Date.now() - 22000,
+  },
+  {
+    playerId: 'player5',
+    nickname: '아티스트',
+    message: '무화과',
+    type: 'NORMAL',
+    timestamp: Date.now() - 20000,
+  },
+  {
+    playerId: 'player6',
+    nickname: '천재화가',
+    message: '용과',
+    type: 'NORMAL',
+    timestamp: Date.now() - 18000,
+  },
+  {
+    playerId: 'player2',
+    nickname: '그림쟁이',
+    message: '리치',
+    type: 'NORMAL',
+    timestamp: Date.now() - 16000,
   },
   {
     playerId: 'player3',
@@ -157,6 +629,111 @@ const mockMessages: ChatMessage[] = [
     message: '정답맞춤 님이 정답을 맞췄습니다!',
     type: 'SYSTEM',
     timestamp: Date.now() - 14000,
+  },
+  {
+    playerId: 'player1',
+    nickname: '나',
+    message: '아 사과였구나',
+    type: 'NORMAL',
+    timestamp: Date.now() - 12000,
+  },
+  {
+    playerId: 'player4',
+    nickname: '플레이어4',
+    message: '축하해요!',
+    type: 'NORMAL',
+    timestamp: Date.now() - 10000,
+  },
+  {
+    playerId: 'player5',
+    nickname: '아티스트',
+    message: '다음엔 내가!',
+    type: 'NORMAL',
+    timestamp: Date.now() - 8000,
+  },
+  {
+    playerId: 'player6',
+    nickname: '천재화가',
+    message: 'ㅋㅋㅋ 잘했어요',
+    type: 'NORMAL',
+    timestamp: Date.now() - 6000,
+  },
+  {
+    playerId: 'player2',
+    nickname: '그림쟁이',
+    message: '다음 라운드 기대됩니다',
+    type: 'NORMAL',
+    timestamp: Date.now() - 4000,
+  },
+  {
+    playerId: 'player7',
+    nickname: '미술가',
+    message: '재밌네요 ㅎㅎ',
+    type: 'NORMAL',
+    timestamp: Date.now() - 3800,
+  },
+  {
+    playerId: 'player8',
+    nickname: '그림왕',
+    message: '다들 실력이 좋으시네요',
+    type: 'NORMAL',
+    timestamp: Date.now() - 3600,
+  },
+  {
+    playerId: 'player1',
+    nickname: '나',
+    message: '이번엔 맞춰야지',
+    type: 'NORMAL',
+    timestamp: Date.now() - 3400,
+  },
+  {
+    playerId: 'player3',
+    nickname: '정답맞춤',
+    message: '힌트 잘 봐야 해요',
+    type: 'NORMAL',
+    timestamp: Date.now() - 3200,
+  },
+  {
+    playerId: 'player5',
+    nickname: '아티스트',
+    message: '집중하자!',
+    type: 'NORMAL',
+    timestamp: Date.now() - 3000,
+  },
+  {
+    playerId: 'player4',
+    nickname: '플레이어4',
+    message: '화이팅',
+    type: 'NORMAL',
+    timestamp: Date.now() - 2800,
+  },
+  {
+    playerId: 'player6',
+    nickname: '천재화가',
+    message: '모두 파이팅!',
+    type: 'NORMAL',
+    timestamp: Date.now() - 2600,
+  },
+  {
+    playerId: 'player7',
+    nickname: '미술가',
+    message: '다음 문제 뭐지',
+    type: 'NORMAL',
+    timestamp: Date.now() - 2400,
+  },
+  {
+    playerId: 'player8',
+    nickname: '그림왕',
+    message: '기대됩니다!',
+    type: 'NORMAL',
+    timestamp: Date.now() - 2200,
+  },
+  {
+    playerId: 'player2',
+    nickname: '그림쟁이',
+    message: 'ㄱㄱ',
+    type: 'NORMAL',
+    timestamp: Date.now() - 2000,
   },
 ];
 
@@ -312,7 +889,10 @@ export default function GameRoomPreview() {
   const [timeLeft, setTimeLeft] = useState(45);
   const [currentVote, setCurrentVote] = useState<'LIKE' | 'DISLIKE' | 'NONE'>('NONE');
   const [canvasImageUrl] = useState<string>('');
+  const [previewRole, setPreviewRole] = useState<'drawer' | 'guesser'>('drawer');
   const canvasRef = useRef<CanvasHandle>(null);
+  const playerListRef = useRef<HTMLDivElement>(null);
+  const spectatorListRef = useRef<HTMLDivElement>(null);
 
   const playerInfo = useMemo(() => ({
     playerId: 'player1',
@@ -340,7 +920,8 @@ export default function GameRoomPreview() {
     }
   };
 
-  const isDrawer = gameState.currentTurn?.drawerId === playerInfo?.playerId;
+  // 프리뷰 모드에서는 previewRole로 결정
+  const isDrawer = previewRole === 'drawer';
   const currentPlayer = gameState.players?.find(p => p.playerId === playerInfo?.playerId);
   const isCorrect = currentPlayer?.isCorrect || false;
 
@@ -358,6 +939,36 @@ export default function GameRoomPreview() {
   const handleVote = (voteType: 'LIKE' | 'DISLIKE' | 'NONE') => {
     setCurrentVote(voteType);
     console.log('Vote:', voteType);
+  };
+
+  const handlePlayerListScroll = (direction: 'up' | 'down') => {
+    if (playerListRef.current) {
+      const scrollAmount = 80;
+      const currentScroll = playerListRef.current.scrollTop;
+      const newScroll = direction === 'down'
+        ? currentScroll + scrollAmount
+        : Math.max(0, currentScroll - scrollAmount);
+
+      playerListRef.current.scrollTo({
+        top: newScroll,
+        behavior: 'smooth'
+      });
+    }
+  };
+
+  const handleSpectatorListScroll = (direction: 'up' | 'down') => {
+    if (spectatorListRef.current) {
+      const scrollAmount = 80;
+      const currentScroll = spectatorListRef.current.scrollTop;
+      const newScroll = direction === 'down'
+        ? currentScroll + scrollAmount
+        : Math.max(0, currentScroll - scrollAmount);
+
+      spectatorListRef.current.scrollTo({
+        top: newScroll,
+        behavior: 'smooth'
+      });
+    }
   };
 
   // 순위 계산 (GAME_END용)
@@ -401,34 +1012,53 @@ export default function GameRoomPreview() {
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'flex-start',
+          width: '1310px',
+          margin: '0 auto'
         }}>
           {/* 헤더 영역 */}
           <div style={{
-            width: '1320px',
+            width: '100%',
             height: '70px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: '#d4d4d4',
-            borderRadius: '8px 8px 0 0'
+            backgroundColor: isDrawer ? '#ff9800' : '#2196f3',
+            borderRadius: '8px 8px 0 0',
+            position: 'relative',
+            flexShrink: 0
           }}>
-            <h1 style={{ margin: 0, fontSize: '20px', color: '#333' }}>
-              헤더
+            <div style={{
+              position: 'absolute',
+              left: '20px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              padding: '8px 20px',
+              backgroundColor: 'rgba(0, 0, 0, 0.2)',
+              borderRadius: '4px',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              color: '#fff'
+            }}>
+              {isDrawer ? '🎨 출제자 모드' : '🎯 참가자 모드'}
+            </div>
+            <h1 style={{ margin: 0, fontSize: '20px', color: '#fff' }}>
+              {isDrawer ? `제시어: ${gameState.currentTurn.word}` : `출제자: ${gameState.currentTurn.drawerNickname}`}
             </h1>
           </div>
 
           {/* 서브 헤더 영역 */}
           <div style={{
-            width: '1320px',
+            width: '100%',
             height: '50px',
             display: 'flex',
             alignItems: 'center',
-            backgroundColor: '#e8e8e8',
+            backgroundColor: isDrawer ? '#ffb74d' : '#64b5f6',
             padding: '0 20px',
             gap: '20px',
-            borderBottom: '2px solid #ddd',
-            boxSizing: 'border-box'
+            borderBottom: isDrawer ? '2px solid #f57c00' : '2px solid #1976d2',
+            boxSizing: 'border-box',
+            flexShrink: 0
           }}>
             {/* 라운드 */}
             <div style={{
@@ -438,94 +1068,217 @@ export default function GameRoomPreview() {
               justifyContent: 'center',
               fontSize: '18px',
               fontWeight: 'bold',
-              color: '#333'
+              color: isDrawer ? '#333' : '#fff'
             }}>
               라운드 {gameState.currentRound}/{gameState.totalRounds}
             </div>
 
-            {/* 정답/힌트 */}
+            {/* 중앙: 정답 또는 힌트 표시 */}
             <div style={{
               flex: 2,
               display: 'flex',
               alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '24px',
-              fontWeight: 'bold',
-              color: '#333',
-              letterSpacing: '8px',
-              backgroundColor: '#fff',
-              padding: '10px 20px',
-              borderRadius: '8px',
-              border: '2px solid #ddd'
+              justifyContent: 'center'
             }}>
-              {isDrawer ? gameState.currentTurn.word : (gameState.currentTurn.currentHint || '???')}
+              <div style={{
+                fontSize: '28px',
+                fontWeight: 'bold',
+                color: isDrawer ? '#fff' : '#333',
+                letterSpacing: '12px',
+                backgroundColor: isDrawer ? '#f57c00' : '#fff',
+                padding: '10px 30px',
+                borderRadius: '8px',
+                border: isDrawer ? '3px solid #e65100' : '3px solid #1976d2',
+                textShadow: isDrawer ? '2px 2px 4px rgba(0, 0, 0, 0.3)' : 'none'
+              }}>
+                {isDrawer ? gameState.currentTurn.word : (gameState.currentTurn.currentHint || '???')}
+              </div>
             </div>
 
-            {/* 빈 공간 */}
-            <div style={{ flex: 1 }}></div>
+            {/* 오른쪽: 출제자일 때 힌트 버튼 */}
+            <div style={{
+              flex: 1,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-end',
+              gap: '10px'
+            }}>
+              {isDrawer ? (
+                <>
+                  <button
+                    onClick={() => console.log('Chosung hint')}
+                    disabled={gameState.currentTurn.hintLevel < 2}
+                    style={{
+                      padding: '8px 16px',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      backgroundColor: gameState.currentTurn.hintLevel >= 2 ? '#ff9800' : '#ccc',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: gameState.currentTurn.hintLevel >= 2 ? 'pointer' : 'not-allowed',
+                      opacity: gameState.currentTurn.hintLevel >= 2 ? 1 : 0.6,
+                      boxShadow: gameState.currentTurn.hintLevel >= 2 ? '0 2px 4px rgba(0, 0, 0, 0.2)' : 'none'
+                    }}
+                  >
+                    💡 초성
+                  </button>
+                  <button
+                    onClick={() => console.log('Letter hint')}
+                    disabled={gameState.currentTurn.hintLevel >= 2}
+                    style={{
+                      padding: '8px 16px',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      backgroundColor: gameState.currentTurn.hintLevel >= 2 ? '#f44336' : '#ccc',
+                      color: '#fff',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: gameState.currentTurn.hintLevel >= 2 ? 'pointer' : 'not-allowed',
+                      opacity: gameState.currentTurn.hintLevel >= 2 ? 1 : 0.6,
+                      boxShadow: gameState.currentTurn.hintLevel >= 2 ? '0 2px 4px rgba(0, 0, 0, 0.2)' : 'none'
+                    }}
+                  >
+                    🔥 글자
+                  </button>
+                </>
+              ) : null}
+            </div>
           </div>
 
           {/* 메인 레이아웃 */}
           <div style={{
-            width: '1320px',
-            height: '700px',
+            width: '100%',
+            height: '660px',
             display: 'grid',
-            gridTemplateColumns: '200px 820px 300px',
+            gridTemplateColumns: '200px 810px 300px',
             gridTemplateRows: '1fr',
             gap: '0',
-            backgroundColor: '#f0f0f0',
-            borderRadius: '0 0 8px 8px'
+            backgroundColor: isDrawer ? '#fff3e0' : '#e3f2fd',
+            borderRadius: '0 0 8px 8px',
+            flexShrink: 0,
+            overflow: 'hidden'
           }}>
-            {/* 왼쪽: 플레이어 목록 (전체 높이) */}
+            {/* 왼쪽: 플레이어 목록 */}
             <div style={{
               display: 'flex',
               flexDirection: 'column',
-              backgroundColor: '#6b7561',
-              borderRight: '2px solid #ddd'
+              backgroundColor: isDrawer ? '#8d6e63' : '#6b7561',
+              borderRight: isDrawer ? '2px solid #f57c00' : '2px solid #1976d2',
+              position: 'relative',
+              height: '100%',
+              overflow: 'hidden'
             }}>
-              <div style={{ flex: 1, overflowY: 'auto', padding: '6px' }}>
+              <button
+                onClick={() => handlePlayerListScroll('up')}
+                style={{
+                  position: 'absolute',
+                  top: '2px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: '85%',
+                  padding: '8px',
+                  backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  zIndex: 10,
+                  fontSize: '18px',
+                  fontWeight: 'bold',
+                  transition: 'background-color 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.6)'}
+              >
+                <span style={{ fontSize: '20px' }}>▲</span>
+              </button>
+              <div
+                ref={playerListRef}
+                style={{
+                  height: '100%',
+                  overflowY: 'scroll',
+                  overflowX: 'hidden',
+                  padding: '6px',
+                  scrollbarWidth: 'none',
+                  msOverflowStyle: 'none'
+                } as React.CSSProperties & { scrollbarWidth?: string; msOverflowStyle?: string }}
+                onWheel={(e) => {
+                  e.stopPropagation();
+                }}
+              >
                 <PlayerList
                   players={mockRoomInfo.players.filter(p => p.role === 'PLAYER')}
                   currentPlayerId={playerInfo?.playerId || ''}
                   maxPlayers={mockRoomInfo.settings.maxPlayers}
                 />
               </div>
+              <button
+                onClick={() => handlePlayerListScroll('down')}
+                style={{
+                  position: 'absolute',
+                  bottom: '2px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: '85%',
+                  padding: '8px',
+                  backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                  color: '#fff',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  zIndex: 10,
+                  fontSize: '18px',
+                  fontWeight: 'bold',
+                  transition: 'background-color 0.2s',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'}
+                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.6)'}
+              >
+                <span style={{ fontSize: '20px' }}>▼</span>
+              </button>
             </div>
 
-            {/* 중앙: 캔버스 (전체 높이) */}
+            {/* 중앙: 캔버스 영역 */}
             <div style={{
               display: 'flex',
               flexDirection: 'column',
-              backgroundColor: '#b8dbb8',
-              borderRight: '2px solid #ddd',
-              padding: '2px',
-              gap: '2px',
-              position: 'relative'
+              backgroundColor: isDrawer ? '#ffe0b2' : '#b8dbb8',
+              borderRight: isDrawer ? '2px solid #f57c00' : '2px solid #1976d2',
+              position: 'relative',
+              overflow: 'hidden'
             }}>
-              {/* 시간 오버레이 */}
               <div style={{
-                position: 'absolute',
-                top: '10px',
-                right: '10px',
-                backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                color: timeLeft <= 10 ? '#ff5252' : '#fff',
-                padding: '10px 20px',
-                borderRadius: '8px',
-                fontSize: '28px',
-                fontWeight: 'bold',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
-                zIndex: 10
-              }}>
-                {timeLeft}초
-              </div>
-
-              <div style={{
-                width: '820px',
-                height: '620px',
+                flex: 1,
                 display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center'
+                alignItems: 'flex-start',
+                justifyContent: 'center',
+                position: 'relative',
+                padding: '3px'
               }}>
+                {/* 시간 오버레이 */}
+                <div style={{
+                  position: 'absolute',
+                  top: '20px',
+                  right: '20px',
+                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                  color: timeLeft <= 10 ? '#ff5252' : '#fff',
+                  padding: '10px 20px',
+                  borderRadius: '8px',
+                  fontSize: '28px',
+                  fontWeight: 'bold',
+                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+                  zIndex: 10
+                }}>
+                  {timeLeft}초
+                </div>
+
                 <Canvas
                   ref={canvasRef}
                   isDrawer={isDrawer}
@@ -539,72 +1292,32 @@ export default function GameRoomPreview() {
                 />
               </div>
 
-              {/* 출제자용 힌트 버튼 */}
-              {isDrawer && (
-                <div style={{
-                  display: 'flex',
-                  gap: '10px',
-                  justifyContent: 'center',
-                  padding: '10px'
-                }}>
-                  <button
-                    onClick={() => console.log('Chosung hint')}
-                    disabled={gameState.currentTurn.hintLevel < 2}
-                    style={{
-                      padding: '10px 20px',
-                      fontSize: '14px',
-                      fontWeight: 'bold',
-                      backgroundColor: gameState.currentTurn.hintLevel >= 2 ? '#ff9800' : '#ccc',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: gameState.currentTurn.hintLevel >= 2 ? 'pointer' : 'not-allowed',
-                      opacity: gameState.currentTurn.hintLevel >= 2 ? 1 : 0.6
-                    }}
-                  >
-                    💡 초성 힌트 {gameState.currentTurn.hintLevel < 2 && '(40초 후)'}
-                  </button>
-                  <button
-                    onClick={() => console.log('Letter hint')}
-                    disabled={gameState.currentTurn.hintLevel >= 2}
-                    style={{
-                      padding: '10px 20px',
-                      fontSize: '14px',
-                      fontWeight: 'bold',
-                      backgroundColor: gameState.currentTurn.hintLevel >= 2 ? '#f44336' : '#ccc',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: gameState.currentTurn.hintLevel >= 2 ? 'pointer' : 'not-allowed',
-                      opacity: gameState.currentTurn.hintLevel >= 2 ? 1 : 0.6
-                    }}
-                  >
-                    🔥 글자 힌트 {gameState.currentTurn.hintLevel < 2 && '(40초 후)'}
-                  </button>
-                </div>
-              )}
-
-              {/* 참가자용 추천/비추천 버튼 */}
+              {/* 캔버스 하단 버튼 영역 */}
               {!isDrawer && (
+                /* 참가자용 추천/비추천 버튼 */
                 <div style={{
                   display: 'flex',
-                  gap: '10px',
+                  gap: '6px',
                   justifyContent: 'center',
-                  padding: '10px'
+                  padding: '6px',
+                  backgroundColor: '#bbdefb',
+                  borderTop: '2px solid #1976d2',
+                  flexShrink: 0
                 }}>
                   <button
                     onClick={() => handleVote('LIKE')}
                     disabled={isCorrect}
                     style={{
-                      padding: '12px 30px',
-                      fontSize: '16px',
+                      padding: '8px 24px',
+                      fontSize: '15px',
                       fontWeight: 'bold',
                       backgroundColor: currentVote === 'LIKE' ? '#4caf50' : '#fff',
                       color: currentVote === 'LIKE' ? '#fff' : '#333',
                       border: '2px solid #4caf50',
                       borderRadius: '4px',
                       cursor: isCorrect ? 'not-allowed' : 'pointer',
-                      opacity: isCorrect ? 0.5 : 1
+                      opacity: isCorrect ? 0.5 : 1,
+                      boxShadow: currentVote === 'LIKE' ? '0 2px 4px rgba(0, 0, 0, 0.2)' : 'none'
                     }}
                   >
                     👍 추천
@@ -613,15 +1326,16 @@ export default function GameRoomPreview() {
                     onClick={() => handleVote('DISLIKE')}
                     disabled={isCorrect}
                     style={{
-                      padding: '12px 30px',
-                      fontSize: '16px',
+                      padding: '8px 24px',
+                      fontSize: '15px',
                       fontWeight: 'bold',
                       backgroundColor: currentVote === 'DISLIKE' ? '#f44336' : '#fff',
                       color: currentVote === 'DISLIKE' ? '#fff' : '#333',
                       border: '2px solid #f44336',
                       borderRadius: '4px',
                       cursor: isCorrect ? 'not-allowed' : 'pointer',
-                      opacity: isCorrect ? 0.5 : 1
+                      opacity: isCorrect ? 0.5 : 1,
+                      boxShadow: currentVote === 'DISLIKE' ? '0 2px 4px rgba(0, 0, 0, 0.2)' : 'none'
                     }}
                   >
                     👎 비추천
@@ -636,7 +1350,7 @@ export default function GameRoomPreview() {
               flexDirection: 'column',
               gap: '0',
               height: '100%',
-              maxHeight: '700px',
+              maxHeight: '660px',
               boxSizing: 'border-box',
               overflow: 'hidden'
             }}>
@@ -645,17 +1359,86 @@ export default function GameRoomPreview() {
                 flex: '1',
                 display: 'flex',
                 flexDirection: 'column',
-                backgroundColor: '#2a1a2a',
-                borderBottom: '2px solid #ddd',
-                overflowY: 'auto',
+                backgroundColor: isDrawer ? '#4e342e' : '#2a1a2a',
+                borderBottom: isDrawer ? '2px solid #f57c00' : '2px solid #1976d2',
                 padding: '8px',
-                minHeight: 0
+                minHeight: 0,
+                position: 'relative'
               }}>
-                <SpectatorList
-                  spectators={mockRoomInfo.players.filter(p => p.role === 'SPECTATOR')}
-                  currentPlayerId={playerInfo?.playerId || ''}
-                  maxSpectators={mockRoomInfo.settings.maxSpectators}
-                />
+                <button
+                  onClick={() => handleSpectatorListScroll('up')}
+                  style={{
+                    position: 'absolute',
+                    top: '2px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: '85%',
+                    padding: '8px',
+                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    zIndex: 10,
+                    fontSize: '18px',
+                    fontWeight: 'bold',
+                    transition: 'background-color 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.6)'}
+                >
+                  <span style={{ fontSize: '20px' }}>▲</span>
+                </button>
+                <div
+                  ref={spectatorListRef}
+                  style={{
+                    flex: 1,
+                    overflowY: 'scroll',
+                    overflowX: 'hidden',
+                    padding: '0',
+                    scrollbarWidth: 'none',
+                    msOverflowStyle: 'none'
+                  } as React.CSSProperties & { scrollbarWidth?: string; msOverflowStyle?: string }}
+                  onWheel={(e) => {
+                    e.stopPropagation();
+                  }}
+                >
+                  <SpectatorList
+                    spectators={mockRoomInfo.players.filter(p => p.role === 'SPECTATOR')}
+                    currentPlayerId={playerInfo?.playerId || ''}
+                    maxSpectators={mockRoomInfo.settings.maxSpectators}
+                  />
+                </div>
+                <button
+                  onClick={() => handleSpectatorListScroll('down')}
+                  style={{
+                    position: 'absolute',
+                    bottom: '2px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    width: '85%',
+                    padding: '8px',
+                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                    color: '#fff',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                    zIndex: 10,
+                    fontSize: '18px',
+                    fontWeight: 'bold',
+                    transition: 'background-color 0.2s',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.6)'}
+                >
+                  <span style={{ fontSize: '20px' }}>▼</span>
+                </button>
               </div>
 
               {/* 채팅창 */}
@@ -663,49 +1446,48 @@ export default function GameRoomPreview() {
                 flex: '2.5',
                 display: 'flex',
                 flexDirection: 'column',
-                backgroundColor: '#4a8c4a',
+                backgroundColor: isDrawer ? '#ffcc80' : '#4a8c4a',
                 padding: '6px',
                 minHeight: 0
               }}>
-              {isCorrect && (
-                <div style={{
-                  padding: '8px',
-                  backgroundColor: '#d4edda',
-                  border: '1px solid #28a745',
-                  borderRadius: '4px',
-                  marginBottom: '6px',
-                  textAlign: 'center',
-                  fontWeight: 'bold',
-                  color: '#155724',
-                  fontSize: '12px'
-                }}>
-                  🎉 정답 맞춤!
-                </div>
-              )}
-              {isDrawer && (
-                <div style={{
-                  padding: '8px',
-                  backgroundColor: '#d1ecf1',
-                  border: '1px solid #0c5460',
-                  borderRadius: '4px',
-                  marginBottom: '6px',
-                  textAlign: 'center',
-                  fontWeight: 'bold',
-                  color: '#0c5460',
-                  fontSize: '12px'
-                }}>
-                  출제자는 채팅 불가
-                </div>
-              )}
-              <ChatBox
-                messages={messages}
-                onSendMessage={handleSendMessage}
-                disabled={isDrawer}
-                currentPlayerId={playerInfo?.playerId || ''}
-                isCorrect={isCorrect}
-                isDrawer={isDrawer}
-              />
-            </div>
+                {isCorrect && (
+                  <div style={{
+                    padding: '10px',
+                    backgroundColor: '#d4edda',
+                    border: '2px solid #28a745',
+                    borderRadius: '4px',
+                    marginBottom: '6px',
+                    textAlign: 'center',
+                    fontWeight: 'bold',
+                    color: '#155724',
+                    fontSize: '14px'
+                  }}>
+                    🎉 정답을 맞췄습니다!
+                  </div>
+                )}
+                <ChatBox
+                  messages={messages}
+                  onSendMessage={handleSendMessage}
+                  disabled={isDrawer}
+                  currentPlayerId={playerInfo?.playerId || ''}
+                  isCorrect={isCorrect}
+                  isDrawer={isDrawer}
+                  headerMessage={isDrawer ? (
+                    <div style={{
+                      padding: '10px',
+                      backgroundColor: '#d1ecf1',
+                      border: '2px solid #0c5460',
+                      borderRadius: '4px',
+                      textAlign: 'center',
+                      fontWeight: 'bold',
+                      color: '#0c5460',
+                      fontSize: '14px'
+                    }}>
+                      🎨 출제자는 채팅을 입력할 수 없습니다
+                    </div>
+                  ) : undefined}
+                />
+              </div>
             </div>
           </div>
         </div>
@@ -857,6 +1639,51 @@ export default function GameRoomPreview() {
               }}
             >
               메인으로
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* 역할 전환 컨트롤 (DRAWING 페이즈에서만 표시) */}
+      {currentPhase === 'DRAWING' && (
+        <div style={{
+          marginTop: '20px',
+          padding: '15px',
+          backgroundColor: '#fff8e1',
+          borderRadius: '8px',
+          border: '2px solid #ff9800',
+        }}>
+          <h4>역할 선택</h4>
+          <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+            <button
+              onClick={() => setPreviewRole('drawer')}
+              style={{
+                padding: '10px 30px',
+                fontSize: '16px',
+                backgroundColor: previewRole === 'drawer' ? '#ff9800' : '#fff',
+                color: previewRole === 'drawer' ? '#fff' : '#333',
+                border: '2px solid #ff9800',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontWeight: previewRole === 'drawer' ? 'bold' : 'normal',
+              }}
+            >
+              🎨 출제자
+            </button>
+            <button
+              onClick={() => setPreviewRole('guesser')}
+              style={{
+                padding: '10px 30px',
+                fontSize: '16px',
+                backgroundColor: previewRole === 'guesser' ? '#2196f3' : '#fff',
+                color: previewRole === 'guesser' ? '#fff' : '#333',
+                border: '2px solid #2196f3',
+                borderRadius: '4px',
+                cursor: 'pointer',
+                fontWeight: previewRole === 'guesser' ? 'bold' : 'normal',
+              }}
+            >
+              🎯 참가자
             </button>
           </div>
         </div>

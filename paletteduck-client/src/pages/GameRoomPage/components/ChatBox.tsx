@@ -8,6 +8,7 @@ interface ChatBoxProps {
   currentPlayerId: string;
   isCorrect: boolean;
   isDrawer: boolean;  // 현재 사용자가 출제자인지 여부
+  headerMessage?: React.ReactNode;  // 채팅창 상단에 고정할 메시지
 }
 
 export default function ChatBox({
@@ -16,7 +17,8 @@ export default function ChatBox({
   disabled,
   currentPlayerId,
   isCorrect,
-  isDrawer
+  isDrawer,
+  headerMessage
 }: ChatBoxProps) {
   const [inputValue, setInputValue] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -93,6 +95,20 @@ export default function ChatBox({
           gap: '8px',
         }}
       >
+        {headerMessage && (
+          <div style={{
+            position: 'sticky',
+            top: 0,
+            zIndex: 10,
+            marginBottom: '8px',
+            marginTop: '-10px',
+            marginLeft: '-10px',
+            marginRight: '-10px',
+            padding: '10px'
+          }}>
+            {headerMessage}
+          </div>
+        )}
         {visibleMessages.length === 0 && (
           <div style={{ color: '#999', textAlign: 'center', marginTop: '20px' }}>
             채팅이 없습니다
@@ -119,39 +135,43 @@ export default function ChatBox({
             <div
               key={msg.messageId}
               style={{
-                padding: '8px 12px',
+                padding: '6px 10px',
                 borderRadius: '4px',
                 backgroundColor,
                 border: `1px solid ${borderColor}`,
               }}
             >
-              {msg.type === 'NORMAL' && (
-                <div style={{
-                  fontSize: '12px',
-                  fontWeight: 'bold',
-                  color: msg.playerId === currentPlayerId ? '#007bff' : '#666',
-                  marginBottom: '4px'
-                }}>
-                  {msg.nickname}
+              {msg.type === 'NORMAL' ? (
+                <div style={{ fontSize: '12px' }}>
+                  <span style={{
+                    fontWeight: 'bold',
+                    color: msg.playerId === currentPlayerId ? '#007bff' : '#666',
+                  }}>
+                    {msg.nickname}:
+                  </span>
                   {msg.senderIsCorrect && (
                     <span style={{
-                      marginLeft: '6px',
-                      fontSize: '11px',
+                      marginLeft: '4px',
+                      fontSize: '10px',
                       color: '#0066cc',
                       fontWeight: 'normal'
                     }}>
                       (정답자)
                     </span>
                   )}
+                  <span style={{ marginLeft: '6px', color: '#000' }}>
+                    {msg.message}
+                  </span>
+                </div>
+              ) : (
+                <div style={{
+                  fontSize: '12px',
+                  color: msg.type === 'SYSTEM' ? '#856404' : '#000',
+                  fontWeight: 'bold',
+                }}>
+                  {msg.message}
                 </div>
               )}
-              <div style={{
-                fontSize: '14px',
-                color: msg.type === 'SYSTEM' ? '#856404' : '#000',
-                fontWeight: msg.type !== 'NORMAL' ? 'bold' : 'normal',
-              }}>
-                {msg.message}
-              </div>
             </div>
           );
         })}
