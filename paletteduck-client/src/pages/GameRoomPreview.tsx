@@ -840,9 +840,24 @@ const createMockGameState = (phase: GamePhase): GameState => {
             player4: 'DISLIKE',
           },
           turnScores: {
+            player1: 80,
             player2: 50,
             player3: 100,
-            player1: 80,
+            player4: 60,
+            player5: 90,
+            player6: 95,
+            player7: 70,
+            player8: 110,
+            player9: 55,
+            player10: 85,
+            player11: 75,
+            player12: 98,
+            player13: 45,
+            player14: 88,
+            player15: 65,
+            player16: 100,
+            player17: 58,
+            player18: 105,
           },
           turnEndReason: 'TIME_OUT',
         },
@@ -890,8 +905,10 @@ export default function GameRoomPreview() {
   const [currentVote, setCurrentVote] = useState<'LIKE' | 'DISLIKE' | 'NONE'>('NONE');
   const [canvasImageUrl] = useState<string>('');
   const [previewRole, setPreviewRole] = useState<'drawer' | 'guesser'>('drawer');
+  const [isPlayerHovered, setIsPlayerHovered] = useState(false);
+  const [isSpectatorHovered, setIsSpectatorHovered] = useState(false);
   const canvasRef = useRef<CanvasHandle>(null);
-  const playerListRef = useRef<HTMLDivElement>(null);
+  const playerListRef = useRef<HTMLUListElement>(null);
   const spectatorListRef = useRef<HTMLDivElement>(null);
 
   const playerInfo = useMemo(() => ({
@@ -980,43 +997,22 @@ export default function GameRoomPreview() {
   }, gameState.players?.[0]);
 
   return (
-    <div style={{ padding: '10px', margin: '0 auto' }}>
-      {/* 게임 종료 및 DRAWING 화면이 아닐 때만 표시 */}
-      {gameState.phase !== 'GAME_END' && gameState.phase !== 'DRAWING' && (
+    <div style={{ margin: '0 auto' }}>
+      {/* 통합 레이아웃을 사용하지 않는 페이즈에서만 GameHeader 표시 */}
+      {gameState.phase !== 'GAME_END' && gameState.phase !== 'DRAWING' && gameState.phase !== 'COUNTDOWN' && gameState.phase !== 'WORD_SELECT' && gameState.phase !== 'TURN_RESULT' && gameState.phase !== 'ROUND_END' && (
         <GameHeader gameState={gameState} timeLeft={timeLeft} isDrawer={isDrawer} />
       )}
 
-      {gameState.phase === 'WORD_SELECT' && isDrawer && gameState.currentTurn && (
-        <WordSelect
-          turnInfo={gameState.currentTurn}
-          onSelectWord={(word) => console.log('Selected word:', word)}
-          roomId="preview"
-        />
-      )}
-
-      {gameState.phase === 'WORD_SELECT' && !isDrawer && (
-        <div style={{
-          marginTop: '20px',
-          padding: '30px',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '8px',
-          textAlign: 'center',
-        }}>
-          <h2>출제자가 단어를 선택하고 있습니다...</h2>
-          <p style={{ marginTop: '20px', color: '#666' }}>잠시만 기다려주세요.</p>
-        </div>
-      )}
-
-      {gameState.phase === 'DRAWING' && gameState.currentTurn && (
+      {((gameState.phase === 'WORD_SELECT' || gameState.phase === 'COUNTDOWN' || gameState.phase === 'DRAWING' || gameState.phase === 'TURN_RESULT' || gameState.phase === 'ROUND_END') && gameState.currentTurn) || gameState.phase === 'GAME_END' ? (
         <div style={{
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'flex-start',
           width: '1310px',
-          margin: '0 auto'
+          margin: '10px auto 0'
         }}>
-          {/* 헤더 영역 */}
+          {/* 헤더 영역 - 모든 페이즈에서 동일한 높이 유지 */}
           <div style={{
             width: '100%',
             height: '70px',
@@ -1028,26 +1024,78 @@ export default function GameRoomPreview() {
             position: 'relative',
             flexShrink: 0
           }}>
-            <div style={{
-              position: 'absolute',
-              left: '20px',
-              top: '50%',
-              transform: 'translateY(-50%)',
-              padding: '8px 20px',
-              backgroundColor: 'rgba(0, 0, 0, 0.2)',
-              borderRadius: '4px',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              color: '#fff'
-            }}>
-              {isDrawer ? '🎨 출제자 모드' : '🎯 참가자 모드'}
-            </div>
-            <h1 style={{ margin: 0, fontSize: '20px', color: '#fff' }}>
-              {isDrawer ? `제시어: ${gameState.currentTurn.word}` : `출제자: ${gameState.currentTurn.drawerNickname}`}
-            </h1>
+            {gameState.currentTurn && (
+              <>
+                {/* 왼쪽: 역할 전환 버튼 */}
+                <div style={{
+                  position: 'absolute',
+                  left: '20px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  display: 'flex',
+                  gap: '8px'
+                }}>
+                  <button
+                    onClick={() => setPreviewRole('drawer')}
+                    style={{
+                      padding: '8px 16px',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      backgroundColor: previewRole === 'drawer' ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.3)',
+                      color: '#fff',
+                      border: '2px solid rgba(255, 255, 255, 0.5)',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (previewRole !== 'drawer') {
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.4)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (previewRole !== 'drawer') {
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+                      }
+                    }}
+                  >
+                    🎨 출제자
+                  </button>
+                  <button
+                    onClick={() => setPreviewRole('guesser')}
+                    style={{
+                      padding: '8px 16px',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      backgroundColor: previewRole === 'guesser' ? 'rgba(0, 0, 0, 0.3)' : 'rgba(255, 255, 255, 0.3)',
+                      color: '#fff',
+                      border: '2px solid rgba(255, 255, 255, 0.5)',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (previewRole !== 'guesser') {
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.4)';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (previewRole !== 'guesser') {
+                        e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.3)';
+                      }
+                    }}
+                  >
+                    🎯 참가자
+                  </button>
+                </div>
+                <h1 style={{ margin: 0, fontSize: '20px', color: '#fff' }}>
+                  {isDrawer ? `제시어: ${gameState.currentTurn.word}` : `출제자: ${gameState.currentTurn.drawerNickname}`}
+                </h1>
+              </>
+            )}
           </div>
 
-          {/* 서브 헤더 영역 */}
+          {/* 서브 헤더 영역 - 모든 페이즈에서 동일한 높이 유지 */}
           <div style={{
             width: '100%',
             height: '50px',
@@ -1060,115 +1108,260 @@ export default function GameRoomPreview() {
             boxSizing: 'border-box',
             flexShrink: 0
           }}>
-            {/* 라운드 */}
-            <div style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '18px',
-              fontWeight: 'bold',
-              color: isDrawer ? '#333' : '#fff'
-            }}>
-              라운드 {gameState.currentRound}/{gameState.totalRounds}
-            </div>
+            {gameState.currentTurn && (
+              <>
+                {/* 라운드 */}
+                <div style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '18px',
+                  fontWeight: 'bold',
+                  color: isDrawer ? '#333' : '#fff'
+                }}>
+                  라운드 {gameState.currentRound}/{gameState.totalRounds}
+                </div>
 
-            {/* 중앙: 정답 또는 힌트 표시 */}
-            <div style={{
-              flex: 2,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center'
-            }}>
-              <div style={{
-                fontSize: '28px',
-                fontWeight: 'bold',
-                color: isDrawer ? '#fff' : '#333',
-                letterSpacing: '12px',
-                backgroundColor: isDrawer ? '#f57c00' : '#fff',
-                padding: '10px 30px',
-                borderRadius: '8px',
-                border: isDrawer ? '3px solid #e65100' : '3px solid #1976d2',
-                textShadow: isDrawer ? '2px 2px 4px rgba(0, 0, 0, 0.3)' : 'none'
-              }}>
-                {isDrawer ? gameState.currentTurn.word : (gameState.currentTurn.currentHint || '???')}
-              </div>
-            </div>
+                {/* 중앙: 힌트 표시 */}
+                <div style={{
+                  flex: 2,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}>
+                  <div style={{
+                    fontSize: '28px',
+                    fontWeight: 'bold',
+                    color: '#333',
+                    letterSpacing: '12px',
+                    backgroundColor: '#fff',
+                    padding: '10px 30px',
+                    borderRadius: '8px',
+                    border: '3px solid #1976d2',
+                    textShadow: 'none'
+                  }}>
+                    {gameState.currentTurn.currentHint || '???'}
+                  </div>
+                </div>
 
-            {/* 오른쪽: 출제자일 때 힌트 버튼 */}
-            <div style={{
-              flex: 1,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'flex-end',
-              gap: '10px'
-            }}>
-              {isDrawer ? (
-                <>
-                  <button
-                    onClick={() => console.log('Chosung hint')}
-                    disabled={gameState.currentTurn.hintLevel < 2}
-                    style={{
-                      padding: '8px 16px',
-                      fontSize: '14px',
-                      fontWeight: 'bold',
-                      backgroundColor: gameState.currentTurn.hintLevel >= 2 ? '#ff9800' : '#ccc',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: gameState.currentTurn.hintLevel >= 2 ? 'pointer' : 'not-allowed',
-                      opacity: gameState.currentTurn.hintLevel >= 2 ? 1 : 0.6,
-                      boxShadow: gameState.currentTurn.hintLevel >= 2 ? '0 2px 4px rgba(0, 0, 0, 0.2)' : 'none'
-                    }}
-                  >
-                    💡 초성
-                  </button>
-                  <button
-                    onClick={() => console.log('Letter hint')}
-                    disabled={gameState.currentTurn.hintLevel >= 2}
-                    style={{
-                      padding: '8px 16px',
-                      fontSize: '14px',
-                      fontWeight: 'bold',
-                      backgroundColor: gameState.currentTurn.hintLevel >= 2 ? '#f44336' : '#ccc',
-                      color: '#fff',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: gameState.currentTurn.hintLevel >= 2 ? 'pointer' : 'not-allowed',
-                      opacity: gameState.currentTurn.hintLevel >= 2 ? 1 : 0.6,
-                      boxShadow: gameState.currentTurn.hintLevel >= 2 ? '0 2px 4px rgba(0, 0, 0, 0.2)' : 'none'
-                    }}
-                  >
-                    🔥 글자
-                  </button>
-                </>
-              ) : null}
-            </div>
+                {/* 오른쪽: 출제자일 때 힌트 버튼 */}
+                <div style={{
+                  flex: 1,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'flex-end',
+                  gap: '10px'
+                }}>
+                  {isDrawer ? (
+                    <>
+                      <button
+                        onClick={() => console.log('Chosung hint')}
+                        disabled={gameState.currentTurn.hintLevel < 2}
+                        style={{
+                          padding: '8px 16px',
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                          backgroundColor: gameState.currentTurn.hintLevel >= 2 ? '#ff9800' : '#ccc',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: gameState.currentTurn.hintLevel >= 2 ? 'pointer' : 'not-allowed',
+                          opacity: gameState.currentTurn.hintLevel >= 2 ? 1 : 0.6,
+                          boxShadow: gameState.currentTurn.hintLevel >= 2 ? '0 2px 4px rgba(0, 0, 0, 0.2)' : 'none'
+                        }}
+                      >
+                        💡 초성
+                      </button>
+                      <button
+                        onClick={() => console.log('Letter hint')}
+                        disabled={gameState.currentTurn.hintLevel >= 2}
+                        style={{
+                          padding: '8px 16px',
+                          fontSize: '14px',
+                          fontWeight: 'bold',
+                          backgroundColor: gameState.currentTurn.hintLevel >= 2 ? '#f44336' : '#ccc',
+                          color: '#fff',
+                          border: 'none',
+                          borderRadius: '4px',
+                          cursor: gameState.currentTurn.hintLevel >= 2 ? 'pointer' : 'not-allowed',
+                          opacity: gameState.currentTurn.hintLevel >= 2 ? 1 : 0.6,
+                          boxShadow: gameState.currentTurn.hintLevel >= 2 ? '0 2px 4px rgba(0, 0, 0, 0.2)' : 'none'
+                        }}
+                      >
+                        🔥 글자
+                      </button>
+                    </>
+                  ) : null}
+                </div>
+              </>
+            )}
           </div>
 
           {/* 메인 레이아웃 */}
-          <div style={{
-            width: '100%',
-            height: '660px',
-            display: 'grid',
-            gridTemplateColumns: '200px 810px 300px',
-            gridTemplateRows: '1fr',
-            gap: '0',
-            backgroundColor: isDrawer ? '#fff3e0' : '#e3f2fd',
-            borderRadius: '0 0 8px 8px',
-            flexShrink: 0,
-            overflow: 'hidden'
-          }}>
-            {/* 왼쪽: 플레이어 목록 */}
+          {gameState.phase === 'GAME_END' ? (
+            /* 게임 종료 화면 - 전체 레이아웃 */
             <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              backgroundColor: isDrawer ? '#8d6e63' : '#6b7561',
-              borderRight: isDrawer ? '2px solid #f57c00' : '2px solid #1976d2',
-              position: 'relative',
-              height: '100%',
+              width: '100%',
+              height: '660px',
+              backgroundColor: '#e3f2fd',
+              borderRadius: '0 0 8px 8px',
+              flexShrink: 0,
+              overflow: 'auto',
+              padding: '40px',
+              boxSizing: 'border-box'
+            }}>
+              <div style={{
+                maxWidth: '900px',
+                margin: '0 auto',
+                backgroundColor: '#fff',
+                padding: '40px',
+                borderRadius: '8px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              }}>
+                <h2 style={{ textAlign: 'center', marginBottom: '10px' }}>🎉 게임 종료! 🎉</h2>
+
+                {/* 베스트 아티스트 표시 */}
+                {bestArtist && (bestArtist.totalLikes || 0) > 0 && (
+                  <div style={{
+                    textAlign: 'center',
+                    marginBottom: '30px',
+                    padding: '15px',
+                    backgroundColor: '#f0e5ff',
+                    borderRadius: '8px',
+                    border: '2px solid #9c27b0',
+                  }}>
+                    <div style={{ fontSize: '24px', marginBottom: '5px' }}>🎨 베스트 아티스트 🎨</div>
+                    <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#9c27b0' }}>
+                      {bestArtist.nickname} ({bestArtist.totalLikes}개 추천)
+                    </div>
+                  </div>
+                )}
+
+                <div style={{ maxWidth: '700px', margin: '0 auto' }}>
+                  <h3 style={{ marginBottom: '20px' }}>최종 순위</h3>
+                  {sortedPlayers.map((player, index) => {
+                    const isBestArtist = bestArtist?.playerId === player.playerId && (bestArtist?.totalLikes || 0) > 0;
+                    return (
+                      <div
+                        key={player.playerId}
+                        style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '15px 20px',
+                          marginBottom: '10px',
+                          backgroundColor: index === 0 ? '#fff3cd' : '#f8f9fa',
+                          border: index === 0 ? '2px solid #ffc107' : '1px solid #dee2e6',
+                          borderRadius: '8px',
+                          position: 'relative',
+                        }}
+                      >
+                        {isBestArtist && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '-10px',
+                            right: '-10px',
+                            fontSize: '32px',
+                            transform: 'rotate(15deg)',
+                          }}>
+                            👑
+                          </div>
+                        )}
+
+                        <span style={{
+                          fontSize: '24px',
+                          fontWeight: 'bold',
+                          marginRight: '20px',
+                          width: '40px',
+                          textAlign: 'center',
+                        }}>
+                          {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}위`}
+                        </span>
+
+                        <div style={{ flex: 1 }}>
+                          <div style={{
+                            fontSize: '18px',
+                            fontWeight: player.playerId === playerInfo?.playerId ? 'bold' : 'normal',
+                            color: player.playerId === playerInfo?.playerId ? '#007bff' : '#000',
+                          }}>
+                            {player.nickname}
+                            {player.playerId === playerInfo?.playerId && ' (나)'}
+                          </div>
+                          <div style={{ fontSize: '14px', color: '#666', marginTop: '4px' }}>
+                            👍 추천 {player.totalLikes || 0}개
+                            {(player.totalDislikes || 0) > 0 && ` • 👎 ${player.totalDislikes}개`}
+                          </div>
+                        </div>
+
+                        <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                          {player.score}점
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                <div style={{ textAlign: 'center', marginTop: '20px', display: 'flex', gap: '15px', justifyContent: 'center' }}>
+                  <button
+                    onClick={() => console.log('대기방으로')}
+                    style={{
+                      padding: '12px 40px',
+                      fontSize: '16px',
+                      backgroundColor: '#28a745',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    대기방으로 돌아가기
+                  </button>
+                  <button
+                    onClick={() => navigate('/')}
+                    style={{
+                      padding: '12px 40px',
+                      fontSize: '16px',
+                      backgroundColor: '#6c757d',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    메인으로
+                  </button>
+                </div>
+              </div>
+            </div>
+          ) : (
+            /* 일반 게임 화면 - 그리드 레이아웃 */
+            <div style={{
+              width: '100%',
+              height: '660px',
+              display: 'grid',
+              gridTemplateColumns: '200px 810px 300px',
+              gridTemplateRows: '1fr',
+              gap: '0',
+              backgroundColor: isDrawer ? '#fff3e0' : '#e3f2fd',
+              borderRadius: '0 0 8px 8px',
+              flexShrink: 0,
               overflow: 'hidden'
             }}>
+              {/* 왼쪽: 플레이어 목록 */}
+              <div
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                backgroundColor: isDrawer ? '#8d6e63' : '#6b7561',
+                borderRight: isDrawer ? '2px solid #f57c00' : '2px solid #1976d2',
+                position: 'relative',
+                height: '100%',
+                overflow: 'hidden'
+              }}
+              onMouseEnter={() => setIsPlayerHovered(true)}
+              onMouseLeave={() => setIsPlayerHovered(false)}
+            >
               <button
                 onClick={() => handlePlayerListScroll('up')}
                 style={{
@@ -1178,7 +1371,7 @@ export default function GameRoomPreview() {
                   transform: 'translateX(-50%)',
                   width: '85%',
                   padding: '8px',
-                  backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                  backgroundColor: isPlayerHovered ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.4)',
                   color: '#fff',
                   border: 'none',
                   borderRadius: '4px',
@@ -1186,36 +1379,29 @@ export default function GameRoomPreview() {
                   zIndex: 10,
                   fontSize: '18px',
                   fontWeight: 'bold',
-                  transition: 'background-color 0.2s',
+                  transition: 'opacity 0.2s, background-color 0.2s',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  opacity: isPlayerHovered ? 0.9 : 0.4
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.6)'}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.85)';
+                  e.currentTarget.style.opacity = '1';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = isPlayerHovered ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.4)';
+                  e.currentTarget.style.opacity = isPlayerHovered ? '0.9' : '0.4';
+                }}
               >
                 <span style={{ fontSize: '20px' }}>▲</span>
               </button>
-              <div
+              <PlayerList
                 ref={playerListRef}
-                style={{
-                  height: '100%',
-                  overflowY: 'scroll',
-                  overflowX: 'hidden',
-                  padding: '6px',
-                  scrollbarWidth: 'none',
-                  msOverflowStyle: 'none'
-                } as React.CSSProperties & { scrollbarWidth?: string; msOverflowStyle?: string }}
-                onWheel={(e) => {
-                  e.stopPropagation();
-                }}
-              >
-                <PlayerList
-                  players={mockRoomInfo.players.filter(p => p.role === 'PLAYER')}
-                  currentPlayerId={playerInfo?.playerId || ''}
-                  maxPlayers={mockRoomInfo.settings.maxPlayers}
-                />
-              </div>
+                players={mockRoomInfo.players.filter(p => p.role === 'PLAYER')}
+                currentPlayerId={playerInfo?.playerId || ''}
+                maxPlayers={mockRoomInfo.settings.maxPlayers}
+              />
               <button
                 onClick={() => handlePlayerListScroll('down')}
                 style={{
@@ -1225,7 +1411,7 @@ export default function GameRoomPreview() {
                   transform: 'translateX(-50%)',
                   width: '85%',
                   padding: '8px',
-                  backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                  backgroundColor: isPlayerHovered ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.4)',
                   color: '#fff',
                   border: 'none',
                   borderRadius: '4px',
@@ -1233,13 +1419,20 @@ export default function GameRoomPreview() {
                   zIndex: 10,
                   fontSize: '18px',
                   fontWeight: 'bold',
-                  transition: 'background-color 0.2s',
+                  transition: 'opacity 0.2s, background-color 0.2s',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  opacity: isPlayerHovered ? 0.9 : 0.4
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.6)'}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.85)';
+                  e.currentTarget.style.opacity = '1';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = isPlayerHovered ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.4)';
+                  e.currentTarget.style.opacity = isPlayerHovered ? '0.9' : '0.4';
+                }}
               >
                 <span style={{ fontSize: '20px' }}>▼</span>
               </button>
@@ -1263,21 +1456,23 @@ export default function GameRoomPreview() {
                 padding: '3px'
               }}>
                 {/* 시간 오버레이 */}
-                <div style={{
-                  position: 'absolute',
-                  top: '20px',
-                  right: '20px',
-                  backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                  color: timeLeft <= 10 ? '#ff5252' : '#fff',
-                  padding: '10px 20px',
-                  borderRadius: '8px',
-                  fontSize: '28px',
-                  fontWeight: 'bold',
-                  boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
-                  zIndex: 10
-                }}>
-                  {timeLeft}초
-                </div>
+                {gameState.phase === 'DRAWING' && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '20px',
+                    right: '20px',
+                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    color: timeLeft <= 10 ? '#ff5252' : '#fff',
+                    padding: '10px 20px',
+                    borderRadius: '8px',
+                    fontSize: '28px',
+                    fontWeight: 'bold',
+                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+                    zIndex: 10
+                  }}>
+                    {timeLeft}초
+                  </div>
+                )}
 
                 <Canvas
                   ref={canvasRef}
@@ -1287,9 +1482,141 @@ export default function GameRoomPreview() {
                   initialDrawingEvents={[]}
                   clearSignal={0}
                   onClearRequest={isDrawer ? () => console.log('Clear canvas') : undefined}
-                  turnNumber={gameState.currentTurn.turnNumber}
+                  turnNumber={gameState.currentTurn?.turnNumber || 0}
                   isSpectatorMidJoin={false}
                 />
+
+                {/* 카운트다운 오버레이 */}
+                {gameState.phase === 'COUNTDOWN' && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 100
+                  }}>
+                    <div style={{
+                      fontSize: '120px',
+                      fontWeight: 'bold',
+                      color: '#fff',
+                      textShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
+                      animation: 'pulse 1s infinite'
+                    }}>
+                      {timeLeft}
+                    </div>
+                  </div>
+                )}
+
+                {/* 단어 선택 오버레이 */}
+                {gameState.phase === 'WORD_SELECT' && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 100,
+                    padding: '20px'
+                  }}>
+                    {isDrawer ? (
+                      <WordSelect
+                        turnInfo={gameState.currentTurn}
+                        onSelectWord={(word) => console.log('Selected word:', word)}
+                        roomId="preview"
+                      />
+                    ) : (
+                      <div style={{
+                        backgroundColor: '#fff',
+                        padding: '40px 60px',
+                        borderRadius: '12px',
+                        textAlign: 'center',
+                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
+                      }}>
+                        <h2 style={{ margin: 0, fontSize: '24px', color: '#333' }}>
+                          출제자가 단어를 선택하고 있습니다...
+                        </h2>
+                        <p style={{ marginTop: '20px', color: '#666', fontSize: '16px' }}>
+                          잠시만 기다려주세요.
+                        </p>
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* 턴 결과 오버레이 */}
+                {gameState.phase === 'TURN_RESULT' && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    justifyContent: 'center',
+                    zIndex: 100,
+                    padding: '20px',
+                    overflowY: 'auto'
+                  }}>
+                    <TurnResult
+                      turnInfo={gameState.currentTurn}
+                      players={gameState.players}
+                      canvasImageUrl={canvasImageUrl}
+                      isSpectatorMidJoin={false}
+                    />
+                  </div>
+                )}
+
+                {/* 라운드 종료 오버레이 */}
+                {gameState.phase === 'ROUND_END' && (
+                  <div style={{
+                    position: 'absolute',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    zIndex: 100
+                  }}>
+                    <div style={{
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      gap: '20px'
+                    }}>
+                      <div style={{
+                        fontSize: '120px',
+                        fontWeight: 'bold',
+                        color: '#fff',
+                        textShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
+                        animation: 'pulse 1s infinite'
+                      }}>
+                        {timeLeft}
+                      </div>
+                      <div style={{
+                        fontSize: '32px',
+                        fontWeight: 'bold',
+                        color: '#fff',
+                        textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)'
+                      }}>
+                        다음 라운드가 시작됩니다...
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* 캔버스 하단 버튼 영역 */}
@@ -1355,16 +1682,20 @@ export default function GameRoomPreview() {
               overflow: 'hidden'
             }}>
               {/* 관전자 목록 */}
-              <div style={{
-                flex: '1',
-                display: 'flex',
-                flexDirection: 'column',
-                backgroundColor: isDrawer ? '#4e342e' : '#2a1a2a',
-                borderBottom: isDrawer ? '2px solid #f57c00' : '2px solid #1976d2',
-                padding: '8px',
-                minHeight: 0,
-                position: 'relative'
-              }}>
+              <div
+                style={{
+                  flex: '1',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  backgroundColor: isDrawer ? '#4e342e' : '#2a1a2a',
+                  borderBottom: isDrawer ? '2px solid #f57c00' : '2px solid #1976d2',
+                  padding: '8px',
+                  minHeight: 0,
+                  position: 'relative'
+                }}
+                onMouseEnter={() => setIsSpectatorHovered(true)}
+                onMouseLeave={() => setIsSpectatorHovered(false)}
+              >
                 <button
                   onClick={() => handleSpectatorListScroll('up')}
                   style={{
@@ -1374,7 +1705,7 @@ export default function GameRoomPreview() {
                     transform: 'translateX(-50%)',
                     width: '85%',
                     padding: '8px',
-                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                    backgroundColor: isSpectatorHovered ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.4)',
                     color: '#fff',
                     border: 'none',
                     borderRadius: '4px',
@@ -1382,36 +1713,29 @@ export default function GameRoomPreview() {
                     zIndex: 10,
                     fontSize: '18px',
                     fontWeight: 'bold',
-                    transition: 'background-color 0.2s',
+                    transition: 'opacity 0.2s, background-color 0.2s',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    opacity: isSpectatorHovered ? 0.9 : 0.4
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.6)'}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.85)';
+                    e.currentTarget.style.opacity = '1';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = isSpectatorHovered ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.4)';
+                    e.currentTarget.style.opacity = isSpectatorHovered ? '0.9' : '0.4';
+                  }}
                 >
                   <span style={{ fontSize: '20px' }}>▲</span>
                 </button>
-                <div
+                <SpectatorList
                   ref={spectatorListRef}
-                  style={{
-                    flex: 1,
-                    overflowY: 'scroll',
-                    overflowX: 'hidden',
-                    padding: '0',
-                    scrollbarWidth: 'none',
-                    msOverflowStyle: 'none'
-                  } as React.CSSProperties & { scrollbarWidth?: string; msOverflowStyle?: string }}
-                  onWheel={(e) => {
-                    e.stopPropagation();
-                  }}
-                >
-                  <SpectatorList
-                    spectators={mockRoomInfo.players.filter(p => p.role === 'SPECTATOR')}
-                    currentPlayerId={playerInfo?.playerId || ''}
-                    maxSpectators={mockRoomInfo.settings.maxSpectators}
-                  />
-                </div>
+                  spectators={mockRoomInfo.players.filter(p => p.role === 'SPECTATOR')}
+                  currentPlayerId={playerInfo?.playerId || ''}
+                  maxSpectators={mockRoomInfo.settings.maxSpectators}
+                />
                 <button
                   onClick={() => handleSpectatorListScroll('down')}
                   style={{
@@ -1421,7 +1745,7 @@ export default function GameRoomPreview() {
                     transform: 'translateX(-50%)',
                     width: '85%',
                     padding: '8px',
-                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
+                    backgroundColor: isSpectatorHovered ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.4)',
                     color: '#fff',
                     border: 'none',
                     borderRadius: '4px',
@@ -1429,13 +1753,20 @@ export default function GameRoomPreview() {
                     zIndex: 10,
                     fontSize: '18px',
                     fontWeight: 'bold',
-                    transition: 'background-color 0.2s',
+                    transition: 'opacity 0.2s, background-color 0.2s',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center'
+                    justifyContent: 'center',
+                    opacity: isSpectatorHovered ? 0.9 : 0.4
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.8)'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.6)'}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.85)';
+                    e.currentTarget.style.opacity = '1';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.backgroundColor = isSpectatorHovered ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.4)';
+                    e.currentTarget.style.opacity = isSpectatorHovered ? '0.9' : '0.4';
+                  }}
                 >
                   <span style={{ fontSize: '20px' }}>▼</span>
                 </button>
@@ -1450,7 +1781,7 @@ export default function GameRoomPreview() {
                 padding: '6px',
                 minHeight: 0
               }}>
-                {isCorrect && (
+                {isCorrect && gameState.phase === 'DRAWING' && (
                   <div style={{
                     padding: '10px',
                     backgroundColor: '#d4edda',
@@ -1468,230 +1799,51 @@ export default function GameRoomPreview() {
                 <ChatBox
                   messages={messages}
                   onSendMessage={handleSendMessage}
-                  disabled={isDrawer}
+                  disabled={gameState.phase !== 'DRAWING' || isDrawer}
                   currentPlayerId={playerInfo?.playerId || ''}
                   isCorrect={isCorrect}
                   isDrawer={isDrawer}
-                  headerMessage={isDrawer ? (
-                    <div style={{
-                      padding: '10px',
-                      backgroundColor: '#d1ecf1',
-                      border: '2px solid #0c5460',
-                      borderRadius: '4px',
-                      textAlign: 'center',
-                      fontWeight: 'bold',
-                      color: '#0c5460',
-                      fontSize: '14px'
-                    }}>
-                      🎨 출제자는 채팅을 입력할 수 없습니다
-                    </div>
-                  ) : undefined}
+                  headerMessage={
+                    gameState.phase !== 'DRAWING' ? (
+                      <div style={{
+                        padding: '10px',
+                        backgroundColor: '#fff3cd',
+                        border: '2px solid #ffc107',
+                        borderRadius: '4px',
+                        textAlign: 'center',
+                        fontWeight: 'bold',
+                        color: '#856404',
+                        fontSize: '14px'
+                      }}>
+                        ⏸️ 그림 그리기 중에만 채팅할 수 있습니다
+                      </div>
+                    ) : isDrawer ? (
+                      <div style={{
+                        padding: '10px',
+                        backgroundColor: '#d1ecf1',
+                        border: '2px solid #0c5460',
+                        borderRadius: '4px',
+                        textAlign: 'center',
+                        fontWeight: 'bold',
+                        color: '#0c5460',
+                        fontSize: '14px'
+                      }}>
+                        🎨 출제자는 채팅을 입력할 수 없습니다
+                      </div>
+                    ) : undefined
+                  }
                 />
               </div>
             </div>
           </div>
-        </div>
-      )}
-
-      {gameState.phase === 'TURN_RESULT' && gameState.currentTurn && (
-        <TurnResult
-          turnInfo={gameState.currentTurn}
-          players={gameState.players}
-          canvasImageUrl={canvasImageUrl}
-          isSpectatorMidJoin={false}
-        />
-      )}
-
-      {gameState.phase === 'ROUND_END' && gameState.currentTurn && (
-        <div style={{
-          marginTop: '20px',
-          padding: '30px',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '8px',
-          textAlign: 'center',
-        }}>
-          <h2>라운드 종료!</h2>
-          <p style={{ fontSize: '18px', marginTop: '10px' }}>
-            정답: <strong>{gameState.currentTurn.word}</strong>
-          </p>
-          <p style={{ marginTop: '20px', color: '#666' }}>
-            다음 라운드가 곧 시작됩니다...
-          </p>
-        </div>
-      )}
-
-      {gameState.phase === 'GAME_END' && (
-        <div style={{
-          marginTop: '20px',
-          padding: '40px',
-          backgroundColor: '#fff',
-          borderRadius: '8px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        }}>
-          <h2 style={{ textAlign: 'center', marginBottom: '10px' }}>🎉 게임 종료! 🎉</h2>
-
-          {/* 베스트 아티스트 표시 */}
-          {bestArtist && (bestArtist.totalLikes || 0) > 0 && (
-            <div style={{
-              textAlign: 'center',
-              marginBottom: '30px',
-              padding: '15px',
-              backgroundColor: '#f0e5ff',
-              borderRadius: '8px',
-              border: '2px solid #9c27b0',
-            }}>
-              <div style={{ fontSize: '24px', marginBottom: '5px' }}>🎨 베스트 아티스트 🎨</div>
-              <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#9c27b0' }}>
-                {bestArtist.nickname} ({bestArtist.totalLikes}개 추천)
-              </div>
-            </div>
           )}
-
-          <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-            <h3 style={{ marginBottom: '20px' }}>최종 순위</h3>
-            {sortedPlayers.map((player, index) => {
-              const isBestArtist = bestArtist?.playerId === player.playerId && (bestArtist?.totalLikes || 0) > 0;
-              return (
-                <div
-                  key={player.playerId}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '15px 20px',
-                    marginBottom: '10px',
-                    backgroundColor: index === 0 ? '#fff3cd' : '#f8f9fa',
-                    border: index === 0 ? '2px solid #ffc107' : '1px solid #dee2e6',
-                    borderRadius: '8px',
-                    position: 'relative',
-                  }}
-                >
-                  {isBestArtist && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '-10px',
-                      right: '-10px',
-                      fontSize: '32px',
-                      transform: 'rotate(15deg)',
-                    }}>
-                      👑
-                    </div>
-                  )}
-
-                  <span style={{
-                    fontSize: '24px',
-                    fontWeight: 'bold',
-                    marginRight: '20px',
-                    width: '40px',
-                    textAlign: 'center',
-                  }}>
-                    {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}위`}
-                  </span>
-
-                  <div style={{ flex: 1 }}>
-                    <div style={{
-                      fontSize: '18px',
-                      fontWeight: player.playerId === playerInfo?.playerId ? 'bold' : 'normal',
-                      color: player.playerId === playerInfo?.playerId ? '#007bff' : '#000',
-                    }}>
-                      {player.nickname}
-                      {player.playerId === playerInfo?.playerId && ' (나)'}
-                    </div>
-                    <div style={{ fontSize: '14px', color: '#666', marginTop: '4px' }}>
-                      👍 추천 {player.totalLikes || 0}개
-                      {(player.totalDislikes || 0) > 0 && ` • 👎 ${player.totalDislikes}개`}
-                    </div>
-                  </div>
-
-                  <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-                    {player.score}점
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-
-          <div style={{ textAlign: 'center', marginTop: '20px', display: 'flex', gap: '15px', justifyContent: 'center' }}>
-            <button
-              onClick={() => console.log('대기방으로')}
-              style={{
-                padding: '12px 40px',
-                fontSize: '16px',
-                backgroundColor: '#28a745',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontWeight: 'bold',
-              }}
-            >
-              대기방으로 돌아가기
-            </button>
-            <button
-              onClick={() => navigate('/')}
-              style={{
-                padding: '12px 40px',
-                fontSize: '16px',
-                backgroundColor: '#6c757d',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-              }}
-            >
-              메인으로
-            </button>
-          </div>
         </div>
-      )}
-
-      {/* 역할 전환 컨트롤 (DRAWING 페이즈에서만 표시) */}
-      {currentPhase === 'DRAWING' && (
-        <div style={{
-          marginTop: '20px',
-          padding: '15px',
-          backgroundColor: '#fff8e1',
-          borderRadius: '8px',
-          border: '2px solid #ff9800',
-        }}>
-          <h4>역할 선택</h4>
-          <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-            <button
-              onClick={() => setPreviewRole('drawer')}
-              style={{
-                padding: '10px 30px',
-                fontSize: '16px',
-                backgroundColor: previewRole === 'drawer' ? '#ff9800' : '#fff',
-                color: previewRole === 'drawer' ? '#fff' : '#333',
-                border: '2px solid #ff9800',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontWeight: previewRole === 'drawer' ? 'bold' : 'normal',
-              }}
-            >
-              🎨 출제자
-            </button>
-            <button
-              onClick={() => setPreviewRole('guesser')}
-              style={{
-                padding: '10px 30px',
-                fontSize: '16px',
-                backgroundColor: previewRole === 'guesser' ? '#2196f3' : '#fff',
-                color: previewRole === 'guesser' ? '#fff' : '#333',
-                border: '2px solid #2196f3',
-                borderRadius: '4px',
-                cursor: 'pointer',
-                fontWeight: previewRole === 'guesser' ? 'bold' : 'normal',
-              }}
-            >
-              🎯 참가자
-            </button>
-          </div>
-        </div>
-      )}
+      ) : null}
 
       {/* 페이즈 전환 컨트롤 */}
       <div style={{
-        marginTop: '20px',
+        width: '1310px',
+        margin: '20px auto 0',
         padding: '15px',
         backgroundColor: '#e3f2fd',
         borderRadius: '8px',
@@ -1722,7 +1874,8 @@ export default function GameRoomPreview() {
       {/* 타이머 컨트롤 (테스트용) */}
       {['COUNTDOWN', 'WORD_SELECT', 'DRAWING'].includes(currentPhase) && (
         <div style={{
-          marginTop: '20px',
+          width: '1310px',
+          margin: '20px auto 0',
           padding: '15px',
           backgroundColor: '#fff3cd',
           borderRadius: '8px',
@@ -1765,7 +1918,8 @@ export default function GameRoomPreview() {
 
       {/* 프리뷰 알림 배너 */}
       <div style={{
-        marginTop: '20px',
+        width: '1310px',
+        margin: '20px auto 0',
         padding: '15px',
         backgroundColor: '#f0f0f0',
         border: '2px solid #999',
@@ -1776,6 +1930,22 @@ export default function GameRoomPreview() {
       }}>
         🎨 게임 페이지 프리뷰 모드 (서버 연결 없음)
       </div>
+
+      {/* 카운트다운 애니메이션 */}
+      <style>
+        {`
+          @keyframes pulse {
+            0%, 100% {
+              transform: scale(1);
+              opacity: 1;
+            }
+            50% {
+              transform: scale(1.2);
+              opacity: 0.8;
+            }
+          }
+        `}
+      </style>
     </div>
   );
 }

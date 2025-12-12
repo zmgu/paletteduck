@@ -1,3 +1,4 @@
+import { forwardRef } from 'react';
 import type { RoomPlayer } from '../../../types/game.types';
 
 interface SpectatorListProps {
@@ -6,21 +7,26 @@ interface SpectatorListProps {
   maxSpectators: number;
 }
 
-export default function SpectatorList({
+const SpectatorList = forwardRef<HTMLDivElement, SpectatorListProps>(({
   spectators,
   currentPlayerId
-}: SpectatorListProps) {
+}, ref) => {
   return (
-    <div style={{
-      display: 'grid',
-      gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
-      gap: '6px',
-      height: '100%',
-      overflowY: 'auto',
-      alignContent: 'start',
-      paddingRight: '4px',
-      scrollbarGutter: 'stable'
-    } as React.CSSProperties}>
+    <div
+      ref={ref}
+      style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
+        gap: '6px',
+        height: '100%',
+        overflowY: 'auto',
+        alignContent: 'start',
+        paddingRight: '4px',
+        scrollbarWidth: 'none',
+        msOverflowStyle: 'none'
+      } as React.CSSProperties & { scrollbarWidth?: string; msOverflowStyle?: string }}
+      className="hide-scrollbar"
+    >
       {spectators.map((player) => (
         <div
           key={player.playerId}
@@ -47,6 +53,17 @@ export default function SpectatorList({
           </span>
         </div>
       ))}
+      <style>
+        {`
+          .hide-scrollbar::-webkit-scrollbar {
+            display: none;
+          }
+        `}
+      </style>
     </div>
   );
-}
+});
+
+SpectatorList.displayName = 'SpectatorList';
+
+export default SpectatorList;

@@ -40,52 +40,26 @@ export default function TurnResult({ turnInfo, players, canvasImageUrl, isSpecta
 
   return (
     <div style={{
-      padding: '20px',
+      width: '100%',
       maxWidth: '1200px',
-      margin: '0 auto'
+      maxHeight: '100%',
+      display: 'flex',
+      flexDirection: 'column'
     }}>
-      <h2 style={{
-        textAlign: 'center',
-        fontSize: '32px',
-        marginBottom: '20px',
-        color: '#2e7d32'
-      }}>
-        턴 결과
-      </h2>
-
-      {endReasonInfo && (
-        <div style={{
-          textAlign: 'center',
-          fontSize: '20px',
-          fontWeight: 'bold',
-          marginBottom: '15px',
-          padding: '12px 24px',
-          backgroundColor: `${endReasonInfo.color}20`,
-          border: `2px solid ${endReasonInfo.color}`,
-          borderRadius: '8px',
-          color: endReasonInfo.color,
-          display: 'inline-block',
-          margin: '0 auto 20px',
-          width: 'fit-content',
-          marginLeft: '50%',
-          transform: 'translateX(-50%)'
-        }}>
-          <span style={{ fontSize: '24px', marginRight: '10px' }}>{endReasonInfo.icon}</span>
-          {endReasonInfo.text}
-        </div>
-      )}
-
       <div style={{
         textAlign: 'center',
-        fontSize: '24px',
-        fontWeight: 'bold',
+        padding: '15px',
+        backgroundColor: '#f0f0f0',
+        borderRadius: '8px',
+        fontSize: '16px',
+        color: '#666',
         marginBottom: '20px',
-        color: '#666'
+        flexShrink: 0
       }}>
-        정답: {turnInfo.word}
+        다음 턴이 곧 시작됩니다...
       </div>
 
-      <div style={{ display: 'flex', gap: '30px' }}>
+      <div style={{ display: 'flex', gap: '30px', flex: 1, minHeight: 0, overflow: 'hidden' }}>
         {/* 왼쪽: 그림 */}
         <div style={{ flex: 1 }}>
           <h3>출제된 그림</h3>
@@ -95,21 +69,21 @@ export default function TurnResult({ turnInfo, players, canvasImageUrl, isSpecta
                 style={{
                   border: '2px solid #ccc',
                   borderRadius: '8px',
-                  width: CANVAS_CONFIG.WIDTH,
-                  height: CANVAS_CONFIG.HEIGHT,
+                  width: CANVAS_CONFIG.WIDTH * 0.5,
+                  height: CANVAS_CONFIG.HEIGHT * 0.5,
                   display: 'flex',
                   flexDirection: 'column',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  gap: '20px',
+                  gap: '10px',
                   backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                  padding: '40px',
+                  padding: '20px',
                   textAlign: 'center',
                 }}
               >
-                <div style={{ fontSize: '48px' }}>👀</div>
+                <div style={{ fontSize: '24px' }}>👀</div>
                 <div style={{
-                  fontSize: '20px',
+                  fontSize: '14px',
                   fontWeight: 'bold',
                   color: '#ff9800',
                   lineHeight: '1.6',
@@ -124,8 +98,8 @@ export default function TurnResult({ turnInfo, players, canvasImageUrl, isSpecta
                 style={{
                   border: '2px solid #ccc',
                   borderRadius: '8px',
-                  width: CANVAS_CONFIG.WIDTH,
-                  height: CANVAS_CONFIG.HEIGHT,
+                  width: CANVAS_CONFIG.WIDTH * 0.5,
+                  height: CANVAS_CONFIG.HEIGHT * 0.5,
                 }}
               />
             ) : (
@@ -133,8 +107,8 @@ export default function TurnResult({ turnInfo, players, canvasImageUrl, isSpecta
                 style={{
                   border: '2px solid #ccc',
                   borderRadius: '8px',
-                  width: CANVAS_CONFIG.WIDTH,
-                  height: CANVAS_CONFIG.HEIGHT,
+                  width: CANVAS_CONFIG.WIDTH * 0.5,
+                  height: CANVAS_CONFIG.HEIGHT * 0.5,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -150,19 +124,19 @@ export default function TurnResult({ turnInfo, players, canvasImageUrl, isSpecta
           {/* 출제자 정보 */}
           {drawer && (
             <div style={{
-              marginTop: '20px',
-              padding: '20px',
+              marginTop: '15px',
+              padding: '12px',
               backgroundColor: '#e3f2fd',
               borderRadius: '8px',
               border: '2px solid #2196f3'
             }}>
-              <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px' }}>
+              <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '6px' }}>
                 🎨 출제자: {turnInfo.drawerNickname}
               </div>
-              <div style={{ fontSize: '16px', color: '#666' }}>
+              <div style={{ fontSize: '12px', color: '#666' }}>
                 획득 점수: <strong style={{ color: '#2196f3' }}>+{drawerTurnScore}</strong>점
               </div>
-              <div style={{ fontSize: '16px', color: '#666', marginTop: '5px' }}>
+              <div style={{ fontSize: '12px', color: '#666', marginTop: '4px' }}>
                 👍 추천: {drawer.totalLikes || 0} / 👎 비추천: {drawer.totalDislikes || 0}
               </div>
             </div>
@@ -170,16 +144,21 @@ export default function TurnResult({ turnInfo, players, canvasImageUrl, isSpecta
         </div>
 
         {/* 오른쪽: 랭킹 */}
-        <div style={{ flex: 1 }}>
-          <h3>이번 턴 득점 랭킹</h3>
-          <div style={{ marginTop: '10px' }}>
+        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', maxHeight: '100%' }}>
+          <h3 style={{ marginBottom: '10px', flexShrink: 0 }}>이번 턴 득점 랭킹</h3>
+          <div style={{
+            flex: 1,
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            paddingRight: '4px'
+          }}>
             {scoredPlayers.length > 0 ? (
               scoredPlayers.map((player, index) => (
                 <div
                   key={player.playerId}
                   style={{
-                    padding: '15px 20px',
-                    marginBottom: '10px',
+                    padding: '10px 15px',
+                    marginBottom: '6px',
                     backgroundColor: index === 0 ? '#fff3cd' : index === 1 ? '#d4edda' : '#f8f9fa',
                     border: index === 0 ? '2px solid #ffc107' : index === 1 ? '2px solid #28a745' : '1px solid #dee2e6',
                     borderRadius: '8px',
@@ -188,31 +167,26 @@ export default function TurnResult({ turnInfo, players, canvasImageUrl, isSpecta
                   }}
                 >
                   <span style={{
-                    fontSize: '24px',
+                    fontSize: '18px',
                     fontWeight: 'bold',
-                    marginRight: '15px',
-                    width: '50px',
+                    marginRight: '10px',
+                    width: '40px',
                     textAlign: 'center'
                   }}>
                     {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}위`}
                   </span>
                   <div style={{ flex: 1 }}>
                     <div style={{
-                      fontSize: '18px',
+                      fontSize: '14px',
                       fontWeight: 'bold',
-                      marginBottom: '5px'
+                      marginBottom: '3px'
                     }}>
                       {player.nickname}
                       {player.playerId === turnInfo.drawerId && ' 🎨'}
                     </div>
-                    <div style={{ fontSize: '14px', color: '#666' }}>
+                    <div style={{ fontSize: '12px', color: '#666' }}>
                       획득: <strong style={{ color: '#4caf50' }}>+{player.turnScore}</strong>점
-                      {' | '}
-                      총점: {player.score}점
                     </div>
-                  </div>
-                  <div style={{ fontSize: '14px', color: '#666', textAlign: 'right' }}>
-                    👍 {player.totalLikes || 0} / 👎 {player.totalDislikes || 0}
                   </div>
                 </div>
               ))
@@ -226,18 +200,6 @@ export default function TurnResult({ turnInfo, players, canvasImageUrl, isSpecta
                 이번 턴에 점수를 획득한 플레이어가 없습니다
               </div>
             )}
-          </div>
-
-          <div style={{
-            marginTop: '20px',
-            padding: '15px',
-            backgroundColor: '#f0f0f0',
-            borderRadius: '8px',
-            textAlign: 'center',
-            fontSize: '16px',
-            color: '#666'
-          }}>
-            다음 턴이 곧 시작됩니다...
           </div>
         </div>
       </div>

@@ -391,168 +391,173 @@ export default function GameRoomPage() {
       )}
 
       {gameState.phase === 'GAME_END' && (
-        <div style={{
-          marginTop: '20px',
-          padding: '40px',
-          backgroundColor: '#fff',
-          borderRadius: '8px',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-        }}>
-          <h2 style={{ textAlign: 'center', marginBottom: '10px' }}>🎉 게임 종료! 🎉</h2>
-
-          {/* 베스트 아티스트 표시 */}
-          {bestArtist && (bestArtist.totalLikes || 0) > 0 && (
+        <div style={{ display: 'flex', gap: '20px', marginTop: '20px' }}>
+          <div style={{ flex: 1 }}>
+            {/* 게임 종료 컴포넌트 */}
             <div style={{
-              textAlign: 'center',
-              marginBottom: '30px',
-              padding: '15px',
-              backgroundColor: '#f0e5ff',
+              padding: '40px',
+              backgroundColor: '#fff',
               borderRadius: '8px',
-              border: '2px solid #9c27b0',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+              minHeight: '600px',
             }}>
-              <div style={{ fontSize: '24px', marginBottom: '5px' }}>🎨 베스트 아티스트 🎨</div>
-              <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#9c27b0' }}>
-                {bestArtist.nickname} ({bestArtist.totalLikes}개 추천)
-              </div>
-            </div>
-          )}
+              <h2 style={{ textAlign: 'center', marginBottom: '10px' }}>🎉 게임 종료! 🎉</h2>
 
-          <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-            <h3 style={{ marginBottom: '20px' }}>최종 순위</h3>
-            {sortedPlayers.map((player, index) => {
-              const isBestArtist = bestArtist?.playerId === player.playerId && (bestArtist?.totalLikes || 0) > 0;
-              return (
-                <div
-                  key={player.playerId}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '15px 20px',
-                    marginBottom: '10px',
-                    backgroundColor: index === 0 ? '#fff3cd' : '#f8f9fa',
-                    border: index === 0 ? '2px solid #ffc107' : '1px solid #dee2e6',
-                    borderRadius: '8px',
-                    position: 'relative',
-                  }}
-                >
-                  {/* 베스트 아티스트 왕관 */}
-                  {isBestArtist && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '-10px',
-                      right: '-10px',
-                      fontSize: '32px',
-                      transform: 'rotate(15deg)',
-                    }}>
-                      👑
-                    </div>
-                  )}
-
-                  <span style={{
-                    fontSize: '24px',
-                    fontWeight: 'bold',
-                    marginRight: '20px',
-                    width: '40px',
-                    textAlign: 'center',
-                  }}>
-                    {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}위`}
-                  </span>
-
-                  <div style={{ flex: 1 }}>
-                    <div style={{
-                      fontSize: '18px',
-                      fontWeight: player.playerId === playerInfo?.playerId ? 'bold' : 'normal',
-                      color: player.playerId === playerInfo?.playerId ? '#007bff' : '#000',
-                    }}>
-                      {player.nickname}
-                      {player.playerId === playerInfo?.playerId && ' (나)'}
-                    </div>
-                    {/* 추천수 표시 */}
-                    <div style={{ fontSize: '14px', color: '#666', marginTop: '4px' }}>
-                      👍 추천 {player.totalLikes || 0}개
-                      {(player.totalDislikes || 0) > 0 && ` • 👎 ${player.totalDislikes}개`}
-                    </div>
+              {/* 베스트 아티스트 표시 */}
+              {bestArtist && (bestArtist.totalLikes || 0) > 0 && (
+                <div style={{
+                  textAlign: 'center',
+                  marginBottom: '30px',
+                  padding: '15px',
+                  backgroundColor: '#f0e5ff',
+                  borderRadius: '8px',
+                  border: '2px solid #9c27b0',
+                }}>
+                  <div style={{ fontSize: '24px', marginBottom: '5px' }}>🎨 베스트 아티스트 🎨</div>
+                  <div style={{ fontSize: '20px', fontWeight: 'bold', color: '#9c27b0' }}>
+                    {bestArtist.nickname} ({bestArtist.totalLikes}개 추천)
                   </div>
-
-                  <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
-                    {player.score}점
-                  </span>
                 </div>
-              );
-            })}
-          </div>
+              )}
 
-          {/* 20초 카운트다운 표시 */}
-          <div style={{
-            textAlign: 'center',
-            marginTop: '30px',
-            padding: '15px',
-            backgroundColor: autoReturnCountdown === 0 && roomInfo?.status !== 'WAITING'
-              ? '#f8d7da'
-              : autoReturnCountdown <= 10 ? '#fff3cd' : '#f0f8ff',
-            borderRadius: '8px',
-            border: `2px solid ${
-              autoReturnCountdown === 0 && roomInfo?.status !== 'WAITING'
-                ? '#dc3545'
-                : autoReturnCountdown <= 10 ? '#ffc107' : '#007bff'
-            }`,
-          }}>
-            <div style={{
-              fontSize: '18px',
-              fontWeight: 'bold',
-              color: autoReturnCountdown === 0 && roomInfo?.status !== 'WAITING'
-                ? '#721c24'
-                : autoReturnCountdown <= 10 ? '#856404' : '#004085',
-            }}>
-              {autoReturnCountdown > 0
-                ? `⏰ ${autoReturnCountdown}초 후 자동으로 대기방으로 복귀합니다`
-                : roomInfo?.status === 'WAITING'
+              <div style={{ maxWidth: '600px', margin: '0 auto' }}>
+                <h3 style={{ marginBottom: '20px' }}>최종 순위</h3>
+                {sortedPlayers.map((player, index) => {
+                  const isBestArtist = bestArtist?.playerId === player.playerId && (bestArtist?.totalLikes || 0) > 0;
+                  return (
+                    <div
+                      key={player.playerId}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '15px 20px',
+                        marginBottom: '10px',
+                        backgroundColor: index === 0 ? '#fff3cd' : '#f8f9fa',
+                        border: index === 0 ? '2px solid #ffc107' : '1px solid #dee2e6',
+                        borderRadius: '8px',
+                        position: 'relative',
+                      }}
+                    >
+                      {/* 베스트 아티스트 왕관 */}
+                      {isBestArtist && (
+                        <div style={{
+                          position: 'absolute',
+                          top: '-10px',
+                          right: '-10px',
+                          fontSize: '32px',
+                          transform: 'rotate(15deg)',
+                        }}>
+                          👑
+                        </div>
+                      )}
+
+                      <span style={{
+                        fontSize: '24px',
+                        fontWeight: 'bold',
+                        marginRight: '20px',
+                        width: '40px',
+                        textAlign: 'center',
+                      }}>
+                        {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}위`}
+                      </span>
+
+                      <div style={{ flex: 1 }}>
+                        <div style={{
+                          fontSize: '18px',
+                          fontWeight: player.playerId === playerInfo?.playerId ? 'bold' : 'normal',
+                          color: player.playerId === playerInfo?.playerId ? '#007bff' : '#000',
+                        }}>
+                          {player.nickname}
+                          {player.playerId === playerInfo?.playerId && ' (나)'}
+                        </div>
+                        {/* 추천수 표시 */}
+                        <div style={{ fontSize: '14px', color: '#666', marginTop: '4px' }}>
+                          👍 추천 {player.totalLikes || 0}개
+                          {(player.totalDislikes || 0) > 0 && ` • 👎 ${player.totalDislikes}개`}
+                        </div>
+                      </div>
+
+                      <span style={{ fontSize: '20px', fontWeight: 'bold' }}>
+                        {player.score}점
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* 20초 카운트다운 표시 */}
+              <div style={{
+                textAlign: 'center',
+                marginTop: '30px',
+                padding: '15px',
+                backgroundColor: autoReturnCountdown === 0 && roomInfo?.status !== 'WAITING'
+                  ? '#f8d7da'
+                  : autoReturnCountdown <= 10 ? '#fff3cd' : '#f0f8ff',
+                borderRadius: '8px',
+                border: `2px solid ${
+                  autoReturnCountdown === 0 && roomInfo?.status !== 'WAITING'
+                    ? '#dc3545'
+                    : autoReturnCountdown <= 10 ? '#ffc107' : '#007bff'
+                }`,
+              }}>
+                <div style={{
+                  fontSize: '18px',
+                  fontWeight: 'bold',
+                  color: autoReturnCountdown === 0 && roomInfo?.status !== 'WAITING'
+                    ? '#721c24'
+                    : autoReturnCountdown <= 10 ? '#856404' : '#004085',
+                }}>
+                  {autoReturnCountdown > 0
+                    ? `⏰ ${autoReturnCountdown}초 후 자동으로 대기방으로 복귀합니다`
+                    : roomInfo?.status === 'WAITING'
                   ? '복귀 중...'
                   : '⚠️ 아무도 대기방으로 이동하지 않아 방이 사라졌습니다'}
-            </div>
-            <div style={{ fontSize: '14px', color: '#666', marginTop: '5px' }}>
-              {autoReturnCountdown > 0
-                ? '아래 버튼을 눌러 바로 복귀할 수 있습니다. 아무도 복귀하지 않으면 방이 사라집니다.'
-                : roomInfo?.status === 'WAITING'
-                  ? ''
-                  : '메인 화면으로 이동해주세요.'}
-            </div>
-          </div>
+                </div>
+                <div style={{ fontSize: '14px', color: '#666', marginTop: '5px' }}>
+                  {autoReturnCountdown > 0
+                    ? '아래 버튼을 눌러 바로 복귀할 수 있습니다. 아무도 복귀하지 않으면 방이 사라집니다.'
+                    : roomInfo?.status === 'WAITING'
+                      ? ''
+                      : '메인 화면으로 이동해주세요.'}
+                </div>
+              </div>
 
-          <div style={{ textAlign: 'center', marginTop: '20px', display: 'flex', gap: '15px', justifyContent: 'center' }}>
-            {/* 방이 삭제되지 않았을 때만 대기방 복귀 버튼 표시 */}
-            {!(autoReturnCountdown === 0 && roomInfo?.status !== 'WAITING') && (
-              <button
-                onClick={handleReturnToWaiting}
-                disabled={autoReturnCountdown === 0}
-                style={{
-                  padding: '12px 40px',
-                  fontSize: '16px',
-                  backgroundColor: autoReturnCountdown === 0 ? '#ccc' : '#28a745',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '4px',
-                  cursor: autoReturnCountdown === 0 ? 'not-allowed' : 'pointer',
-                  fontWeight: 'bold',
-                }}
-              >
-                대기방으로 돌아가기
-              </button>
-            )}
-            <button
-              onClick={() => navigate('/')}
-              style={{
-                padding: '12px 40px',
-                fontSize: '16px',
-                backgroundColor: '#6c757d',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-              }}
-            >
-              메인으로
-            </button>
+              <div style={{ textAlign: 'center', marginTop: '20px', display: 'flex', gap: '15px', justifyContent: 'center' }}>
+                {/* 방이 삭제되지 않았을 때만 대기방 복귀 버튼 표시 */}
+                {!(autoReturnCountdown === 0 && roomInfo?.status !== 'WAITING') && (
+                  <button
+                    onClick={handleReturnToWaiting}
+                    disabled={autoReturnCountdown === 0}
+                    style={{
+                      padding: '12px 40px',
+                      fontSize: '16px',
+                      backgroundColor: autoReturnCountdown === 0 ? '#ccc' : '#28a745',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: autoReturnCountdown === 0 ? 'not-allowed' : 'pointer',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    대기방으로 돌아가기
+                  </button>
+                )}
+                <button
+                  onClick={() => navigate('/')}
+                  style={{
+                    padding: '12px 40px',
+                    fontSize: '16px',
+                    backgroundColor: '#6c757d',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  메인으로
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}
