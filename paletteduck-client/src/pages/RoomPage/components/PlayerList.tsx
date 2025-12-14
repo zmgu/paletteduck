@@ -45,12 +45,13 @@ const PlayerList = forwardRef<HTMLUListElement, PlayerListProps>(({
         ref={scrollRef}
         style={{
           listStyle: 'none',
-          padding: 0,
+          padding: '8px',
           margin: 0,
           height: '100%',
           overflowY: 'auto',
           scrollbarWidth: 'none', // Firefox
           msOverflowStyle: 'none', // IE/Edge
+          boxSizing: 'border-box',
         }}
         className="hide-scrollbar"
       >
@@ -60,27 +61,27 @@ const PlayerList = forwardRef<HTMLUListElement, PlayerListProps>(({
           <li
             key={player.playerId}
             style={{
-              height: '60px',
-              marginBottom: '6px',
-              padding: '8px',
+              height: '50px',
+              marginBottom: '4px',
+              padding: '6px',
               backgroundColor: player.ready ? '#2d4a2d' : '#2b3232ff',
-              borderRadius: '8px',
+              borderRadius: '6px',
               border: player.playerId === currentPlayerId ? '2px solid #2196f3' : '2px solid transparent',
               fontWeight: player.playerId === currentPlayerId ? 'bold' : 'normal',
               display: 'flex',
               alignItems: 'center',
-              gap: '8px',
+              gap: '6px',
               boxSizing: 'border-box',
               position: 'relative'
             }}
           >
             {/* 왼쪽: 등수 */}
             <div style={{
-              width: '30px',
+              width: '28px',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '18px',
+              fontSize: '16px',
               fontWeight: 'bold',
               color: rank === 1 ? '#ffd700' : rank === 2 ? '#c0c0c0' : rank === 3 ? '#cd7f32' : '#fff',
               flexShrink: 0
@@ -126,14 +127,14 @@ const PlayerList = forwardRef<HTMLUListElement, PlayerListProps>(({
 
             {/* 오른쪽: 캐릭터 */}
             <div style={{
-              width: '40px',
-              height: '40px',
+              width: '35px',
+              height: '35px',
               borderRadius: '50%',
               backgroundColor: '#ddd',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: '24px',
+              fontSize: '22px',
               flexShrink: 0,
               position: 'relative'
             }}>
@@ -144,7 +145,7 @@ const PlayerList = forwardRef<HTMLUListElement, PlayerListProps>(({
                   position: 'absolute',
                   top: '-4px',
                   right: '-4px',
-                  fontSize: '16px',
+                  fontSize: '14px',
                   lineHeight: '1'
                 }}>
                   👑

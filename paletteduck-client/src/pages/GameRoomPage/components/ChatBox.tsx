@@ -92,19 +92,19 @@ export default function ChatBox({
           padding: '10px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '8px',
+          gap: '4px',
         }}
       >
         {headerMessage && (
           <div style={{
             position: 'sticky',
-            top: 0,
+            top: '-10px',
             zIndex: 10,
-            marginBottom: '8px',
+            marginBottom: '4px',
             marginTop: '-10px',
             marginLeft: '-10px',
             marginRight: '-10px',
-            padding: '10px'
+            padding: '6px 10px 6px 10px'
           }}>
             {headerMessage}
           </div>
@@ -179,13 +179,13 @@ export default function ChatBox({
       </div>
 
       {/* 입력 영역 */}
-      <form 
+      <form
         onSubmit={handleSubmit}
         style={{
-          padding: '10px',
+          padding: '8px',
           borderTop: '1px solid #ccc',
           display: 'flex',
-          gap: '8px',
+          gap: '6px',
         }}
       >
         <input
@@ -196,27 +196,30 @@ export default function ChatBox({
           disabled={disabled}
           style={{
             flex: 1,
-            padding: '8px 12px',
+            padding: '6px 10px',
             border: '1px solid #ccc',
             borderRadius: '4px',
-            fontSize: '14px',
+            fontSize: '13px',
           }}
         />
         <button
           type="submit"
           disabled={disabled || !inputValue.trim()}
           style={{
-            padding: '8px 20px',
+            padding: '6px 12px',
             backgroundColor: disabled ? '#ccc' : '#007bff',
             color: '#fff',
             border: 'none',
             borderRadius: '4px',
             cursor: disabled ? 'not-allowed' : 'pointer',
-            fontSize: '14px',
+            fontSize: '16px',
             fontWeight: 'bold',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
           }}
         >
-          전송
+          ✈️
         </button>
       </form>
     </div>

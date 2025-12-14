@@ -13,6 +13,7 @@ export default function WordSelect({ turnInfo, onSelectWord, roomId }: WordSelec
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [error, setError] = useState('');
   const [hasUsedCustomInput, setHasUsedCustomInput] = useState(false);
+  const [showCustomInput, setShowCustomInput] = useState(false);
 
   // localStorage에서 해당 방+플레이어의 직접 입력 사용 여부 확인
   useEffect(() => {
@@ -104,7 +105,7 @@ export default function WordSelect({ turnInfo, onSelectWord, roomId }: WordSelec
           단어를 선택하세요
         </h3>
 
-        {/* 기존 단어 선택지 */}
+        {/* 단어 선택지 (기존 단어 + 직접 입력 버튼) */}
         <div style={{ display: 'flex', gap: '15px', marginTop: '20px' }}>
           {turnInfo.wordChoices.map((word) => (
             <button
@@ -128,115 +129,119 @@ export default function WordSelect({ turnInfo, onSelectWord, roomId }: WordSelec
               {word}
             </button>
           ))}
+
+          {/* 직접 입력 버튼 */}
+          <button
+            onClick={() => !hasUsedCustomInput && setShowCustomInput(!showCustomInput)}
+            disabled={hasUsedCustomInput}
+            style={{
+              flex: 1,
+              padding: '30px 20px',
+              fontSize: '24px',
+              fontWeight: 'bold',
+              backgroundColor: hasUsedCustomInput ? '#ccc' : showCustomInput ? '#45a049' : '#4caf50',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: hasUsedCustomInput ? 'not-allowed' : 'pointer',
+              transition: 'all 0.2s',
+              position: 'relative'
+            }}
+            onMouseEnter={(e) => {
+              if (!hasUsedCustomInput && !showCustomInput) {
+                e.currentTarget.style.backgroundColor = '#45a049';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!hasUsedCustomInput && !showCustomInput) {
+                e.currentTarget.style.backgroundColor = '#4caf50';
+              }
+            }}
+          >
+            <div>직접 입력</div>
+            <div style={{ fontSize: '12px', marginTop: '8px', opacity: 0.9 }}>
+              {hasUsedCustomInput ? '(사용됨)' : '(1회만)'}
+            </div>
+          </button>
         </div>
 
-        {/* 직접 입력 섹션 */}
-        <div style={{
-          marginTop: '30px',
-          paddingTop: '20px',
-          borderTop: '2px solid #90caf9'
-        }}>
+        {/* 직접 입력란 (버튼 클릭 시 하단에 표시) */}
+        {showCustomInput && !hasUsedCustomInput && (
           <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '10px',
-            marginBottom: '10px'
+            marginTop: '20px',
+            padding: '20px',
+            backgroundColor: '#f1f8e9',
+            borderRadius: '8px',
+            border: '2px solid #4caf50'
           }}>
-            <span style={{
-              fontSize: '16px',
-              fontWeight: 'bold',
-              color: hasUsedCustomInput ? '#999' : '#1976d2'
-            }}>
-              직접 입력
-            </span>
-            <span style={{
-              fontSize: '12px',
-              color: '#666',
-              backgroundColor: '#fff3cd',
-              padding: '4px 8px',
-              borderRadius: '4px'
-            }}>
-              게임에서 한 번만 사용 가능
-            </span>
-            {hasUsedCustomInput && (
-              <span style={{
-                fontSize: '12px',
-                color: '#d32f2f',
-                fontWeight: 'bold'
-              }}>
-                (이미 사용됨)
-              </span>
-            )}
-          </div>
+            <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+              <div style={{ flex: 1 }}>
+                <input
+                  type="text"
+                  value={customWord}
+                  onChange={handleCustomWordChange}
+                  placeholder="2~10글자 한글 단어 입력"
+                  maxLength={10}
+                  autoFocus
+                  style={{
+                    width: '100%',
+                    padding: '12px',
+                    fontSize: '18px',
+                    color: '#000',
+                    border: error ? '2px solid #d32f2f' : '2px solid #4caf50',
+                    borderRadius: '8px',
+                    outline: 'none',
+                    backgroundColor: 'white',
+                    boxSizing: 'border-box',
+                  }}
+                  onKeyPress={(e) => {
+                    if (e.key === 'Enter') {
+                      handleCustomWordSubmit();
+                    }
+                  }}
+                />
+                {error && (
+                  <div style={{
+                    color: '#d32f2f',
+                    fontSize: '12px',
+                    marginTop: '5px'
+                  }}>
+                    {error}
+                  </div>
+                )}
+              </div>
 
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
-            <div style={{ flex: 1 }}>
-              <input
-                type="text"
-                value={customWord}
-                onChange={handleCustomWordChange}
-                disabled={hasUsedCustomInput}
-                placeholder="2~10글자 한글 단어 입력"
-                maxLength={10}
+              <button
+                onClick={handleCustomWordSubmit}
+                disabled={!customWord.trim()}
                 style={{
-                  width: '100%',
-                  padding: '12px',
+                  padding: '12px 24px',
                   fontSize: '18px',
-                  color: '#000',
-                  border: error ? '2px solid #d32f2f' : '2px solid #90caf9',
+                  fontWeight: 'bold',
+                  backgroundColor: !customWord.trim() ? '#ccc' : '#4caf50',
+                  color: 'white',
+                  border: 'none',
                   borderRadius: '8px',
-                  outline: 'none',
-                  backgroundColor: hasUsedCustomInput ? '#f5f5f5' : 'white',
-                  cursor: hasUsedCustomInput ? 'not-allowed' : 'text',
-                  boxSizing: 'border-box',
+                  cursor: !customWord.trim() ? 'not-allowed' : 'pointer',
+                  transition: 'all 0.2s',
+                  whiteSpace: 'nowrap'
                 }}
-                onKeyPress={(e) => {
-                  if (e.key === 'Enter' && !hasUsedCustomInput) {
-                    handleCustomWordSubmit();
+                onMouseEnter={(e) => {
+                  if (customWord.trim()) {
+                    e.currentTarget.style.backgroundColor = '#45a049';
                   }
                 }}
-              />
-              {error && (
-                <div style={{
-                  color: '#d32f2f',
-                  fontSize: '12px',
-                  marginTop: '5px'
-                }}>
-                  {error}
-                </div>
-              )}
+                onMouseLeave={(e) => {
+                  if (customWord.trim()) {
+                    e.currentTarget.style.backgroundColor = '#4caf50';
+                  }
+                }}
+              >
+                확인
+              </button>
             </div>
-
-            <button
-              onClick={handleCustomWordSubmit}
-              disabled={hasUsedCustomInput || !customWord.trim()}
-              style={{
-                padding: '12px 24px',
-                fontSize: '18px',
-                fontWeight: 'bold',
-                backgroundColor: hasUsedCustomInput || !customWord.trim() ? '#ccc' : '#4caf50',
-                color: 'white',
-                border: 'none',
-                borderRadius: '8px',
-                cursor: hasUsedCustomInput || !customWord.trim() ? 'not-allowed' : 'pointer',
-                transition: 'all 0.2s',
-                whiteSpace: 'nowrap'
-              }}
-              onMouseEnter={(e) => {
-                if (!hasUsedCustomInput && customWord.trim()) {
-                  e.currentTarget.style.backgroundColor = '#45a049';
-                }
-              }}
-              onMouseLeave={(e) => {
-                if (!hasUsedCustomInput && customWord.trim()) {
-                  e.currentTarget.style.backgroundColor = '#4caf50';
-                }
-              }}
-            >
-              확인
-            </button>
           </div>
-        </div>
+        )}
       </div>
 
       {/* 확인 모달 */}
