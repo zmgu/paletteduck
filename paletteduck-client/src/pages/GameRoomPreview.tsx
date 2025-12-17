@@ -1019,7 +1019,7 @@ export default function GameRoomPreview() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: isDrawer ? '#ff9800' : '#2196f3',
+            backgroundColor: isDrawer ? '#D4A574' : '#6a8bc3',
             borderRadius: '8px 8px 0 0',
             position: 'relative',
             flexShrink: 0
@@ -1099,8 +1099,8 @@ export default function GameRoomPreview() {
             display: 'grid',
             gridTemplateColumns: '200px 810px 300px',
             alignItems: 'center',
-            backgroundColor: isDrawer ? '#ffb74d' : '#64b5f6',
-            borderBottom: isDrawer ? '2px solid #f57c00' : '2px solid #1976d2',
+            backgroundColor: isDrawer ? '#D4A574' : '#6a8bc3',
+            borderBottom: 'none',
             boxSizing: 'border-box',
             flexShrink: 0
           }}>
@@ -1157,7 +1157,7 @@ export default function GameRoomPreview() {
                     backgroundColor: '#fff',
                     padding: '8px 20px',
                     borderRadius: '6px',
-                    border: '2px solid #1976d2',
+                    border: isDrawer ? '2px solid #B8885A' : '2px solid #4a6bb3',
                     textShadow: 'none'
                   }}>
                     {gameState.currentTurn.currentHint || '???'}
@@ -1179,7 +1179,7 @@ export default function GameRoomPreview() {
                           padding: '8px 16px',
                           fontSize: '14px',
                           fontWeight: 'bold',
-                          backgroundColor: gameState.currentTurn.hintLevel >= 2 ? '#ff9800' : '#ccc',
+                          backgroundColor: gameState.currentTurn.hintLevel >= 2 ? '#D4A574' : '#999',
                           color: '#fff',
                           border: 'none',
                           borderRadius: '4px',
@@ -1197,7 +1197,7 @@ export default function GameRoomPreview() {
                           padding: '8px 16px',
                           fontSize: '14px',
                           fontWeight: 'bold',
-                          backgroundColor: gameState.currentTurn.hintLevel >= 2 ? '#f44336' : '#ccc',
+                          backgroundColor: gameState.currentTurn.hintLevel >= 2 ? '#B8885A' : '#999',
                           color: '#fff',
                           border: 'none',
                           borderRadius: '4px',
@@ -1224,7 +1224,7 @@ export default function GameRoomPreview() {
             <div style={{
               width: '100%',
               height: '660px',
-              backgroundColor: '#e3f2fd',
+              backgroundColor: '#E8E5E0',
               borderRadius: '0 0 8px 8px',
               flexShrink: 0,
               padding: '20px',
@@ -1260,7 +1260,7 @@ export default function GameRoomPreview() {
                       width: '100%',
                       height: '391px',
                       backgroundColor: '#f5f5f5',
-                      border: '3px solid #9c27b0',
+                      border: '3px solid #8FB8B8',
                       borderRadius: '8px',
                       display: 'flex',
                       alignItems: 'center',
@@ -1283,11 +1283,11 @@ export default function GameRoomPreview() {
                       <div style={{
                         textAlign: 'center',
                         padding: '12px',
-                        backgroundColor: '#f0e5ff',
+                        backgroundColor: '#E8F4F4',
                         borderRadius: '8px',
-                        border: '2px solid #9c27b0',
+                        border: '2px solid #8FB8B8',
                       }}>
-                        <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#9c27b0' }}>
+                        <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#6B9999' }}>
                           {bestArtist.nickname}
                         </div>
                         <div style={{ fontSize: '13px', color: '#666', marginTop: '4px' }}>
@@ -1410,12 +1410,12 @@ export default function GameRoomPreview() {
             /* 일반 게임 화면 - 그리드 레이아웃 */
             <div style={{
               width: '100%',
-              height: '660px',
+              height: '655px',
               display: 'grid',
               gridTemplateColumns: '200px 810px 300px',
               gridTemplateRows: '1fr',
               gap: '0',
-              backgroundColor: isDrawer ? '#fff3e0' : '#e3f2fd',
+              backgroundColor: 'transparent',
               borderRadius: '0 0 8px 8px',
               flexShrink: 0,
               overflow: 'hidden'
@@ -1425,8 +1425,8 @@ export default function GameRoomPreview() {
               style={{
                 display: 'flex',
                 flexDirection: 'column',
-                backgroundColor: isDrawer ? '#8d6e63' : '#6b7561',
-                borderRight: isDrawer ? '2px solid #f57c00' : '2px solid #1976d2',
+                backgroundColor: 'transparent',
+                borderRight: 'none',
                 position: 'relative',
                 height: '100%',
                 overflow: 'hidden'
@@ -1514,8 +1514,8 @@ export default function GameRoomPreview() {
             <div style={{
               display: 'flex',
               flexDirection: 'column',
-              backgroundColor: isDrawer ? '#ffe0b2' : '#b8dbb8',
-              borderRight: isDrawer ? '2px solid #f57c00' : '2px solid #1976d2',
+              backgroundColor: 'transparent',
+              borderRight: 'none',
               position: 'relative',
               overflow: 'hidden'
             }}>
@@ -1533,7 +1533,7 @@ export default function GameRoomPreview() {
                     position: 'absolute',
                     top: '10px',
                     left: '10px',
-                    backgroundColor: isDrawer ? 'rgba(255, 152, 0, 0.9)' : 'rgba(33, 150, 243, 0.9)',
+                    backgroundColor: isDrawer ? 'rgba(212, 165, 116, 0.95)' : 'rgba(91, 132, 216, 0.95)',
                     color: '#fff',
                     padding: '7px 14px',
                     borderRadius: '5px',
@@ -1541,7 +1541,7 @@ export default function GameRoomPreview() {
                     fontWeight: 'bold',
                     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
                     zIndex: 10,
-                    border: isDrawer ? '2px solid #f57c00' : '2px solid #1976d2',
+                    border: isDrawer ? '2px solid #B8885A' : '2px solid #4a6bb3',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px'
@@ -1729,8 +1729,8 @@ export default function GameRoomPreview() {
                   gap: '6px',
                   justifyContent: 'center',
                   padding: '6px',
-                  backgroundColor: '#bbdefb',
-                  borderTop: '2px solid #1976d2',
+                  backgroundColor: 'transparent',
+                  borderTop: 'none',
                   flexShrink: 0
                 }}>
                   <button
@@ -1740,9 +1740,9 @@ export default function GameRoomPreview() {
                       padding: '8px 24px',
                       fontSize: '15px',
                       fontWeight: 'bold',
-                      backgroundColor: currentVote === 'LIKE' ? '#4caf50' : '#fff',
-                      color: currentVote === 'LIKE' ? '#fff' : '#333',
-                      border: '2px solid #4caf50',
+                      backgroundColor: currentVote === 'LIKE' ? '#ffd75e' : '#fff',
+                      color: currentVote === 'LIKE' ? '#333' : '#333',
+                      border: '2px solid #ffd75e',
                       borderRadius: '4px',
                       cursor: isCorrect ? 'not-allowed' : 'pointer',
                       opacity: isCorrect ? 0.5 : 1,
@@ -1758,9 +1758,9 @@ export default function GameRoomPreview() {
                       padding: '8px 24px',
                       fontSize: '15px',
                       fontWeight: 'bold',
-                      backgroundColor: currentVote === 'DISLIKE' ? '#f44336' : '#fff',
+                      backgroundColor: currentVote === 'DISLIKE' ? '#ff8566' : '#fff',
                       color: currentVote === 'DISLIKE' ? '#fff' : '#333',
-                      border: '2px solid #f44336',
+                      border: '2px solid #ff8566',
                       borderRadius: '4px',
                       cursor: isCorrect ? 'not-allowed' : 'pointer',
                       opacity: isCorrect ? 0.5 : 1,
@@ -1779,7 +1779,7 @@ export default function GameRoomPreview() {
               flexDirection: 'column',
               gap: '0',
               height: '100%',
-              maxHeight: '660px',
+              maxHeight: '655px',
               boxSizing: 'border-box',
               overflow: 'hidden'
             }}>
@@ -1789,8 +1789,8 @@ export default function GameRoomPreview() {
                   flex: '1',
                   display: 'flex',
                   flexDirection: 'column',
-                  backgroundColor: isDrawer ? '#4e342e' : '#2a1a2a',
-                  borderBottom: isDrawer ? '2px solid #f57c00' : '2px solid #1976d2',
+                  backgroundColor: 'transparent',
+                  borderBottom: 'none',
                   padding: '8px',
                   minHeight: 0,
                   position: 'relative'
@@ -1879,7 +1879,7 @@ export default function GameRoomPreview() {
                 flex: '2.5',
                 display: 'flex',
                 flexDirection: 'column',
-                backgroundColor: isDrawer ? '#ffcc80' : '#4a8c4a',
+                backgroundColor: 'transparent',
                 padding: '6px',
                 minHeight: 0
               }}>

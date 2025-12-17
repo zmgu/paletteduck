@@ -32,8 +32,13 @@ html, body {
 
 body {
   min-width: 320px;
-  background: linear-gradient(135deg, #1e3a5f 0%, #2c5282 100%);
+  background:
+    url('./assets/back.png'),
+    linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
+  background-size: 400px, cover;
   background-attachment: fixed;
+  background-position: top center;
+  background-repeat: repeat, no-repeat;
 }
 
 h1 {

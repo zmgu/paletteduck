@@ -24,7 +24,7 @@ export default function CanvasToolbar({
   return (
     <div style={{
       padding: '6px',
-      backgroundColor: '#f5f5f5',
+      backgroundColor: 'transparent',
       display: 'flex',
       gap: '6px',
       alignItems: 'center',

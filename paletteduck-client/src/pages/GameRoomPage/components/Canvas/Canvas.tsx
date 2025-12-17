@@ -197,7 +197,7 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
   }));
 
   return (
-    <div style={{ border: '2px solid #ccc', borderRadius: '8px', overflow: 'hidden', position: 'relative' }}>
+    <div style={{ border: 'none', overflow: 'hidden', position: 'relative' }}>
       <canvas
         ref={canvasRef}
         width={CANVAS_CONFIG.WIDTH}

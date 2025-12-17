@@ -32,9 +32,9 @@ const SpectatorList = forwardRef<HTMLDivElement, SpectatorListProps>(({
           key={player.playerId}
           style={{
             padding: '8px',
-            backgroundColor: '#2b3232ff',
+            backgroundColor: '#d0e1f9',
             borderRadius: '6px',
-            border: player.playerId === currentPlayerId ? '2px solid #2196f3' : '2px solid transparent',
+            border: player.playerId === currentPlayerId ? '2px solid #4a6bb3' : '2px solid transparent',
             display: 'flex',
             alignItems: 'center',
             fontSize: '11px',
@@ -46,7 +46,7 @@ const SpectatorList = forwardRef<HTMLDivElement, SpectatorListProps>(({
             overflow: 'hidden',
             textOverflow: 'ellipsis',
             whiteSpace: 'nowrap',
-            color: 'white',
+            color: '#333',
             width: '100%'
           }}>
             {player.nickname}
