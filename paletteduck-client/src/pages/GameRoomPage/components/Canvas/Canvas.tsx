@@ -13,6 +13,14 @@ interface CanvasProps {
   onClearRequest?: () => void;
   turnNumber?: number;  // 턴 번호 변경 시 자동 초기화
   isSpectatorMidJoin?: boolean;  // 도중 참가 관전자 여부
+  phase?: string;  // 게임 페이즈
+  tool?: Tool;  // 외부에서 제어하는 도구
+  color?: string;  // 외부에서 제어하는 색상
+  width?: number;  // 외부에서 제어하는 굵기
+  onToolChange?: (tool: Tool) => void;  // 도구 변경 콜백
+  onColorChange?: (color: string) => void;  // 색상 변경 콜백
+  onWidthChange?: (width: number) => void;  // 굵기 변경 콜백
+  hideToolbar?: boolean;  // 툴바를 숨길지 여부
 }
 
 export interface CanvasHandle {
@@ -27,11 +35,48 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
   clearSignal,
   onClearRequest,
   turnNumber,
-  isSpectatorMidJoin
+  isSpectatorMidJoin,
+  phase,
+  tool: externalTool,
+  color: externalColor,
+  width: externalWidth,
+  onToolChange,
+  onColorChange,
+  onWidthChange,
+  hideToolbar
 }: CanvasProps, ref) => {
-  const [tool, setTool] = useState<Tool>('pen');
-  const [color, setColor] = useState('#000000');
-  const [width, setWidth] = useState(4);
+  const [internalTool, setInternalTool] = useState<Tool>('pen');
+  const [internalColor, setInternalColor] = useState('#000000');
+  const [internalWidth, setInternalWidth] = useState(8);
+
+  // 외부 prop이 제공되면 그것을 사용, 아니면 내부 상태 사용
+  const tool = externalTool !== undefined ? externalTool : internalTool;
+  const color = externalColor !== undefined ? externalColor : internalColor;
+  const width = externalWidth !== undefined ? externalWidth : internalWidth;
+
+  const setTool = (newTool: Tool) => {
+    if (onToolChange) {
+      onToolChange(newTool);
+    } else {
+      setInternalTool(newTool);
+    }
+  };
+
+  const setColor = (newColor: string) => {
+    if (onColorChange) {
+      onColorChange(newColor);
+    } else {
+      setInternalColor(newColor);
+    }
+  };
+
+  const setWidth = (newWidth: number) => {
+    if (onWidthChange) {
+      onWidthChange(newWidth);
+    } else {
+      setInternalWidth(newWidth);
+    }
+  };
 
   const lastPointRef = useRef<{ x: number; y: number } | null>(null);
   const lastProcessedRef = useRef<string | null>(null);
@@ -45,6 +90,73 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
     clearCanvas,
   } = useCanvas({ isDrawer, onDrawing });
 
+  // Flood fill 함수 (다른 플레이어의 채우기 이벤트 처리용)
+  const performFloodFill = (startX: number, startY: number, fillColor: string) => {
+    if (!ctx || !canvasRef.current) return;
+
+    const imageData = ctx.getImageData(0, 0, CANVAS_CONFIG.WIDTH, CANVAS_CONFIG.HEIGHT);
+    const pixels = imageData.data;
+
+    // RGB 문자열을 [r, g, b] 배열로 변환
+    const hexToRgb = (hex: string): [number, number, number] => {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? [
+        parseInt(result[1], 16),
+        parseInt(result[2], 16),
+        parseInt(result[3], 16)
+      ] : [0, 0, 0];
+    };
+
+    const fillRgb = hexToRgb(fillColor);
+
+    // 시작점의 색상 가져오기
+    const startIndex = (startY * CANVAS_CONFIG.WIDTH + startX) * 4;
+    const targetR = pixels[startIndex];
+    const targetG = pixels[startIndex + 1];
+    const targetB = pixels[startIndex + 2];
+
+    // 이미 같은 색이면 리턴
+    if (targetR === fillRgb[0] && targetG === fillRgb[1] && targetB === fillRgb[2]) {
+      return;
+    }
+
+    // 스택 기반 flood fill
+    const stack: [number, number][] = [[startX, startY]];
+    const visited = new Set<number>();
+
+    while (stack.length > 0) {
+      const [x, y] = stack.pop()!;
+
+      if (x < 0 || x >= CANVAS_CONFIG.WIDTH || y < 0 || y >= CANVAS_CONFIG.HEIGHT) continue;
+
+      const index = (y * CANVAS_CONFIG.WIDTH + x) * 4;
+
+      if (visited.has(index)) continue;
+      visited.add(index);
+
+      const r = pixels[index];
+      const g = pixels[index + 1];
+      const b = pixels[index + 2];
+
+      // 타겟 색상과 다르면 스킵
+      if (r !== targetR || g !== targetG || b !== targetB) continue;
+
+      // 색상 채우기
+      pixels[index] = fillRgb[0];
+      pixels[index + 1] = fillRgb[1];
+      pixels[index + 2] = fillRgb[2];
+      pixels[index + 3] = 255;
+
+      // 인접 픽셀 추가
+      stack.push([x + 1, y]);
+      stack.push([x - 1, y]);
+      stack.push([x, y + 1]);
+      stack.push([x, y - 1]);
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+  };
+
   // 다른 사람의 그림 수신 (실시간)
   useEffect(() => {
     if (!drawingData || !ctx || isDrawer || isSpectatorMidJoin) return;
@@ -57,6 +169,13 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
     const dataKey = `${s ? 'S' : 'C'}_${p.join(',')}_${t}_${c}_${w}`;
     if (lastProcessedRef.current === dataKey) return;
     lastProcessedRef.current = dataKey;
+
+    // 채우기 도구인 경우
+    if (t === 2) {
+      const [x, y] = p;
+      performFloodFill(x, y, c);
+      return;
+    }
 
     const penColor = t === 0 ? c : CANVAS_CONFIG.BACKGROUND_COLOR;
 
@@ -196,6 +315,26 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
     }
   }));
 
+  // 커서 스타일 결정
+  const getCursorStyle = () => {
+    // 드로잉 턴이 아니거나 출제자가 아니면 기본 커서
+    if (!isDrawer || phase !== 'DRAWING') return 'default';
+
+    if (tool === 'pen') {
+      // 펜 모양 커서 (SVG data URI)
+      const penCursor = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'%3E%3Cpath fill='%23444' d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z'/%3E%3C/svg%3E") 0 32, auto`;
+      return penCursor;
+    } else if (tool === 'eraser') {
+      // 지우개 모양 커서 (SVG data URI)
+      const eraserCursor = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'%3E%3Cpath fill='%23444' d='M16.24 3.56l4.95 4.94c.78.79.78 2.05 0 2.84L12 20.53a4.008 4.008 0 0 1-5.66 0L2.81 17c-.78-.79-.78-2.05 0-2.84l10.6-10.6c.79-.78 2.05-.78 2.83 0M4.22 15.58l3.54 3.53c.78.79 2.04.79 2.83 0l3.53-3.53l-4.95-4.95l-4.95 4.95Z'/%3E%3C/svg%3E") 16 16, auto`;
+      return eraserCursor;
+    } else {
+      // 채우기 도구 커서 (SVG data URI - 물감통 아이콘)
+      const fillCursor = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'%3E%3Cpath fill='%23444' d='M18 14c0-4-6-10.8-6-10.8s-1.33 1.51-2.73 3.52l8.59 8.59c.09-.42.14-.86.14-1.31zm-5 8h-1l-4.1-4.11C7.39 18.48 7 19.22 7 20a2 2 0 0 0 2 2c.84 0 1.55-.52 1.84-1.25L13 22m8.5-9.87L21 12l-6.18-6.18c-1.93 2.52-4.82 7.01-4.82 9.18c0 1.76.85 3.31 2.16 4.29L21.5 12.13Z'/%3E%3C/svg%3E") 0 32, auto`;
+      return fillCursor;
+    }
+  };
+
   return (
     <div style={{ border: 'none', overflow: 'hidden', position: 'relative' }}>
       <canvas
@@ -204,7 +343,7 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
         height={CANVAS_CONFIG.HEIGHT}
         style={{
           display: 'block',
-          cursor: isDrawer ? 'crosshair' : 'default',
+          cursor: getCursorStyle(),
           touchAction: 'none',
         }}
         onMouseDown={isDrawer ? (e) => handleMouseDown(e, tool, color, width) : undefined}
@@ -213,7 +352,7 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
         onMouseLeave={isDrawer ? () => handleMouseUp(tool, color, width) : undefined}
       />
 
-      {isDrawer && (
+      {isDrawer && phase === 'DRAWING' && !hideToolbar && (
         <CanvasToolbar
           tool={tool}
           color={color}

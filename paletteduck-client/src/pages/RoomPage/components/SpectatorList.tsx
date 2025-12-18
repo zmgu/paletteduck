@@ -21,7 +21,7 @@ const SpectatorList = forwardRef<HTMLDivElement, SpectatorListProps>(({
         height: '100%',
         overflowY: 'auto',
         alignContent: 'start',
-        paddingRight: '4px',
+        padding: '0',
         scrollbarWidth: 'none',
         msOverflowStyle: 'none'
       } as React.CSSProperties & { scrollbarWidth?: string; msOverflowStyle?: string }}

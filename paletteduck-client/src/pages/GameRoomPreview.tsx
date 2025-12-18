@@ -1,15 +1,17 @@
-import { useState, useRef, useMemo } from 'react';
+import { useState, useRef, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import GameHeader from './GameRoomPage/components/GameHeader';
 import WordSelect from './GameRoomPage/components/WordSelect';
 import DrawingArea from './GameRoomPage/components/DrawingArea';
 import Canvas from './GameRoomPage/components/Canvas';
+import CanvasToolbar from './GameRoomPage/components/Canvas/CanvasToolbar';
 import ChatBox from './GameRoomPage/components/ChatBox';
 import TurnResult from './GameRoomPage/components/TurnResult';
 import SpectatorList from './RoomPage/components/SpectatorList';
 import PlayerList from './RoomPage/components/PlayerList';
 import type { GameState, RoomInfo, ChatMessage, GamePhase } from '../types/game.types';
 import type { CanvasHandle } from './GameRoomPage/components/Canvas/Canvas';
+import type { Tool } from '../types/drawing.types';
 
 // 플레이어 Mock 데이터
 const mockPlayers = [
@@ -905,8 +907,16 @@ export default function GameRoomPreview() {
   const [currentVote, setCurrentVote] = useState<'LIKE' | 'DISLIKE' | 'NONE'>('NONE');
   const [canvasImageUrl] = useState<string>('');
   const [previewRole, setPreviewRole] = useState<'drawer' | 'guesser'>('drawer');
+  const [tool, setTool] = useState<Tool>('pen');
+  const [color, setColor] = useState('#000000');
+  const [brushWidth, setBrushWidth] = useState(8);
+  const [clearSignal, setClearSignal] = useState(0);
   const [isPlayerHovered, setIsPlayerHovered] = useState(false);
   const [isSpectatorHovered, setIsSpectatorHovered] = useState(false);
+  const [isPlayerAtTop, setIsPlayerAtTop] = useState(true);
+  const [isPlayerAtBottom, setIsPlayerAtBottom] = useState(false);
+  const [isSpectatorAtTop, setIsSpectatorAtTop] = useState(true);
+  const [isSpectatorAtBottom, setIsSpectatorAtBottom] = useState(false);
   const canvasRef = useRef<CanvasHandle>(null);
   const playerListRef = useRef<HTMLUListElement>(null);
   const spectatorListRef = useRef<HTMLDivElement>(null);
@@ -937,6 +947,47 @@ export default function GameRoomPreview() {
     }
   };
 
+  // 스크롤 위치 감지
+  useEffect(() => {
+    const checkPlayerScroll = () => {
+      if (playerListRef.current) {
+        const { scrollTop, scrollHeight, clientHeight } = playerListRef.current;
+        setIsPlayerAtTop(scrollTop <= 1);
+        setIsPlayerAtBottom(scrollTop + clientHeight >= scrollHeight - 1);
+      }
+    };
+
+    const checkSpectatorScroll = () => {
+      if (spectatorListRef.current) {
+        const { scrollTop, scrollHeight, clientHeight } = spectatorListRef.current;
+        setIsSpectatorAtTop(scrollTop <= 1);
+        setIsSpectatorAtBottom(scrollTop + clientHeight >= scrollHeight - 1);
+      }
+    };
+
+    checkPlayerScroll();
+    checkSpectatorScroll();
+
+    const playerList = playerListRef.current;
+    const spectatorList = spectatorListRef.current;
+
+    if (playerList) {
+      playerList.addEventListener('scroll', checkPlayerScroll);
+    }
+    if (spectatorList) {
+      spectatorList.addEventListener('scroll', checkSpectatorScroll);
+    }
+
+    return () => {
+      if (playerList) {
+        playerList.removeEventListener('scroll', checkPlayerScroll);
+      }
+      if (spectatorList) {
+        spectatorList.removeEventListener('scroll', checkSpectatorScroll);
+      }
+    };
+  }, []);
+
   // 프리뷰 모드에서는 previewRole로 결정
   const isDrawer = previewRole === 'drawer';
   const currentPlayer = gameState.players?.find(p => p.playerId === playerInfo?.playerId);
@@ -956,6 +1007,11 @@ export default function GameRoomPreview() {
   const handleVote = (voteType: 'LIKE' | 'DISLIKE' | 'NONE') => {
     setCurrentVote(voteType);
     console.log('Vote:', voteType);
+  };
+
+  const handleClearCanvas = () => {
+    setClearSignal(prev => prev + 1);
+    console.log('Clear canvas');
   };
 
   const handlePlayerListScroll = (direction: 'up' | 'down') => {
@@ -1019,7 +1075,7 @@ export default function GameRoomPreview() {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            backgroundColor: isDrawer ? '#D4A574' : '#6a8bc3',
+            backgroundColor: 'transparent',
             borderRadius: '8px 8px 0 0',
             position: 'relative',
             flexShrink: 0
@@ -1099,7 +1155,7 @@ export default function GameRoomPreview() {
             display: 'grid',
             gridTemplateColumns: '200px 810px 300px',
             alignItems: 'center',
-            backgroundColor: isDrawer ? '#D4A574' : '#6a8bc3',
+            backgroundColor: '#8CA9FF',
             borderBottom: 'none',
             boxSizing: 'border-box',
             flexShrink: 0
@@ -1150,14 +1206,14 @@ export default function GameRoomPreview() {
                   position: 'relative'
                 }}>
                   <div style={{
-                    fontSize: '20px',
+                    fontSize: '22px',
                     fontWeight: 'bold',
                     color: '#333',
                     letterSpacing: '8px',
-                    backgroundColor: '#fff',
-                    padding: '8px 20px',
+                    backgroundColor: 'rgb(208, 225, 249)',
+                    padding: '2px 20px',
                     borderRadius: '6px',
-                    border: isDrawer ? '2px solid #B8885A' : '2px solid #4a6bb3',
+                    border: '2px solid #4a6bb3',
                     textShadow: 'none'
                   }}>
                     {gameState.currentTurn.currentHint || '???'}
@@ -1407,16 +1463,16 @@ export default function GameRoomPreview() {
               </div>
             </div>
           ) : (
-            /* 일반 게임 화면 - 그리드 레이아웃 */
+            <>
+            {/* 메인 레이아웃 - 그리드 레이아웃 */}
             <div style={{
               width: '100%',
-              height: '655px',
+              height: '606px',
               display: 'grid',
               gridTemplateColumns: '200px 810px 300px',
               gridTemplateRows: '1fr',
               gap: '0',
               backgroundColor: 'transparent',
-              borderRadius: '0 0 8px 8px',
               flexShrink: 0,
               overflow: 'hidden'
             }}>
@@ -1428,86 +1484,89 @@ export default function GameRoomPreview() {
                 backgroundColor: 'transparent',
                 borderRight: 'none',
                 position: 'relative',
-                height: '100%',
-                overflow: 'hidden'
+                height: '600px',
+                overflow: 'hidden',
+                marginTop: '3px'
               }}
               onMouseEnter={() => setIsPlayerHovered(true)}
               onMouseLeave={() => setIsPlayerHovered(false)}
             >
-              <button
-                onClick={() => handlePlayerListScroll('up')}
-                style={{
+              {!isPlayerAtTop && (
+                <button
+                  onClick={() => handlePlayerListScroll('up')}
+                  style={{
                   position: 'absolute',
-                  top: '2px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: '85%',
-                  padding: '8px',
+                  top: '0',
+                  left: '0',
+                  right: '0',
+                  padding: '1px',
                   backgroundColor: isPlayerHovered ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.4)',
                   color: '#fff',
                   border: 'none',
                   borderRadius: '4px',
                   cursor: 'pointer',
                   zIndex: 10,
-                  fontSize: '18px',
+                  fontSize: '14px',
                   fontWeight: 'bold',
                   transition: 'opacity 0.2s, background-color 0.2s',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  opacity: isPlayerHovered ? 0.9 : 0.4
+                  opacity: isPlayerHovered ? 0.3 : 0.1
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.85)';
-                  e.currentTarget.style.opacity = '1';
+                  e.currentTarget.style.opacity = '0.5';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = isPlayerHovered ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.4)';
-                  e.currentTarget.style.opacity = isPlayerHovered ? '0.9' : '0.4';
+                  e.currentTarget.style.opacity = isPlayerHovered ? '0.3' : '0.1';
                 }}
               >
-                <span style={{ fontSize: '20px' }}>▲</span>
-              </button>
+                  <span style={{ fontSize: '20px' }}>▲</span>
+                </button>
+              )}
               <PlayerList
                 ref={playerListRef}
                 players={mockRoomInfo.players.filter(p => p.role === 'PLAYER')}
                 currentPlayerId={playerInfo?.playerId || ''}
                 maxPlayers={mockRoomInfo.settings.maxPlayers}
               />
-              <button
-                onClick={() => handlePlayerListScroll('down')}
-                style={{
+              {!isPlayerAtBottom && (
+                <button
+                  onClick={() => handlePlayerListScroll('down')}
+                  style={{
                   position: 'absolute',
-                  bottom: '2px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  width: '85%',
-                  padding: '8px',
+                  bottom: '0',
+                  left: '0',
+                  right: '0',
+                  padding: '1px',
                   backgroundColor: isPlayerHovered ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.4)',
                   color: '#fff',
                   border: 'none',
                   borderRadius: '4px',
                   cursor: 'pointer',
                   zIndex: 10,
-                  fontSize: '18px',
+                  fontSize: '14px',
                   fontWeight: 'bold',
                   transition: 'opacity 0.2s, background-color 0.2s',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  opacity: isPlayerHovered ? 0.9 : 0.4
+                  opacity: isPlayerHovered ? 0.3 : 0.1
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.85)';
-                  e.currentTarget.style.opacity = '1';
+                  e.currentTarget.style.opacity = '0.5';
                 }}
                 onMouseLeave={(e) => {
                   e.currentTarget.style.backgroundColor = isPlayerHovered ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.4)';
-                  e.currentTarget.style.opacity = isPlayerHovered ? '0.9' : '0.4';
+                  e.currentTarget.style.opacity = isPlayerHovered ? '0.3' : '0.1';
                 }}
               >
-                <span style={{ fontSize: '20px' }}>▼</span>
-              </button>
+                  <span style={{ fontSize: '20px' }}>▼</span>
+                </button>
+              )}
             </div>
 
             {/* 중앙: 캔버스 영역 */}
@@ -1524,16 +1583,21 @@ export default function GameRoomPreview() {
                 display: 'flex',
                 alignItems: 'flex-start',
                 justifyContent: 'center',
-                position: 'relative',
                 padding: '3px'
               }}>
-                {/* 제시어/출제자 오버레이 */}
-                {gameState.phase === 'DRAWING' && gameState.currentTurn && (
-                  <div style={{
-                    position: 'absolute',
-                    top: '10px',
-                    left: '10px',
-                    backgroundColor: isDrawer ? 'rgba(212, 165, 116, 0.95)' : 'rgba(91, 132, 216, 0.95)',
+                {/* Canvas 전용 컨테이너 */}
+                <div style={{
+                  position: 'relative',
+                  width: 'fit-content',
+                  height: '100%'
+                }}>
+                  {/* 제시어/출제자 오버레이 */}
+                  {gameState.phase === 'DRAWING' && gameState.currentTurn && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '10px',
+                      left: '12px',
+                    backgroundColor: 'rgba(91, 132, 216, 0.95)',
                     color: '#fff',
                     padding: '7px 14px',
                     borderRadius: '5px',
@@ -1541,7 +1605,7 @@ export default function GameRoomPreview() {
                     fontWeight: 'bold',
                     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
                     zIndex: 10,
-                    border: isDrawer ? '2px solid #B8885A' : '2px solid #4a6bb3',
+                    border: '2px solid #4a6bb3',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px'
@@ -1562,12 +1626,12 @@ export default function GameRoomPreview() {
                   <div style={{
                     position: 'absolute',
                     top: '10px',
-                    right: '10px',
+                    right: '12px',
                     backgroundColor: 'rgba(0, 0, 0, 0.7)',
                     color: timeLeft <= 10 ? '#ff5252' : '#fff',
                     padding: '7px 14px',
                     borderRadius: '5px',
-                    fontSize: '18px',
+                    fontSize: '22px',
                     fontWeight: 'bold',
                     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
                     zIndex: 10
@@ -1582,10 +1646,18 @@ export default function GameRoomPreview() {
                   onDrawing={isDrawer ? () => {} : undefined}
                   drawingData={null}
                   initialDrawingEvents={[]}
-                  clearSignal={0}
+                  clearSignal={clearSignal}
                   onClearRequest={isDrawer ? () => console.log('Clear canvas') : undefined}
                   turnNumber={gameState.currentTurn?.turnNumber || 0}
                   isSpectatorMidJoin={false}
+                  phase={gameState.phase}
+                  tool={tool}
+                  color={color}
+                  width={brushWidth}
+                  onToolChange={setTool}
+                  onColorChange={setColor}
+                  onWidthChange={setBrushWidth}
+                  hideToolbar={true}
                 />
 
                 {/* 카운트다운 오버레이 */}
@@ -1594,13 +1666,14 @@ export default function GameRoomPreview() {
                     position: 'absolute',
                     top: 0,
                     left: 0,
-                    right: 0,
-                    bottom: 0,
+                    width: '800px',
+                    height: '600px',
                     backgroundColor: 'rgba(0, 0, 0, 0.5)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    zIndex: 100
+                    zIndex: 100,
+                    pointerEvents: 'none'
                   }}>
                     <div style={{
                       fontSize: '120px',
@@ -1620,14 +1693,16 @@ export default function GameRoomPreview() {
                     position: 'absolute',
                     top: 0,
                     left: 0,
-                    right: 0,
-                    bottom: 0,
+                    width: '800px',
+                    height: '600px',
                     backgroundColor: 'rgba(0, 0, 0, 0.5)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     zIndex: 100,
-                    padding: '20px'
+                    padding: '20px',
+                    boxSizing: 'border-box',
+                    pointerEvents: 'none'
                   }}>
                     {isDrawer ? (
                       <WordSelect
@@ -1660,15 +1735,17 @@ export default function GameRoomPreview() {
                     position: 'absolute',
                     top: 0,
                     left: 0,
-                    right: 0,
-                    bottom: 0,
+                    width: '800px',
+                    height: '600px',
                     backgroundColor: 'rgba(0, 0, 0, 0.7)',
                     display: 'flex',
                     alignItems: 'flex-start',
                     justifyContent: 'center',
                     zIndex: 100,
                     padding: '20px',
-                    overflowY: 'auto'
+                    boxSizing: 'border-box',
+                    overflowY: 'auto',
+                    pointerEvents: 'auto'
                   }}>
                     <TurnResult
                       turnInfo={gameState.currentTurn}
@@ -1685,13 +1762,14 @@ export default function GameRoomPreview() {
                     position: 'absolute',
                     top: 0,
                     left: 0,
-                    right: 0,
-                    bottom: 0,
+                    width: '800px',
+                    height: '600px',
                     backgroundColor: 'rgba(0, 0, 0, 0.5)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    zIndex: 100
+                    zIndex: 100,
+                    pointerEvents: 'auto'
                   }}>
                     <div style={{
                       display: 'flex',
@@ -1719,58 +1797,9 @@ export default function GameRoomPreview() {
                     </div>
                   </div>
                 )}
-              </div>
-
-              {/* 캔버스 하단 버튼 영역 */}
-              {!isDrawer && (
-                /* 참가자용 추천/비추천 버튼 */
-                <div style={{
-                  display: 'flex',
-                  gap: '6px',
-                  justifyContent: 'center',
-                  padding: '6px',
-                  backgroundColor: 'transparent',
-                  borderTop: 'none',
-                  flexShrink: 0
-                }}>
-                  <button
-                    onClick={() => handleVote('LIKE')}
-                    disabled={isCorrect}
-                    style={{
-                      padding: '8px 24px',
-                      fontSize: '15px',
-                      fontWeight: 'bold',
-                      backgroundColor: currentVote === 'LIKE' ? '#ffd75e' : '#fff',
-                      color: currentVote === 'LIKE' ? '#333' : '#333',
-                      border: '2px solid #ffd75e',
-                      borderRadius: '4px',
-                      cursor: isCorrect ? 'not-allowed' : 'pointer',
-                      opacity: isCorrect ? 0.5 : 1,
-                      boxShadow: currentVote === 'LIKE' ? '0 2px 4px rgba(0, 0, 0, 0.2)' : 'none'
-                    }}
-                  >
-                    👍 추천
-                  </button>
-                  <button
-                    onClick={() => handleVote('DISLIKE')}
-                    disabled={isCorrect}
-                    style={{
-                      padding: '8px 24px',
-                      fontSize: '15px',
-                      fontWeight: 'bold',
-                      backgroundColor: currentVote === 'DISLIKE' ? '#ff8566' : '#fff',
-                      color: currentVote === 'DISLIKE' ? '#fff' : '#333',
-                      border: '2px solid #ff8566',
-                      borderRadius: '4px',
-                      cursor: isCorrect ? 'not-allowed' : 'pointer',
-                      opacity: isCorrect ? 0.5 : 1,
-                      boxShadow: currentVote === 'DISLIKE' ? '0 2px 4px rgba(0, 0, 0, 0.2)' : 'none'
-                    }}
-                  >
-                    👎 비추천
-                  </button>
                 </div>
-              )}
+                {/* Canvas 전용 컨테이너 끝 */}
+              </div>
             </div>
 
             {/* 우측: 관전자 목록 + 채팅창 */}
@@ -1778,10 +1807,11 @@ export default function GameRoomPreview() {
               display: 'flex',
               flexDirection: 'column',
               gap: '0',
-              height: '100%',
-              maxHeight: '655px',
+              height: '609px',
+              maxHeight: '609px',
               boxSizing: 'border-box',
-              overflow: 'hidden'
+              overflow: 'hidden',
+              padding: '0'
             }}>
               {/* 관전자 목록 */}
               <div
@@ -1791,96 +1821,98 @@ export default function GameRoomPreview() {
                   flexDirection: 'column',
                   backgroundColor: 'transparent',
                   borderBottom: 'none',
-                  padding: '8px',
+                  padding: '8px 0 2px 0',
                   minHeight: 0,
                   position: 'relative'
                 }}
                 onMouseEnter={() => setIsSpectatorHovered(true)}
                 onMouseLeave={() => setIsSpectatorHovered(false)}
               >
-                <button
-                  onClick={() => handleSpectatorListScroll('up')}
-                  style={{
+                {!isSpectatorAtTop && (
+                  <button
+                    onClick={() => handleSpectatorListScroll('up')}
+                    style={{
                     position: 'absolute',
-                    top: '2px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    width: '85%',
-                    padding: '8px',
+                    top: '0',
+                    left: '0',
+                    right: '0',
+                    padding: '1px',
                     backgroundColor: isSpectatorHovered ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.4)',
                     color: '#fff',
                     border: 'none',
                     borderRadius: '4px',
                     cursor: 'pointer',
                     zIndex: 10,
-                    fontSize: '18px',
+                    fontSize: '14px',
                     fontWeight: 'bold',
                     transition: 'opacity 0.2s, background-color 0.2s',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    opacity: isSpectatorHovered ? 0.9 : 0.4
+                    opacity: isSpectatorHovered ? 0.3 : 0.1
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.85)';
-                    e.currentTarget.style.opacity = '1';
+                    e.currentTarget.style.opacity = '0.5';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor = isSpectatorHovered ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.4)';
-                    e.currentTarget.style.opacity = isSpectatorHovered ? '0.9' : '0.4';
+                    e.currentTarget.style.opacity = isSpectatorHovered ? '0.3' : '0.1';
                   }}
                 >
-                  <span style={{ fontSize: '20px' }}>▲</span>
-                </button>
+                    <span style={{ fontSize: '20px' }}>▲</span>
+                  </button>
+                )}
                 <SpectatorList
                   ref={spectatorListRef}
                   spectators={mockRoomInfo.players.filter(p => p.role === 'SPECTATOR')}
                   currentPlayerId={playerInfo?.playerId || ''}
                   maxSpectators={mockRoomInfo.settings.maxSpectators}
                 />
-                <button
-                  onClick={() => handleSpectatorListScroll('down')}
-                  style={{
+                {!isSpectatorAtBottom && (
+                  <button
+                    onClick={() => handleSpectatorListScroll('down')}
+                    style={{
                     position: 'absolute',
-                    bottom: '2px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
-                    width: '85%',
-                    padding: '8px',
+                    bottom: '0',
+                    left: '0',
+                    right: '0',
+                    padding: '1px',
                     backgroundColor: isSpectatorHovered ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.4)',
                     color: '#fff',
                     border: 'none',
                     borderRadius: '4px',
                     cursor: 'pointer',
                     zIndex: 10,
-                    fontSize: '18px',
+                    fontSize: '14px',
                     fontWeight: 'bold',
                     transition: 'opacity 0.2s, background-color 0.2s',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    opacity: isSpectatorHovered ? 0.9 : 0.4
+                    opacity: isSpectatorHovered ? 0.3 : 0.1
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.85)';
-                    e.currentTarget.style.opacity = '1';
+                    e.currentTarget.style.opacity = '0.5';
                   }}
                   onMouseLeave={(e) => {
                     e.currentTarget.style.backgroundColor = isSpectatorHovered ? 'rgba(0, 0, 0, 0.7)' : 'rgba(0, 0, 0, 0.4)';
-                    e.currentTarget.style.opacity = isSpectatorHovered ? '0.9' : '0.4';
+                    e.currentTarget.style.opacity = isSpectatorHovered ? '0.3' : '0.1';
                   }}
                 >
-                  <span style={{ fontSize: '20px' }}>▼</span>
-                </button>
+                    <span style={{ fontSize: '20px' }}>▼</span>
+                  </button>
+                )}
               </div>
 
               {/* 채팅창 */}
               <div style={{
-                flex: '2.5',
+                flex: '2.9',
                 display: 'flex',
                 flexDirection: 'column',
                 backgroundColor: 'transparent',
-                padding: '6px',
+                padding: '8px 0 6px 0',
                 minHeight: 0
               }}>
                 {isCorrect && gameState.phase === 'DRAWING' && (
@@ -1938,6 +1970,102 @@ export default function GameRoomPreview() {
               </div>
             </div>
           </div>
+
+            {/* 하단 영역: 그림 툴 및 추천/비추천 버튼 */}
+            <div style={{
+              width: '100%',
+              display: 'grid',
+              gridTemplateColumns: '200px 810px 300px',
+              gap: '0',
+              backgroundColor: 'transparent',
+              borderRadius: '0 0 8px 8px',
+            }}>
+              {/* 왼쪽 빈 영역 */}
+              <div></div>
+
+              {/* 중앙: 캔버스 영역 - 그림 툴 또는 추천/비추천 버튼 */}
+              <div style={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                padding: '6px 0',
+              }}>
+                {isDrawer && gameState.phase === 'DRAWING' ? (
+                  /* 출제자용 그림 툴바 */
+                  <CanvasToolbar
+                    tool={tool}
+                    color={color}
+                    width={brushWidth}
+                    onToolChange={setTool}
+                    onColorChange={setColor}
+                    onWidthChange={setBrushWidth}
+                    onClear={handleClearCanvas}
+                  />
+                ) : !isDrawer && gameState.phase === 'DRAWING' ? (
+                  /* 참가자용 추천/비추천 버튼 */
+                  <div style={{
+                    display: 'flex',
+                    gap: '6px',
+                    justifyContent: 'center',
+                  }}>
+                    <button
+                      onClick={() => handleVote('LIKE')}
+                      disabled={isCorrect}
+                      style={{
+                        padding: '6px 16px',
+                        fontSize: '15px',
+                        fontWeight: 'bold',
+                        backgroundColor: currentVote === 'LIKE' ? '#ffd75e' : '#fff',
+                        color: currentVote === 'LIKE' ? '#333' : '#333',
+                        border: '2px solid #ffd75e',
+                        borderRadius: '4px',
+                        cursor: isCorrect ? 'not-allowed' : 'pointer',
+                        opacity: isCorrect ? 0.5 : 1,
+                        boxShadow: currentVote === 'LIKE' ? '0 2px 4px rgba(0, 0, 0, 0.2)' : 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{
+                        fontSize: '20px',
+                        fontVariationSettings: '"FILL" 1, "wght" 400, "GRAD" 0, "opsz" 48'
+                      }}>thumb_up</span>
+                      추천
+                    </button>
+                    <button
+                      onClick={() => handleVote('DISLIKE')}
+                      disabled={isCorrect}
+                      style={{
+                        padding: '6px 16px',
+                        fontSize: '15px',
+                        fontWeight: 'bold',
+                        backgroundColor: currentVote === 'DISLIKE' ? '#ff8566' : '#fff',
+                        color: currentVote === 'DISLIKE' ? '#fff' : '#333',
+                        border: '2px solid #ff8566',
+                        borderRadius: '4px',
+                        cursor: isCorrect ? 'not-allowed' : 'pointer',
+                        opacity: isCorrect ? 0.5 : 1,
+                        boxShadow: currentVote === 'DISLIKE' ? '0 2px 4px rgba(0, 0, 0, 0.2)' : 'none',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}
+                    >
+                      <span className="material-symbols-outlined" style={{
+                        fontSize: '20px',
+                        fontVariationSettings: '"FILL" 1, "wght" 400, "GRAD" 0, "opsz" 48'
+                      }}>thumb_down</span>
+                      비추천
+                    </button>
+                  </div>
+                ) : null}
+              </div>
+
+              {/* 오른쪽 빈 영역 */}
+              <div></div>
+            </div>
+            </>
           )}
         </div>
       ) : null}

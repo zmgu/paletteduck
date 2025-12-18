@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, forwardRef } from 'react';
+import { useRef, forwardRef } from 'react';
 import type { RoomPlayer } from '../../../types/game.types';
 import duckBrushPaletteLeft from '../../../assets/duck_brush_palette_left.png';
 import duckBrushPaletteRight from '../../../assets/duck_brush_palette_right.png';
@@ -36,31 +36,10 @@ const PlayerList = forwardRef<HTMLUListElement, PlayerListProps>(({
 }, ref) => {
   const listRef = useRef<HTMLUListElement>(null);
   const scrollRef = (ref as React.RefObject<HTMLUListElement>) || listRef;
-  const [hasScroll, setHasScroll] = useState(false);
-  const [isAtTop, setIsAtTop] = useState(true);
-  const [isAtBottom, setIsAtBottom] = useState(false);
 
   // 점수 기준으로 정렬하여 등수 계산
   const sortedPlayers = [...players].sort((a, b) => (b.score || 0) - (a.score || 0));
   const playerRanks = new Map(sortedPlayers.map((player, index) => [player.playerId, index + 1]));
-
-  useEffect(() => {
-    const checkScroll = () => {
-      if (scrollRef.current) {
-        const { scrollHeight, clientHeight, scrollTop } = scrollRef.current;
-        setHasScroll(scrollHeight > clientHeight);
-        setIsAtTop(scrollTop <= 10);
-        setIsAtBottom(scrollTop + clientHeight >= scrollHeight - 10);
-      }
-    };
-
-    checkScroll();
-    const list = scrollRef.current;
-    if (list) {
-      list.addEventListener('scroll', checkScroll);
-      return () => list.removeEventListener('scroll', checkScroll);
-    }
-  }, [players, scrollRef]);
 
   return (
     <div style={{ position: 'relative', height: '100%' }}>
@@ -68,7 +47,7 @@ const PlayerList = forwardRef<HTMLUListElement, PlayerListProps>(({
         ref={scrollRef}
         style={{
           listStyle: 'none',
-          padding: '8px',
+          padding: '0',
           margin: 0,
           height: '100%',
           overflowY: 'auto',
@@ -78,14 +57,15 @@ const PlayerList = forwardRef<HTMLUListElement, PlayerListProps>(({
         }}
         className="hide-scrollbar"
       >
-      {sortedPlayers.map((player) => {
+      {sortedPlayers.map((player, index) => {
         const rank = playerRanks.get(player.playerId) || 0;
+        const isLastItem = index === sortedPlayers.length - 1;
         return (
           <li
             key={player.playerId}
             style={{
               height: '60px',
-              marginBottom: '4px',
+              marginBottom: isLastItem ? '0' : '4px',
               padding: '6px',
               backgroundColor: player.ready ? '#d0e1f9' : '#c5d9f5',
               borderRadius: '6px',
@@ -134,16 +114,16 @@ const PlayerList = forwardRef<HTMLUListElement, PlayerListProps>(({
 
               {/* 아래: 점수/추천/비추천 */}
               <div style={{
-                fontSize: '10px',
+                fontSize: '11px',
                 color: '#aaa',
                 display: 'flex',
                 gap: '6px',
                 alignItems: 'center'
               }}>
-                <span style={{ color: '#ffd700' }}>{player.score || 0}점</span>
-                <span style={{ color: '#ffd75e' }}>👍{player.totalLikes || 0}</span>
+                <span style={{ color: '#1976d2', fontWeight: 'bold' }}>{player.score || 0}점</span>
+                <span style={{ color: '#2e7d32', fontWeight: 'bold' }}>👍{player.totalLikes || 0}</span>
                 {(player.totalDislikes || 0) > 0 && (
-                  <span style={{ color: '#ff8566' }}>👎{player.totalDislikes}</span>
+                  <span style={{ color: '#c62828', fontWeight: 'bold' }}>👎{player.totalDislikes}</span>
                 )}
               </div>
             </div>
@@ -187,42 +167,6 @@ const PlayerList = forwardRef<HTMLUListElement, PlayerListProps>(({
         );
       })}
       </ul>
-
-      {/* 스크롤 가능하고 맨 위가 아닐 때 상단 표시 */}
-      {hasScroll && !isAtTop && (
-        <div style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          height: '40px',
-          background: 'linear-gradient(to top, transparent, rgba(232, 240, 252, 0.95))',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          pointerEvents: 'none'
-        }}>
-          <span style={{ fontSize: '20px', color: '#4a6bb3' }}>⬆</span>
-        </div>
-      )}
-
-      {/* 스크롤 가능하고 끝이 아닐 때 하단 표시 */}
-      {hasScroll && !isAtBottom && (
-        <div style={{
-          position: 'absolute',
-          bottom: 0,
-          left: 0,
-          right: 0,
-          height: '40px',
-          background: 'linear-gradient(to bottom, transparent, rgba(232, 240, 252, 0.95))',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          pointerEvents: 'none'
-        }}>
-          <span style={{ fontSize: '20px', color: '#4a6bb3' }}>⬇</span>
-        </div>
-      )}
 
       <style>
         {`

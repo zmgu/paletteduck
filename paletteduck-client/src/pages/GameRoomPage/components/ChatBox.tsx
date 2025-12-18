@@ -79,32 +79,34 @@ export default function ChatBox({
       display: 'flex',
       flexDirection: 'column',
       height: '100%',
-      border: '2px solid #ccc',
-      borderRadius: '8px',
+      border: 'none',
+      borderRadius: '0px',
       backgroundColor: '#fff',
     }}>
       {/* 채팅 메시지 영역 */}
       <div
         ref={messagesContainerRef}
+        className="chat-scrollbar"
         style={{
           flex: 1,
           overflowY: 'auto',
-          padding: '10px',
+          padding: '6px',
           display: 'flex',
           flexDirection: 'column',
-          gap: '4px',
+          gap: '2px',
+          backgroundColor: '#fff',
         }}
       >
         {headerMessage && (
           <div style={{
             position: 'sticky',
-            top: '-10px',
+            top: '-6px',
             zIndex: 10,
             marginBottom: '4px',
-            marginTop: '-10px',
-            marginLeft: '-10px',
-            marginRight: '-10px',
-            padding: '6px 10px 6px 10px'
+            marginTop: '-6px',
+            marginLeft: '-6px',
+            marginRight: '-6px',
+            padding: '6px'
           }}>
             {headerMessage}
           </div>
@@ -117,18 +119,18 @@ export default function ChatBox({
         {visibleMessages.map((msg) => {
           // 메시지 타입에 따른 스타일 결정
           let backgroundColor = '#f8f9fa';
-          let borderColor = '#dee2e6';
+          let borderColor = '#e9ecef';
 
           if (msg.type === 'SYSTEM') {
             backgroundColor = '#fff3cd';
-            borderColor = '#ffc107';
+            borderColor = '#ffe69c';
           } else if (msg.type === 'CORRECT') {
             backgroundColor = '#d4edda';
-            borderColor = '#28a745';
+            borderColor = '#c3e6cb';
           } else if (msg.type === 'NORMAL' && msg.senderIsCorrect) {
             // 정답 맞춘 사람의 채팅
             backgroundColor = '#e7f3ff';
-            borderColor = '#0066cc';
+            borderColor = '#b3d9ff';
           }
 
           return (
@@ -182,8 +184,8 @@ export default function ChatBox({
       <form
         onSubmit={handleSubmit}
         style={{
-          padding: '8px',
-          borderTop: '1px solid #ccc',
+          padding: '6px',
+          borderTop: '1px solid #e0e0e0',
           display: 'flex',
           gap: '6px',
         }}
@@ -197,7 +199,7 @@ export default function ChatBox({
           style={{
             flex: 1,
             padding: '6px 10px',
-            border: '1px solid #ccc',
+            border: '1px solid #e0e0e0',
             borderRadius: '4px',
             fontSize: '13px',
           }}
@@ -212,16 +214,45 @@ export default function ChatBox({
             border: 'none',
             borderRadius: '4px',
             cursor: disabled ? 'not-allowed' : 'pointer',
-            fontSize: '16px',
+            fontSize: '20px',
             fontWeight: 'bold',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          ✈️
+          <span className="material-icons" style={{ fontSize: '16px' }}>send</span>
         </button>
       </form>
+
+      <style>
+        {`
+          .chat-scrollbar {
+            scrollbar-width: auto;
+            scrollbar-color: #bbb #ffffff;
+          }
+          .chat-scrollbar::-webkit-scrollbar {
+            width: 12px;
+            background-color: #ffffff;
+          }
+          .chat-scrollbar::-webkit-scrollbar-track {
+            background-color: #ffffff !important;
+            border-radius: 0;
+          }
+          .chat-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #bbb;
+            border-radius: 6px;
+            border: 3px solid #ffffff;
+            background-clip: padding-box;
+          }
+          .chat-scrollbar::-webkit-scrollbar-thumb:hover {
+            background-color: #888;
+          }
+          .chat-scrollbar::-webkit-scrollbar-corner {
+            background-color: #ffffff;
+          }
+        `}
+      </style>
     </div>
   );
 }

@@ -47,9 +47,9 @@ export const useCanvas = ({ isDrawer, onDrawing }: UseCanvasProps) => {
     if (!onDrawing || pointsBufferRef.current.length === 0) return;
 
     const flatPoints = pointsBufferRef.current.flatMap(pt => [pt.x, pt.y]);
-    
+
     onDrawing({
-      t: tool === 'pen' ? 0 : 1,
+      t: tool === 'pen' ? 0 : tool === 'eraser' ? 1 : 2,
       c: color,
       w: width,
       p: flatPoints,
@@ -60,11 +60,100 @@ export const useCanvas = ({ isDrawer, onDrawing }: UseCanvasProps) => {
     pointsBufferRef.current = [];
   };
 
+  // Flood fill 알고리즘
+  const floodFill = (startX: number, startY: number, fillColor: string) => {
+    if (!ctx || !canvasRef.current) return;
+
+    const imageData = ctx.getImageData(0, 0, CANVAS_CONFIG.WIDTH, CANVAS_CONFIG.HEIGHT);
+    const pixels = imageData.data;
+
+    // RGB 문자열을 [r, g, b] 배열로 변환
+    const hexToRgb = (hex: string): [number, number, number] => {
+      const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+      return result ? [
+        parseInt(result[1], 16),
+        parseInt(result[2], 16),
+        parseInt(result[3], 16)
+      ] : [0, 0, 0];
+    };
+
+    const fillRgb = hexToRgb(fillColor);
+
+    // 시작점의 색상 가져오기
+    const startIndex = (startY * CANVAS_CONFIG.WIDTH + startX) * 4;
+    const targetR = pixels[startIndex];
+    const targetG = pixels[startIndex + 1];
+    const targetB = pixels[startIndex + 2];
+
+    // 이미 같은 색이면 리턴
+    if (targetR === fillRgb[0] && targetG === fillRgb[1] && targetB === fillRgb[2]) {
+      return;
+    }
+
+    // 스택 기반 flood fill (재귀 대신 스택 사용)
+    const stack: [number, number][] = [[startX, startY]];
+    const visited = new Set<number>();
+
+    while (stack.length > 0) {
+      const [x, y] = stack.pop()!;
+
+      if (x < 0 || x >= CANVAS_CONFIG.WIDTH || y < 0 || y >= CANVAS_CONFIG.HEIGHT) continue;
+
+      const index = (y * CANVAS_CONFIG.WIDTH + x) * 4;
+
+      if (visited.has(index)) continue;
+      visited.add(index);
+
+      const r = pixels[index];
+      const g = pixels[index + 1];
+      const b = pixels[index + 2];
+
+      // 타겟 색상과 다르면 스킵
+      if (r !== targetR || g !== targetG || b !== targetB) continue;
+
+      // 색상 채우기
+      pixels[index] = fillRgb[0];
+      pixels[index + 1] = fillRgb[1];
+      pixels[index + 2] = fillRgb[2];
+      pixels[index + 3] = 255;
+
+      // 인접 픽셀 추가
+      stack.push([x + 1, y]);
+      stack.push([x - 1, y]);
+      stack.push([x, y + 1]);
+      stack.push([x, y - 1]);
+    }
+
+    ctx.putImageData(imageData, 0, 0);
+  };
+
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>, tool: Tool, color: string, width: number) => {
     if (!isDrawer || !ctx) return;
-    
-    setIsDrawing(true);
+
+    // 팝오버 닫기 이벤트 발생
+    window.dispatchEvent(new Event('canvas-drawing-start'));
+
     const { x, y } = getCanvasCoords(e);
+
+    // 채우기 도구인 경우
+    if (tool === 'fill') {
+      floodFill(x, y, color);
+
+      // 채우기 액션 전송
+      if (onDrawing) {
+        onDrawing({
+          t: 2,
+          c: color,
+          w: 0,
+          p: [x, y],
+          s: true,
+        });
+      }
+      return;
+    }
+
+    // 펜/지우개 도구인 경우
+    setIsDrawing(true);
 
     ctx.strokeStyle = tool === 'pen' ? color : CANVAS_CONFIG.BACKGROUND_COLOR;
     ctx.lineWidth = width;
@@ -76,7 +165,7 @@ export const useCanvas = ({ isDrawer, onDrawing }: UseCanvasProps) => {
     isNewStrokeRef.current = true;
     pointsBufferRef.current = [{ x, y }];
     lastSendTimeRef.current = Date.now();
-    
+
     sendPoints(tool, color, width);
   };
 
