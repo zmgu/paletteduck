@@ -12,6 +12,7 @@ import PlayerList from './RoomPage/components/PlayerList';
 import type { GameState, RoomInfo, ChatMessage, GamePhase } from '../types/game.types';
 import type { CanvasHandle } from './GameRoomPage/components/Canvas/Canvas';
 import type { Tool } from '../types/drawing.types';
+import logo from '../assets/logo.png';
 
 // 플레이어 Mock 데이터
 const mockPlayers = [
@@ -1080,12 +1081,29 @@ export default function GameRoomPreview() {
             position: 'relative',
             flexShrink: 0
           }}>
+            {/* 왼쪽: 로고 */}
+            <div style={{
+              position: 'absolute',
+              left: '20px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+            }}>
+              <img
+                src={logo}
+                alt="PaletteDuck Logo"
+                style={{
+                  height: '50px',
+                  width: 'auto'
+                }}
+              />
+            </div>
+
             {gameState.currentTurn && (
               <>
-                {/* 왼쪽: 역할 전환 버튼 */}
+                {/* 오른쪽: 역할 전환 버튼 */}
                 <div style={{
                   position: 'absolute',
-                  left: '20px',
+                  right: '20px',
                   top: '50%',
                   transform: 'translateY(-50%)',
                   display: 'flex',
@@ -1614,7 +1632,7 @@ export default function GameRoomPreview() {
                       `제시어: ${gameState.currentTurn.word}`
                     ) : (
                       <>
-                        <span style={{ fontSize: '18px' }}>🎨</span>
+                        <span style={{ fontSize: '16px' }}>🎨</span>
                         <span>{gameState.currentTurn.drawerNickname}</span>
                       </>
                     )}
@@ -2017,7 +2035,8 @@ export default function GameRoomPreview() {
                         fontWeight: 'bold',
                         backgroundColor: currentVote === 'LIKE' ? '#ffd75e' : '#fff',
                         color: currentVote === 'LIKE' ? '#333' : '#333',
-                        border: '2px solid #ffd75e',
+                        border: 'none',
+                        outline: 'none',
                         borderRadius: '4px',
                         cursor: isCorrect ? 'not-allowed' : 'pointer',
                         opacity: isCorrect ? 0.5 : 1,
@@ -2031,7 +2050,6 @@ export default function GameRoomPreview() {
                         fontSize: '20px',
                         fontVariationSettings: '"FILL" 1, "wght" 400, "GRAD" 0, "opsz" 48'
                       }}>thumb_up</span>
-                      추천
                     </button>
                     <button
                       onClick={() => handleVote('DISLIKE')}
@@ -2042,7 +2060,8 @@ export default function GameRoomPreview() {
                         fontWeight: 'bold',
                         backgroundColor: currentVote === 'DISLIKE' ? '#ff8566' : '#fff',
                         color: currentVote === 'DISLIKE' ? '#fff' : '#333',
-                        border: '2px solid #ff8566',
+                        border: 'none',
+                        outline: 'none',
                         borderRadius: '4px',
                         cursor: isCorrect ? 'not-allowed' : 'pointer',
                         opacity: isCorrect ? 0.5 : 1,
@@ -2056,7 +2075,6 @@ export default function GameRoomPreview() {
                         fontSize: '20px',
                         fontVariationSettings: '"FILL" 1, "wght" 400, "GRAD" 0, "opsz" 48'
                       }}>thumb_down</span>
-                      비추천
                     </button>
                   </div>
                 ) : null}

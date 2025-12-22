@@ -90,7 +90,7 @@ export default function ChatBox({
         style={{
           flex: 1,
           overflowY: 'auto',
-          padding: '6px',
+          padding: '2px 6px',
           display: 'flex',
           flexDirection: 'column',
           gap: '2px',
@@ -230,26 +230,27 @@ export default function ChatBox({
           .chat-scrollbar {
             scrollbar-width: auto;
             scrollbar-color: #bbb #ffffff;
+            color-scheme: light;
           }
           .chat-scrollbar::-webkit-scrollbar {
             width: 12px;
-            background-color: #ffffff;
+            background-color: #ffffff !important;
           }
           .chat-scrollbar::-webkit-scrollbar-track {
             background-color: #ffffff !important;
             border-radius: 0;
           }
           .chat-scrollbar::-webkit-scrollbar-thumb {
-            background-color: #bbb;
+            background-color: #bbb !important;
             border-radius: 6px;
             border: 3px solid #ffffff;
             background-clip: padding-box;
           }
           .chat-scrollbar::-webkit-scrollbar-thumb:hover {
-            background-color: #888;
+            background-color: #888 !important;
           }
           .chat-scrollbar::-webkit-scrollbar-corner {
-            background-color: #ffffff;
+            background-color: #ffffff !important;
           }
         `}
       </style>
