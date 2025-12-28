@@ -321,12 +321,24 @@ const Canvas = forwardRef<CanvasHandle, CanvasProps>(({
     if (!isDrawer || phase !== 'DRAWING') return 'default';
 
     if (tool === 'pen') {
-      // 펜 모양 커서 (SVG data URI)
-      const penCursor = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'%3E%3Cpath fill='%23444' d='M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z'/%3E%3C/svg%3E") 0 32, auto`;
-      return penCursor;
+      // 동그라미 커서 - 선택한 색상과 굵기에 맞춰 표시
+      const cursorSize = Math.max(width, 4); // 최소 크기 4px
+      const svgSize = cursorSize + 4; // 테두리를 위한 여유 공간
+      const center = svgSize / 2;
+
+      // 색상을 URL 인코딩 (#를 %23으로 변환)
+      const encodedColor = encodeURIComponent(color);
+
+      // 동적 SVG 생성 - 선택한 색상의 원 + 검은 테두리
+      const circleCursor = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${svgSize}' height='${svgSize}' viewBox='0 0 ${svgSize} ${svgSize}'%3E%3Ccircle cx='${center}' cy='${center}' r='${cursorSize / 2}' fill='${encodedColor}' stroke='%23000' stroke-width='1' opacity='0.8'/%3E%3C/svg%3E") ${center} ${center}, crosshair`;
+      return circleCursor;
     } else if (tool === 'eraser') {
-      // 지우개 모양 커서 (SVG data URI)
-      const eraserCursor = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32' viewBox='0 0 24 24'%3E%3Cpath fill='%23444' d='M16.24 3.56l4.95 4.94c.78.79.78 2.05 0 2.84L12 20.53a4.008 4.008 0 0 1-5.66 0L2.81 17c-.78-.79-.78-2.05 0-2.84l10.6-10.6c.79-.78 2.05-.78 2.83 0M4.22 15.58l3.54 3.53c.78.79 2.04.79 2.83 0l3.53-3.53l-4.95-4.95l-4.95 4.95Z'/%3E%3C/svg%3E") 16 16, auto`;
+      // 지우개는 동그라미로 표시 (흰색 원)
+      const cursorSize = Math.max(width, 4);
+      const svgSize = cursorSize + 4;
+      const center = svgSize / 2;
+
+      const eraserCursor = `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='${svgSize}' height='${svgSize}' viewBox='0 0 ${svgSize} ${svgSize}'%3E%3Ccircle cx='${center}' cy='${center}' r='${cursorSize / 2}' fill='%23FFFFFF' stroke='%23000' stroke-width='1' opacity='0.8'/%3E%3C/svg%3E") ${center} ${center}, crosshair`;
       return eraserCursor;
     } else {
       // 채우기 도구 커서 (SVG data URI - 물감통 아이콘)

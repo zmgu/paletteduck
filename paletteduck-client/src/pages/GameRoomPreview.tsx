@@ -1210,10 +1210,10 @@ export default function GameRoomPreview() {
                   justifyContent: 'center',
                   fontSize: '18px',
                   fontWeight: 'bold',
-                  color: isDrawer ? '#333' : '#fff',
+                  color: '#fff',
                   padding: '0 10px'
                 }}>
-                  라운드 {gameState.currentRound}/{gameState.totalRounds}
+                  ROUND {gameState.currentRound}/{gameState.totalRounds}
                 </div>
 
                 {/* 중앙: 힌트 + 힌트 버튼 (캔버스 영역 대응) */}
@@ -2006,7 +2006,7 @@ export default function GameRoomPreview() {
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
-                padding: '6px 0',
+                padding: '0',
               }}>
                 {isDrawer && gameState.phase === 'DRAWING' ? (
                   /* 출제자용 그림 툴바 */
