@@ -14,6 +14,8 @@ export default function WordSelect({ turnInfo, onSelectWord, roomId }: WordSelec
   const [error, setError] = useState('');
   const [hasUsedCustomInput, setHasUsedCustomInput] = useState(false);
   const [showCustomInput, setShowCustomInput] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(true);
+  const [isHoveringButton, setIsHoveringButton] = useState(false);
 
   // localStorage에서 해당 방+플레이어의 직접 입력 사용 여부 확인
   useEffect(() => {
@@ -30,7 +32,19 @@ export default function WordSelect({ turnInfo, onSelectWord, roomId }: WordSelec
     setCustomWord('');
     setError('');
     setShowConfirmModal(false);
+    setShowTooltip(true);
   }, [turnInfo.turnNumber]);
+
+  // 5초 후 말풍선 자동 숨김
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (!isHoveringButton) {
+        setShowTooltip(false);
+      }
+    }, 5000);
+
+    return () => clearTimeout(timer);
+  }, [isHoveringButton]);
 
   // 한글만 입력 가능한지 검사
   const validateWord = (word: string): boolean => {
@@ -95,8 +109,8 @@ export default function WordSelect({ turnInfo, onSelectWord, roomId }: WordSelec
   return (
     <>
       <div style={{
-        marginTop: '20px',
-        padding: '30px',
+        marginTop: '10px',
+        padding: '20px',
         border: '3px solid #2196f3',
         borderRadius: '12px',
         backgroundColor: '#e3f2fd'
@@ -106,15 +120,15 @@ export default function WordSelect({ turnInfo, onSelectWord, roomId }: WordSelec
         </h3>
 
         {/* 단어 선택지 (기존 단어 + 직접 입력 버튼) */}
-        <div style={{ display: 'flex', gap: '15px', marginTop: '20px' }}>
+        <div style={{ display: 'flex', gap: '15px', marginTop: '15px' }}>
           {turnInfo.wordChoices.map((word) => (
             <button
               key={word}
               onClick={() => onSelectWord(word)}
               style={{
                 flex: 1,
-                padding: '30px 20px',
-                fontSize: '24px',
+                padding: '10px 20px',
+                fontSize: '18px',
                 fontWeight: 'bold',
                 backgroundColor: '#2196f3',
                 color: 'white',
@@ -122,6 +136,7 @@ export default function WordSelect({ turnInfo, onSelectWord, roomId }: WordSelec
                 borderRadius: '8px',
                 cursor: 'pointer',
                 transition: 'all 0.2s',
+                whiteSpace: 'nowrap',
               }}
               onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#1976d2'}
               onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2196f3'}
@@ -131,45 +146,79 @@ export default function WordSelect({ turnInfo, onSelectWord, roomId }: WordSelec
           ))}
 
           {/* 직접 입력 버튼 */}
-          <button
-            onClick={() => !hasUsedCustomInput && setShowCustomInput(!showCustomInput)}
-            disabled={hasUsedCustomInput}
-            style={{
-              flex: 1,
-              padding: '30px 20px',
-              fontSize: '24px',
-              fontWeight: 'bold',
-              backgroundColor: hasUsedCustomInput ? '#ccc' : showCustomInput ? '#45a049' : '#4caf50',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: hasUsedCustomInput ? 'not-allowed' : 'pointer',
-              transition: 'all 0.2s',
-              position: 'relative'
-            }}
-            onMouseEnter={(e) => {
-              if (!hasUsedCustomInput && !showCustomInput) {
-                e.currentTarget.style.backgroundColor = '#45a049';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!hasUsedCustomInput && !showCustomInput) {
-                e.currentTarget.style.backgroundColor = '#4caf50';
-              }
-            }}
-          >
-            <div>직접 입력</div>
-            <div style={{ fontSize: '12px', marginTop: '8px', opacity: 0.9 }}>
-              {hasUsedCustomInput ? '(사용됨)' : '(1회만)'}
-            </div>
-          </button>
+          <div style={{ flex: 1, position: 'relative' }}>
+            {/* 말풍선 툴팁 */}
+            {!hasUsedCustomInput && (showTooltip || isHoveringButton) && (
+              <div style={{
+                position: 'absolute',
+                bottom: 'calc(100% + 10px)',
+                left: '50%',
+                transform: 'translateX(-50%)',
+                backgroundColor: '#333',
+                color: 'white',
+                padding: '8px 12px',
+                borderRadius: '6px',
+                fontSize: '13px',
+                whiteSpace: 'nowrap',
+                zIndex: 1000,
+                boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                pointerEvents: 'none'
+              }}>
+                게임에서 1회만 사용 가능
+                {/* 말풍선 화살표 */}
+                <div style={{
+                  position: 'absolute',
+                  top: '100%',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  width: 0,
+                  height: 0,
+                  borderLeft: '6px solid transparent',
+                  borderRight: '6px solid transparent',
+                  borderTop: '6px solid #333'
+                }} />
+              </div>
+            )}
+
+            <button
+              onClick={() => !hasUsedCustomInput && setShowCustomInput(!showCustomInput)}
+              disabled={hasUsedCustomInput}
+              onMouseEnter={(e) => {
+                setIsHoveringButton(true);
+                if (!hasUsedCustomInput && !showCustomInput) {
+                  e.currentTarget.style.backgroundColor = '#45a049';
+                }
+              }}
+              onMouseLeave={(e) => {
+                setIsHoveringButton(false);
+                if (!hasUsedCustomInput && !showCustomInput) {
+                  e.currentTarget.style.backgroundColor = '#4caf50';
+                }
+              }}
+              style={{
+                width: '100%',
+                padding: '10px 20px',
+                fontSize: '18px',
+                fontWeight: 'bold',
+                backgroundColor: hasUsedCustomInput ? '#ccc' : showCustomInput ? '#45a049' : '#4caf50',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: hasUsedCustomInput ? 'not-allowed' : 'pointer',
+                transition: 'all 0.2s',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              {hasUsedCustomInput ? '직접 입력 (사용됨)' : '직접 입력'}
+            </button>
+          </div>
         </div>
 
         {/* 직접 입력란 (버튼 클릭 시 하단에 표시) */}
         {showCustomInput && !hasUsedCustomInput && (
           <div style={{
-            marginTop: '20px',
-            padding: '20px',
+            marginTop: '15px',
+            padding: '15px',
             backgroundColor: '#f1f8e9',
             borderRadius: '8px',
             border: '2px solid #4caf50'
@@ -185,7 +234,7 @@ export default function WordSelect({ turnInfo, onSelectWord, roomId }: WordSelec
                   autoFocus
                   style={{
                     width: '100%',
-                    padding: '12px',
+                    padding: '10px',
                     fontSize: '18px',
                     color: '#000',
                     border: error ? '2px solid #d32f2f' : '2px solid #4caf50',
@@ -215,7 +264,7 @@ export default function WordSelect({ turnInfo, onSelectWord, roomId }: WordSelec
                 onClick={handleCustomWordSubmit}
                 disabled={!customWord.trim()}
                 style={{
-                  padding: '12px 24px',
+                  padding: '10px 20px',
                   fontSize: '18px',
                   fontWeight: 'bold',
                   backgroundColor: !customWord.trim() ? '#ccc' : '#4caf50',

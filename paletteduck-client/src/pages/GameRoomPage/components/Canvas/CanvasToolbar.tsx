@@ -81,21 +81,21 @@ export default function CanvasToolbar({
 
   return (
     <div style={{
-      padding: '6px',
+      padding: '2px',
       backgroundColor: 'transparent',
-      display: 'flex',
-      gap: '6px',
+      display: 'grid',
+      gridTemplateColumns: '1fr auto 1fr',
       alignItems: 'center',
-      flexWrap: 'wrap',
-      position: 'relative'
+      position: 'relative',
+      width: '100%'
     }}>
-      {/* 도구 선택 */}
-      <div style={{ display: 'flex', gap: '4px', position: 'relative' }}>
+      {/* 왼쪽: 도구 선택 */}
+      <div style={{ display: 'flex', gap: '4px', position: 'relative', justifyContent: 'flex-start' }}>
         <button
           ref={penButtonRef}
           onClick={handlePenClick}
           style={{
-            padding: '6px 8px',
+            padding: '10px 12px',
             fontSize: '14px',
             backgroundColor: tool === 'pen' ? '#2196f3' : '#fff',
             color: tool === 'pen' ? '#fff' : '#000',
@@ -167,7 +167,7 @@ export default function CanvasToolbar({
           ref={eraserButtonRef}
           onClick={handleEraserClick}
           style={{
-            padding: '6px 8px',
+            padding: '10px 12px',
             fontSize: '14px',
             backgroundColor: tool === 'eraser' ? '#2196f3' : '#fff',
             color: tool === 'eraser' ? '#fff' : '#000',
@@ -188,7 +188,7 @@ export default function CanvasToolbar({
         <button
           onClick={() => onToolChange('fill')}
           style={{
-            padding: '6px 8px',
+            padding: '10px 12px',
             fontSize: '14px',
             backgroundColor: tool === 'fill' ? '#2196f3' : '#fff',
             color: tool === 'fill' ? '#fff' : '#000',
@@ -257,26 +257,89 @@ export default function CanvasToolbar({
         )}
       </div>
 
-      {/* 색상 선택 */}
-      <div style={{ display: 'flex', gap: '4px' }}>
-        {COLORS.map(c => (
-          <button
-            key={c}
-            onClick={() => onColorChange(c)}
-            style={{
-              width: '33px',
-              height: '33px',
-              backgroundColor: c,
-              border: color === c ? '3px solid #2196f3' : '1px solid #ccc',
-              borderRadius: '4px',
-              cursor: 'pointer',
-            }}
-          />
-        ))}
+      {/* 가운데: 색상 선택 (2행, 2행 마지막에 RGB 버튼) */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '3px', justifyContent: 'center' }}>
+        {/* 첫 번째 행 - 10개 색상 */}
+        <div style={{ display: 'flex', gap: '3px' }}>
+          {COLORS.slice(0, 10).map(c => (
+            <button
+              key={c}
+              onClick={() => onColorChange(c)}
+              style={{
+                width: '32px',
+                height: '26px',
+                minWidth: '32px',
+                padding: '0',
+                backgroundColor: c,
+                border: color === c ? '2px solid #2196f3' : '2px solid transparent',
+                borderRadius: '3px',
+                cursor: 'pointer',
+                boxSizing: 'border-box',
+              }}
+            />
+          ))}
+        </div>
+
+        {/* 두 번째 행 - 9개 색상 + RGB 버튼 */}
+        <div style={{ display: 'flex', gap: '3px' }}>
+          {COLORS.slice(10, 19).map(c => (
+            <button
+              key={c}
+              onClick={() => onColorChange(c)}
+              style={{
+                width: '32px',
+                height: '26px',
+                minWidth: '32px',
+                padding: '0',
+                backgroundColor: c,
+                border: color === c ? '2px solid #2196f3' : '2px solid transparent',
+                borderRadius: '3px',
+                cursor: 'pointer',
+                boxSizing: 'border-box',
+              }}
+            />
+          ))}
+
+          {/* RGB 직접 선택 버튼 */}
+          <label style={{
+            width: '32px',
+            height: '26px',
+            minWidth: '32px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            border: '2px solid #ccc',
+            borderRadius: '3px',
+            cursor: 'pointer',
+            backgroundColor: '#fff',
+            position: 'relative',
+            overflow: 'hidden',
+            boxSizing: 'border-box',
+          }}>
+            <input
+              type="color"
+              value={color}
+              onChange={(e) => onColorChange(e.target.value)}
+              style={{
+                position: 'absolute',
+                width: '100%',
+                height: '100%',
+                opacity: 0,
+                cursor: 'pointer',
+              }}
+            />
+            <span className="material-symbols-outlined" style={{
+              fontSize: '18px',
+              color: '#666',
+              pointerEvents: 'none',
+              fontVariationSettings: '"FILL" 1, "wght" 400, "GRAD" 0, "opsz" 48'
+            }}>palette</span>
+          </label>
+        </div>
       </div>
 
-      {/* 전체 삭제 */}
-      <div style={{ display: 'flex', gap: '4px', marginLeft: 'auto' }}>
+      {/* 오른쪽 끝: 전체 삭제 */}
+      <div style={{ display: 'flex', gap: '4px', justifyContent: 'flex-end' }}>
         <button
           onClick={onClear}
           style={{
@@ -293,7 +356,7 @@ export default function CanvasToolbar({
           }}
         >
           <span className="material-symbols-outlined" style={{
-            fontSize: '20px',
+            fontSize: '24px',
             fontVariationSettings: '"FILL" 1, "wght" 400, "GRAD" 0, "opsz" 48'
           }}>delete</span>
         </button>
