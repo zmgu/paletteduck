@@ -28,11 +28,13 @@ interface PlayerListProps {
   players: RoomPlayer[];
   currentPlayerId: string;
   maxPlayers: number;
+  drawerId?: string;
 }
 
 const PlayerList = forwardRef<HTMLUListElement, PlayerListProps>(({
   players,
-  currentPlayerId
+  currentPlayerId,
+  drawerId
 }, ref) => {
   const listRef = useRef<HTMLUListElement>(null);
   const scrollRef = (ref as React.RefObject<HTMLUListElement>) || listRef;
@@ -41,15 +43,153 @@ const PlayerList = forwardRef<HTMLUListElement, PlayerListProps>(({
   const sortedPlayers = [...players].sort((a, b) => (b.score || 0) - (a.score || 0));
   const playerRanks = new Map(sortedPlayers.map((player, index) => [player.playerId, index + 1]));
 
+  // 출제자 찾기
+  const drawer = drawerId ? players.find(p => p.playerId === drawerId) : null;
+
   return (
-    <div style={{ position: 'relative', height: '100%' }}>
+    <div style={{ position: 'relative', height: '100%', display: 'flex', flexDirection: 'column' }}>
+      {/* 출제자 영역 - 고정 */}
+      {drawer && (
+        <div style={{ flexShrink: 0, marginBottom: '4px' }}>
+          <div style={{
+            padding: '4px 8px',
+            fontSize: '11px',
+            fontWeight: 'bold',
+            color: '#5b84d8',
+            backgroundColor: '#e8f0ff',
+            marginBottom: '4px',
+            borderRadius: '4px',
+            textAlign: 'center'
+          }}>
+            🎨 출제자
+          </div>
+          <div
+            style={{
+              height: '60px',
+              marginBottom: '8px',
+              padding: '6px',
+              backgroundColor: drawer.ready ? '#d0e1f9' : '#c5d9f5',
+              borderRadius: '6px',
+              border: drawer.playerId === currentPlayerId ? '2px solid #4a6bb3' : '2px solid #5b84d8',
+              fontWeight: drawer.playerId === currentPlayerId ? 'bold' : 'normal',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              boxSizing: 'border-box',
+              position: 'relative'
+            }}
+          >
+            {/* 왼쪽: 등수 */}
+            <div style={{
+              width: '28px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '16px',
+              fontWeight: 'bold',
+              color: playerRanks.get(drawer.playerId) === 1 ? '#ffd700' : playerRanks.get(drawer.playerId) === 2 ? '#c0c0c0' : playerRanks.get(drawer.playerId) === 3 ? '#cd7f32' : '#333',
+              flexShrink: 0
+            }}>
+              {playerRanks.get(drawer.playerId) === 1 ? '🥇' : playerRanks.get(drawer.playerId) === 2 ? '🥈' : playerRanks.get(drawer.playerId) === 3 ? '🥉' : playerRanks.get(drawer.playerId)}
+            </div>
+
+            {/* 중앙: 닉네임 + 점수/추천/비추천 */}
+            <div style={{
+              flex: 1,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '2px',
+              overflow: 'hidden',
+              minWidth: 0
+            }}>
+              {/* 위: 닉네임 */}
+              <div style={{
+                fontSize: '12px',
+                color: '#333',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'nowrap'
+              }}>
+                {drawer.nickname}
+              </div>
+
+              {/* 아래: 점수/추천/비추천 */}
+              <div style={{
+                fontSize: '11px',
+                color: '#aaa',
+                display: 'flex',
+                gap: '6px',
+                alignItems: 'center'
+              }}>
+                <span style={{ color: '#1976d2', fontWeight: 'bold' }}>{drawer.score || 0}점</span>
+                <span style={{ color: '#2e7d32', fontWeight: 'bold' }}>👍{drawer.totalLikes || 0}</span>
+                {(drawer.totalDislikes || 0) > 0 && (
+                  <span style={{ color: '#c62828', fontWeight: 'bold' }}>👎{drawer.totalDislikes}</span>
+                )}
+              </div>
+            </div>
+
+            {/* 오른쪽: 캐릭터 */}
+            <div style={{
+              width: '50px',
+              height: '50px',
+              borderRadius: '50%',
+              backgroundColor: '#ddd',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              position: 'relative',
+              overflow: 'hidden'
+            }}>
+              <img
+                src={duckImages[getDuckImageIndex(drawer.playerId)]}
+                alt="duck"
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'cover'
+                }}
+              />
+              {/* 방장 배지 */}
+              {drawer.host && (
+                <span style={{
+                  position: 'absolute',
+                  top: '-4px',
+                  right: '-4px',
+                  fontSize: '14px',
+                  lineHeight: '1'
+                }}>
+                  👑
+                </span>
+              )}
+            </div>
+          </div>
+
+          {/* 참가자 구분선 */}
+          <div style={{
+            padding: '4px 8px',
+            fontSize: '11px',
+            fontWeight: 'bold',
+            color: '#666',
+            backgroundColor: '#f0f0f0',
+            marginBottom: '2px',
+            borderRadius: '4px',
+            textAlign: 'center'
+          }}>
+            참가자
+          </div>
+        </div>
+      )}
+
+      {/* 참가자 목록 - 스크롤 가능 */}
       <ul
         ref={scrollRef}
         style={{
           listStyle: 'none',
           padding: '0',
           margin: 0,
-          height: '100%',
+          flex: 1,
           overflowY: 'auto',
           scrollbarWidth: 'none', // Firefox
           msOverflowStyle: 'none', // IE/Edge

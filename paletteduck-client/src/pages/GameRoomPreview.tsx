@@ -1297,7 +1297,7 @@ export default function GameRoomPreview() {
             /* 게임 종료 화면 - 전체 레이아웃 */
             <div style={{
               width: '100%',
-              height: '660px',
+              height: '606px',
               backgroundColor: '#E8E5E0',
               borderRadius: '0 0 8px 8px',
               flexShrink: 0,
@@ -1549,6 +1549,7 @@ export default function GameRoomPreview() {
                 players={mockRoomInfo.players.filter(p => p.role === 'PLAYER')}
                 currentPlayerId={playerInfo?.playerId || ''}
                 maxPlayers={mockRoomInfo.settings.maxPlayers}
+                drawerId={gameState.currentTurn?.drawerId}
               />
               {!isPlayerAtBottom && (
                 <button
@@ -1609,42 +1610,12 @@ export default function GameRoomPreview() {
                   width: 'fit-content',
                   height: '100%'
                 }}>
-                  {/* 제시어/출제자 오버레이 */}
-                  {gameState.phase === 'DRAWING' && gameState.currentTurn && (
-                    <div style={{
-                      position: 'absolute',
-                      top: '10px',
-                      left: '12px',
-                    backgroundColor: 'rgba(91, 132, 216, 0.95)',
-                    color: '#fff',
-                    padding: '7px 14px',
-                    borderRadius: '5px',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
-                    zIndex: 10,
-                    border: '2px solid #4a6bb3',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}>
-                    {isDrawer ? (
-                      `제시어: ${gameState.currentTurn.word}`
-                    ) : (
-                      <>
-                        <span style={{ fontSize: '16px' }}>🎨</span>
-                        <span>{gameState.currentTurn.drawerNickname}</span>
-                      </>
-                    )}
-                  </div>
-                )}
-
-                {/* 시간 오버레이 */}
+                  {/* 시간 오버레이 */}
                 {gameState.phase === 'DRAWING' && (
                   <div style={{
                     position: 'absolute',
                     top: '10px',
-                    right: '12px',
+                    left: '12px',
                     backgroundColor: 'rgba(0, 0, 0, 0.7)',
                     color: timeLeft <= 10 ? '#ff5252' : '#fff',
                     padding: '7px 14px',
@@ -1655,6 +1626,92 @@ export default function GameRoomPreview() {
                     zIndex: 10
                   }}>
                     {timeLeft}
+                  </div>
+                )}
+
+                {/* 캔버스 오른쪽 상단 영역 */}
+                {gameState.phase === 'DRAWING' && gameState.currentTurn && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '10px',
+                    right: '12px',
+                    zIndex: 10
+                  }}>
+                    {isDrawer ? (
+                      /* 출제자용 제시어 표시 */
+                      <div style={{
+                        backgroundColor: 'rgba(91, 132, 216, 0.95)',
+                        color: '#fff',
+                        padding: '7px 14px',
+                        borderRadius: '5px',
+                        fontSize: '16px',
+                        fontWeight: 'bold',
+                        boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+                        border: '2px solid #4a6bb3',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px'
+                      }}>
+                        제시어: {gameState.currentTurn.word}
+                      </div>
+                    ) : (
+                      /* 참가자용 추천/비추천 버튼 */
+                      <div style={{
+                        display: 'flex',
+                        gap: '6px'
+                      }}>
+                        <button
+                          onClick={() => handleVote('LIKE')}
+                          disabled={isCorrect}
+                          style={{
+                            padding: '6px 16px',
+                            fontSize: '15px',
+                            fontWeight: 'bold',
+                            backgroundColor: currentVote === 'LIKE' ? '#ffd75e' : '#fff',
+                            color: currentVote === 'LIKE' ? '#333' : '#333',
+                            border: 'none',
+                            outline: 'none',
+                            borderRadius: '4px',
+                            cursor: isCorrect ? 'not-allowed' : 'pointer',
+                            opacity: isCorrect ? 0.5 : 1,
+                            boxShadow: currentVote === 'LIKE' ? '0 2px 4px rgba(0, 0, 0, 0.2)' : 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          <span className="material-symbols-outlined" style={{
+                            fontSize: '20px',
+                            fontVariationSettings: '"FILL" 1, "wght" 400, "GRAD" 0, "opsz" 48'
+                          }}>thumb_up</span>
+                        </button>
+                        <button
+                          onClick={() => handleVote('DISLIKE')}
+                          disabled={isCorrect}
+                          style={{
+                            padding: '6px 16px',
+                            fontSize: '15px',
+                            fontWeight: 'bold',
+                            backgroundColor: currentVote === 'DISLIKE' ? '#ff8566' : '#fff',
+                            color: currentVote === 'DISLIKE' ? '#fff' : '#333',
+                            border: 'none',
+                            outline: 'none',
+                            borderRadius: '4px',
+                            cursor: isCorrect ? 'not-allowed' : 'pointer',
+                            opacity: isCorrect ? 0.5 : 1,
+                            boxShadow: currentVote === 'DISLIKE' ? '0 2px 4px rgba(0, 0, 0, 0.2)' : 'none',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '6px'
+                          }}
+                        >
+                          <span className="material-symbols-outlined" style={{
+                            fontSize: '20px',
+                            fontVariationSettings: '"FILL" 1, "wght" 400, "GRAD" 0, "opsz" 48'
+                          }}>thumb_down</span>
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )}
 
@@ -2019,64 +2076,6 @@ export default function GameRoomPreview() {
                     onWidthChange={setBrushWidth}
                     onClear={handleClearCanvas}
                   />
-                ) : !isDrawer && gameState.phase === 'DRAWING' ? (
-                  /* 참가자용 추천/비추천 버튼 */
-                  <div style={{
-                    display: 'flex',
-                    gap: '6px',
-                    justifyContent: 'center',
-                  }}>
-                    <button
-                      onClick={() => handleVote('LIKE')}
-                      disabled={isCorrect}
-                      style={{
-                        padding: '6px 16px',
-                        fontSize: '15px',
-                        fontWeight: 'bold',
-                        backgroundColor: currentVote === 'LIKE' ? '#ffd75e' : '#fff',
-                        color: currentVote === 'LIKE' ? '#333' : '#333',
-                        border: 'none',
-                        outline: 'none',
-                        borderRadius: '4px',
-                        cursor: isCorrect ? 'not-allowed' : 'pointer',
-                        opacity: isCorrect ? 0.5 : 1,
-                        boxShadow: currentVote === 'LIKE' ? '0 2px 4px rgba(0, 0, 0, 0.2)' : 'none',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px'
-                      }}
-                    >
-                      <span className="material-symbols-outlined" style={{
-                        fontSize: '20px',
-                        fontVariationSettings: '"FILL" 1, "wght" 400, "GRAD" 0, "opsz" 48'
-                      }}>thumb_up</span>
-                    </button>
-                    <button
-                      onClick={() => handleVote('DISLIKE')}
-                      disabled={isCorrect}
-                      style={{
-                        padding: '6px 16px',
-                        fontSize: '15px',
-                        fontWeight: 'bold',
-                        backgroundColor: currentVote === 'DISLIKE' ? '#ff8566' : '#fff',
-                        color: currentVote === 'DISLIKE' ? '#fff' : '#333',
-                        border: 'none',
-                        outline: 'none',
-                        borderRadius: '4px',
-                        cursor: isCorrect ? 'not-allowed' : 'pointer',
-                        opacity: isCorrect ? 0.5 : 1,
-                        boxShadow: currentVote === 'DISLIKE' ? '0 2px 4px rgba(0, 0, 0, 0.2)' : 'none',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px'
-                      }}
-                    >
-                      <span className="material-symbols-outlined" style={{
-                        fontSize: '20px',
-                        fontVariationSettings: '"FILL" 1, "wght" 400, "GRAD" 0, "opsz" 48'
-                      }}>thumb_down</span>
-                    </button>
-                  </div>
                 ) : null}
               </div>
 
@@ -2097,7 +2096,6 @@ export default function GameRoomPreview() {
         borderRadius: '8px',
         border: '1px solid #2196f3',
       }}>
-        <h4>페이즈 전환</h4>
         <div style={{ display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
           {(['COUNTDOWN', 'WORD_SELECT', 'DRAWING', 'TURN_RESULT', 'ROUND_END', 'GAME_END'] as GamePhase[]).map((phase) => (
             <button
@@ -2117,66 +2115,6 @@ export default function GameRoomPreview() {
             </button>
           ))}
         </div>
-      </div>
-
-      {/* 타이머 컨트롤 (테스트용) */}
-      {['COUNTDOWN', 'WORD_SELECT', 'DRAWING'].includes(currentPhase) && (
-        <div style={{
-          width: '1310px',
-          margin: '20px auto 0',
-          padding: '15px',
-          backgroundColor: '#fff3cd',
-          borderRadius: '8px',
-          border: '1px solid #ffc107',
-        }}>
-          <h4>타이머 컨트롤</h4>
-          <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-            <button
-              onClick={() => setTimeLeft(Math.max(0, timeLeft - 5))}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#ff9800',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-              }}
-            >
-              시간 -5초
-            </button>
-            <button
-              onClick={() => setTimeLeft(timeLeft + 5)}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#4caf50',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-              }}
-            >
-              시간 +5초
-            </button>
-            <span style={{ marginLeft: '10px', lineHeight: '32px' }}>
-              현재 시간: {timeLeft}초
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* 프리뷰 알림 배너 */}
-      <div style={{
-        width: '1310px',
-        margin: '20px auto 0',
-        padding: '15px',
-        backgroundColor: '#f0f0f0',
-        border: '2px solid #999',
-        borderRadius: '8px',
-        textAlign: 'center',
-        fontWeight: 'bold',
-        color: '#555',
-      }}>
-        🎨 게임 페이지 프리뷰 모드 (서버 연결 없음)
       </div>
 
       {/* 카운트다운 애니메이션 */}
