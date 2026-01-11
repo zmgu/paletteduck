@@ -904,7 +904,10 @@ export default function GameRoomPreview() {
   const [currentPhase, setCurrentPhase] = useState<GamePhase>('DRAWING');
   const [gameState, setGameState] = useState<GameState>(createMockGameState('DRAWING'));
   const [messages, setMessages] = useState<ChatMessage[]>(mockMessages);
-  const [timeLeft, setTimeLeft] = useState(45);
+  const [timeLeft, setTimeLeft] = useState(100);
+  const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [isHintMenuOpen, setIsHintMenuOpen] = useState(false);
+  const [isHintButtonHovered, setIsHintButtonHovered] = useState(false);
   const [currentVote, setCurrentVote] = useState<'LIKE' | 'DISLIKE' | 'NONE'>('NONE');
   const [canvasImageUrl] = useState<string>('');
   const [previewRole, setPreviewRole] = useState<'drawer' | 'guesser'>('drawer');
@@ -941,7 +944,7 @@ export default function GameRoomPreview() {
         setTimeLeft(10);
         break;
       case 'DRAWING':
-        setTimeLeft(45);
+        setTimeLeft(100);
         break;
       default:
         setTimeLeft(0);
@@ -988,6 +991,45 @@ export default function GameRoomPreview() {
       }
     };
   }, []);
+
+  // 타이머 카운트다운
+  useEffect(() => {
+    if (!isTimerRunning || timeLeft <= 0) {
+      return;
+    }
+
+    const timer = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev <= 1) {
+          setIsTimerRunning(false);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [isTimerRunning, timeLeft]);
+
+  // 타이머 리셋 핸들러
+  const handleResetTimer = () => {
+    let initialTime = 100;
+    switch (currentPhase) {
+      case 'COUNTDOWN':
+        initialTime = 3;
+        break;
+      case 'WORD_SELECT':
+        initialTime = 10;
+        break;
+      case 'DRAWING':
+        initialTime = 100;
+        break;
+      default:
+        initialTime = 0;
+    }
+    setTimeLeft(initialTime);
+    setIsTimerRunning(true);
+  };
 
   // 프리뷰 모드에서는 previewRole로 결정
   const isDrawer = previewRole === 'drawer';
@@ -1100,7 +1142,7 @@ export default function GameRoomPreview() {
 
             {gameState.currentTurn && (
               <>
-                {/* 오른쪽: 역할 전환 버튼 */}
+                {/* 오른쪽: 타이머 리셋 + 역할 전환 버튼 */}
                 <div style={{
                   position: 'absolute',
                   right: '20px',
@@ -1109,6 +1151,29 @@ export default function GameRoomPreview() {
                   display: 'flex',
                   gap: '8px'
                 }}>
+                  {/* 타이머 리셋 버튼 */}
+                  <button
+                    onClick={handleResetTimer}
+                    style={{
+                      padding: '8px 16px',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      backgroundColor: isTimerRunning ? 'rgba(76, 175, 80, 0.8)' : 'rgba(255, 152, 0, 0.8)',
+                      color: '#fff',
+                      border: '2px solid rgba(255, 255, 255, 0.5)',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.backgroundColor = isTimerRunning ? 'rgba(76, 175, 80, 1)' : 'rgba(255, 152, 0, 1)';
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.backgroundColor = isTimerRunning ? 'rgba(76, 175, 80, 0.8)' : 'rgba(255, 152, 0, 0.8)';
+                    }}
+                  >
+                    🔄 타이머 리셋
+                  </button>
                   <button
                     onClick={() => setPreviewRole('drawer')}
                     style={{
@@ -1226,18 +1291,22 @@ export default function GameRoomPreview() {
                   <div style={{
                     fontSize: '22px',
                     fontWeight: 'bold',
-                    color: '#333',
-                    letterSpacing: '8px',
-                    backgroundColor: 'rgb(208, 225, 249)',
+                    color: gameState.phase === 'TURN_RESULT' ? '#fff' : '#333',
+                    letterSpacing: gameState.phase === 'TURN_RESULT' ? '4px' : '8px',
+                    backgroundColor: gameState.phase === 'TURN_RESULT' ? 'transparent' : 'rgb(208, 225, 249)',
                     padding: '2px 20px',
                     borderRadius: '6px',
-                    border: '2px solid #4a6bb3',
-                    textShadow: 'none'
+                    border: gameState.phase === 'TURN_RESULT' ? 'none' : '2px solid #4a6bb3',
+                    textShadow: 'none',
+                    textAlign: 'center'
                   }}>
-                    {gameState.currentTurn.currentHint || '???'}
+                    {gameState.phase === 'TURN_RESULT'
+                      ? '턴 종료'
+                      : (isDrawer ? (gameState.currentTurn.word || '???') : (gameState.currentTurn.currentHint || '???'))
+                    }
                   </div>
 
-                  {/* 힌트 버튼 (캔버스 오른쪽 끝) */}
+                  {/* 타이머와 힌트 버튼 (캔버스 오른쪽 끝) */}
                   {isDrawer && (
                     <div style={{
                       position: 'absolute',
@@ -1246,42 +1315,194 @@ export default function GameRoomPreview() {
                       alignItems: 'center',
                       gap: '8px'
                     }}>
-                      <button
-                        onClick={() => console.log('Chosung hint')}
-                        disabled={gameState.currentTurn.hintLevel < 2}
-                        style={{
-                          padding: '8px 16px',
-                          fontSize: '14px',
-                          fontWeight: 'bold',
-                          backgroundColor: gameState.currentTurn.hintLevel >= 2 ? '#D4A574' : '#999',
-                          color: '#fff',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: gameState.currentTurn.hintLevel >= 2 ? 'pointer' : 'not-allowed',
-                          opacity: gameState.currentTurn.hintLevel >= 2 ? 1 : 0.6,
-                          boxShadow: gameState.currentTurn.hintLevel >= 2 ? '0 2px 4px rgba(0, 0, 0, 0.2)' : 'none'
-                        }}
+                      <div
+                        style={{ position: 'relative' }}
+                        onMouseEnter={() => setIsHintButtonHovered(true)}
+                        onMouseLeave={() => setIsHintButtonHovered(false)}
                       >
-                        💡 초성
-                      </button>
-                      <button
-                        onClick={() => console.log('Letter hint')}
-                        disabled={gameState.currentTurn.hintLevel >= 2}
-                        style={{
-                          padding: '8px 16px',
-                          fontSize: '14px',
-                          fontWeight: 'bold',
-                          backgroundColor: gameState.currentTurn.hintLevel >= 2 ? '#B8885A' : '#999',
-                          color: '#fff',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: gameState.currentTurn.hintLevel >= 2 ? 'pointer' : 'not-allowed',
-                          opacity: gameState.currentTurn.hintLevel >= 2 ? 1 : 0.6,
-                          boxShadow: gameState.currentTurn.hintLevel >= 2 ? '0 2px 4px rgba(0, 0, 0, 0.2)' : 'none'
-                        }}
-                      >
-                        🔥 글자
-                      </button>
+                        <button
+                          onClick={() => {
+                            if (timeLeft <= 85) {
+                              setIsHintMenuOpen(!isHintMenuOpen);
+                            }
+                          }}
+                          disabled={timeLeft > 85}
+                          style={{
+                            padding: '8px 16px',
+                            fontSize: '14px',
+                            fontWeight: 'bold',
+                            backgroundColor: timeLeft <= 85 ? '#D4A574' : '#999',
+                            color: '#fff',
+                            border: 'none',
+                            borderRadius: '4px',
+                            cursor: timeLeft <= 85 ? 'pointer' : 'not-allowed',
+                            opacity: timeLeft <= 85 ? 1 : 0.6,
+                            boxShadow: timeLeft <= 85 ? '0 2px 4px rgba(0, 0, 0, 0.2)' : 'none'
+                          }}
+                        >
+                          💡 힌트
+                        </button>
+
+                        {/* 호버 툴팁 */}
+                        {isHintButtonHovered && timeLeft > 85 && (
+                          <div style={{
+                            position: 'absolute',
+                            bottom: '100%',
+                            right: '0',
+                            marginBottom: '8px',
+                            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+                            color: '#fff',
+                            padding: '6px 12px',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            whiteSpace: 'nowrap',
+                            zIndex: 1000,
+                            pointerEvents: 'none',
+                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)'
+                          }}>
+                            85초 이하부터 사용 가능
+                            {/* 말풍선 꼬리 */}
+                            <div style={{
+                              position: 'absolute',
+                              bottom: '-6px',
+                              right: '20px',
+                              width: '0',
+                              height: '0',
+                              borderLeft: '6px solid transparent',
+                              borderRight: '6px solid transparent',
+                              borderTop: '6px solid rgba(0, 0, 0, 0.85)'
+                            }}></div>
+                          </div>
+                        )}
+
+                        {/* 힌트 메뉴 말풍선 */}
+                        {isHintMenuOpen && timeLeft <= 85 && (
+                          <div style={{
+                            position: 'absolute',
+                            top: '100%',
+                            right: '0',
+                            marginTop: '8px',
+                            backgroundColor: '#fff',
+                            border: '2px solid #D4A574',
+                            borderRadius: '8px',
+                            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+                            padding: '8px',
+                            display: 'flex',
+                            flexDirection: 'row',
+                            gap: '8px',
+                            zIndex: 100
+                          }}>
+                            {/* 말풍선 꼬리 */}
+                            <div style={{
+                              position: 'absolute',
+                              top: '-8px',
+                              right: '20px',
+                              width: '0',
+                              height: '0',
+                              borderLeft: '8px solid transparent',
+                              borderRight: '8px solid transparent',
+                              borderBottom: '8px solid #D4A574'
+                            }}></div>
+
+                            {/* 현재 힌트 상태 표시 */}
+                            <div style={{
+                              padding: '12px',
+                              backgroundColor: '#f5f5f5',
+                              borderRadius: '4px',
+                              textAlign: 'center',
+                              display: 'flex',
+                              flexDirection: 'column',
+                              justifyContent: 'center',
+                              minWidth: '120px'
+                            }}>
+                              <div style={{
+                                marginBottom: '6px',
+                                fontSize: '12px',
+                                color: '#666',
+                                fontWeight: 'bold',
+                                whiteSpace: 'nowrap'
+                              }}>
+                                현재 힌트
+                              </div>
+                              <div style={{
+                                fontSize: '18px',
+                                fontWeight: 'bold',
+                                color: '#333',
+                                letterSpacing: '6px',
+                                padding: '4px 8px',
+                                backgroundColor: '#fff',
+                                borderRadius: '4px',
+                                border: '1px solid #ddd',
+                                whiteSpace: 'nowrap'
+                              }}>
+                                {gameState.currentTurn.currentHint || '___'}
+                              </div>
+                            </div>
+
+                            {/* 버튼 영역 */}
+                            <div style={{
+                              display: 'flex',
+                              flexDirection: 'column',
+                              gap: '6px',
+                              justifyContent: 'center'
+                            }}>
+                              <button
+                                onClick={() => {
+                                  console.log('Chosung hint');
+                                  setIsHintMenuOpen(false);
+                                }}
+                                style={{
+                                  padding: '8px 12px',
+                                  fontSize: '14px',
+                                  fontWeight: 'bold',
+                                  backgroundColor: '#D4A574',
+                                  color: '#fff',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  transition: 'background-color 0.2s',
+                                  width: '90px'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#C49564';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#D4A574';
+                                }}
+                              >
+                                💡 초성
+                              </button>
+
+                              <button
+                                onClick={() => {
+                                  console.log('Letter hint');
+                                  setIsHintMenuOpen(false);
+                                }}
+                                style={{
+                                  padding: '8px 12px',
+                                  fontSize: '14px',
+                                  fontWeight: 'bold',
+                                  backgroundColor: '#B8885A',
+                                  color: '#fff',
+                                  border: 'none',
+                                  borderRadius: '4px',
+                                  cursor: 'pointer',
+                                  transition: 'background-color 0.2s',
+                                  width: '90px'
+                                }}
+                                onMouseEnter={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#A8784A';
+                                }}
+                                onMouseLeave={(e) => {
+                                  e.currentTarget.style.backgroundColor = '#B8885A';
+                                }}
+                              >
+                                🔥 글자
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   )}
                 </div>
@@ -1297,7 +1518,7 @@ export default function GameRoomPreview() {
             /* 게임 종료 화면 - 전체 레이아웃 */
             <div style={{
               width: '100%',
-              height: '660px',
+              height: '606px',
               backgroundColor: '#E8E5E0',
               borderRadius: '0 0 8px 8px',
               flexShrink: 0,
@@ -1609,54 +1830,88 @@ export default function GameRoomPreview() {
                   width: 'fit-content',
                   height: '100%'
                 }}>
-                  {/* 제시어/출제자 오버레이 */}
-                  {gameState.phase === 'DRAWING' && gameState.currentTurn && (
+                  {/* 시간 오버레이 */}
+                  {gameState.phase === 'DRAWING' && (
                     <div style={{
                       position: 'absolute',
                       top: '10px',
                       left: '12px',
-                    backgroundColor: 'rgba(91, 132, 216, 0.95)',
-                    color: '#fff',
-                    padding: '7px 14px',
-                    borderRadius: '5px',
-                    fontSize: '16px',
-                    fontWeight: 'bold',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
-                    zIndex: 10,
-                    border: '2px solid #4a6bb3',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '6px'
-                  }}>
-                    {isDrawer ? (
-                      `제시어: ${gameState.currentTurn.word}`
-                    ) : (
-                      <>
-                        <span style={{ fontSize: '16px' }}>🎨</span>
-                        <span>{gameState.currentTurn.drawerNickname}</span>
-                      </>
-                    )}
-                  </div>
-                )}
+                      backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                      color: timeLeft <= 10 ? '#ff5252' : '#fff',
+                      padding: '4px 12px',
+                      borderRadius: '5px',
+                      fontSize: '22px',
+                      fontWeight: 'bold',
+                      boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
+                      zIndex: 10,
+                      textAlign: 'center'
+                    }}>
+                      {timeLeft}
+                    </div>
+                  )}
 
-                {/* 시간 오버레이 */}
-                {gameState.phase === 'DRAWING' && (
-                  <div style={{
-                    position: 'absolute',
-                    top: '10px',
-                    right: '12px',
-                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
-                    color: timeLeft <= 10 ? '#ff5252' : '#fff',
-                    padding: '7px 14px',
-                    borderRadius: '5px',
-                    fontSize: '22px',
-                    fontWeight: 'bold',
-                    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
-                    zIndex: 10
-                  }}>
-                    {timeLeft}
-                  </div>
-                )}
+                  {/* 추천/비추천 버튼 오버레이 */}
+                  {!isDrawer && gameState.phase === 'DRAWING' && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '10px',
+                      right: '12px',
+                      display: 'flex',
+                      gap: '6px',
+                      zIndex: 10
+                    }}>
+                      <button
+                        onClick={() => handleVote('LIKE')}
+                        disabled={isCorrect}
+                        style={{
+                          padding: '6px 16px',
+                          fontSize: '15px',
+                          fontWeight: 'bold',
+                          backgroundColor: currentVote === 'LIKE' ? '#ffd75e' : '#fff',
+                          color: currentVote === 'LIKE' ? '#333' : '#333',
+                          border: 'none',
+                          outline: 'none',
+                          borderRadius: '4px',
+                          cursor: isCorrect ? 'not-allowed' : 'pointer',
+                          opacity: isCorrect ? 0.5 : 1,
+                          boxShadow: currentVote === 'LIKE' ? '0 2px 4px rgba(0, 0, 0, 0.2)' : '0 2px 4px rgba(0, 0, 0, 0.1)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{
+                          fontSize: '20px',
+                          fontVariationSettings: '"FILL" 1, "wght" 400, "GRAD" 0, "opsz" 48'
+                        }}>thumb_up</span>
+                      </button>
+                      <button
+                        onClick={() => handleVote('DISLIKE')}
+                        disabled={isCorrect}
+                        style={{
+                          padding: '6px 16px',
+                          fontSize: '15px',
+                          fontWeight: 'bold',
+                          backgroundColor: currentVote === 'DISLIKE' ? '#ff8566' : '#fff',
+                          color: currentVote === 'DISLIKE' ? '#fff' : '#333',
+                          border: 'none',
+                          outline: 'none',
+                          borderRadius: '4px',
+                          cursor: isCorrect ? 'not-allowed' : 'pointer',
+                          opacity: isCorrect ? 0.5 : 1,
+                          boxShadow: currentVote === 'DISLIKE' ? '0 2px 4px rgba(0, 0, 0, 0.2)' : '0 2px 4px rgba(0, 0, 0, 0.1)',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        <span className="material-symbols-outlined" style={{
+                          fontSize: '20px',
+                          fontVariationSettings: '"FILL" 1, "wght" 400, "GRAD" 0, "opsz" 48'
+                        }}>thumb_down</span>
+                      </button>
+                    </div>
+                  )}
 
                 <Canvas
                   ref={canvasRef}
@@ -1770,6 +2025,7 @@ export default function GameRoomPreview() {
                       players={gameState.players}
                       canvasImageUrl={canvasImageUrl}
                       isSpectatorMidJoin={false}
+                      timeLeft={timeLeft}
                     />
                   </div>
                 )}
@@ -1790,28 +2046,14 @@ export default function GameRoomPreview() {
                     pointerEvents: 'auto'
                   }}>
                     <div style={{
-                      display: 'flex',
-                      flexDirection: 'column',
-                      alignItems: 'center',
-                      gap: '20px'
+                      fontSize: '80px',
+                      fontWeight: 'bold',
+                      color: '#fff',
+                      textShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
+                      opacity: Math.min(1, timeLeft / 3),
+                      transition: 'opacity 0.3s ease-out'
                     }}>
-                      <div style={{
-                        fontSize: '120px',
-                        fontWeight: 'bold',
-                        color: '#fff',
-                        textShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
-                        animation: 'pulse 1s infinite'
-                      }}>
-                        {timeLeft}
-                      </div>
-                      <div style={{
-                        fontSize: '32px',
-                        fontWeight: 'bold',
-                        color: '#fff',
-                        textShadow: '0 2px 4px rgba(0, 0, 0, 0.5)'
-                      }}>
-                        다음 라운드가 시작됩니다...
-                      </div>
+                      ROUND {gameState.currentRound + 1}
                     </div>
                   </div>
                 )}
@@ -2001,14 +2243,14 @@ export default function GameRoomPreview() {
               {/* 왼쪽 빈 영역 */}
               <div></div>
 
-              {/* 중앙: 캔버스 영역 - 그림 툴 또는 추천/비추천 버튼 */}
+              {/* 중앙: 캔버스 영역 - 그림 툴바 */}
               <div style={{
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
                 padding: '0',
               }}>
-                {isDrawer && gameState.phase === 'DRAWING' ? (
+                {isDrawer && gameState.phase === 'DRAWING' && (
                   /* 출제자용 그림 툴바 */
                   <CanvasToolbar
                     tool={tool}
@@ -2019,65 +2261,7 @@ export default function GameRoomPreview() {
                     onWidthChange={setBrushWidth}
                     onClear={handleClearCanvas}
                   />
-                ) : !isDrawer && gameState.phase === 'DRAWING' ? (
-                  /* 참가자용 추천/비추천 버튼 */
-                  <div style={{
-                    display: 'flex',
-                    gap: '6px',
-                    justifyContent: 'center',
-                  }}>
-                    <button
-                      onClick={() => handleVote('LIKE')}
-                      disabled={isCorrect}
-                      style={{
-                        padding: '6px 16px',
-                        fontSize: '15px',
-                        fontWeight: 'bold',
-                        backgroundColor: currentVote === 'LIKE' ? '#ffd75e' : '#fff',
-                        color: currentVote === 'LIKE' ? '#333' : '#333',
-                        border: 'none',
-                        outline: 'none',
-                        borderRadius: '4px',
-                        cursor: isCorrect ? 'not-allowed' : 'pointer',
-                        opacity: isCorrect ? 0.5 : 1,
-                        boxShadow: currentVote === 'LIKE' ? '0 2px 4px rgba(0, 0, 0, 0.2)' : 'none',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px'
-                      }}
-                    >
-                      <span className="material-symbols-outlined" style={{
-                        fontSize: '20px',
-                        fontVariationSettings: '"FILL" 1, "wght" 400, "GRAD" 0, "opsz" 48'
-                      }}>thumb_up</span>
-                    </button>
-                    <button
-                      onClick={() => handleVote('DISLIKE')}
-                      disabled={isCorrect}
-                      style={{
-                        padding: '6px 16px',
-                        fontSize: '15px',
-                        fontWeight: 'bold',
-                        backgroundColor: currentVote === 'DISLIKE' ? '#ff8566' : '#fff',
-                        color: currentVote === 'DISLIKE' ? '#fff' : '#333',
-                        border: 'none',
-                        outline: 'none',
-                        borderRadius: '4px',
-                        cursor: isCorrect ? 'not-allowed' : 'pointer',
-                        opacity: isCorrect ? 0.5 : 1,
-                        boxShadow: currentVote === 'DISLIKE' ? '0 2px 4px rgba(0, 0, 0, 0.2)' : 'none',
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: '6px'
-                      }}
-                    >
-                      <span className="material-symbols-outlined" style={{
-                        fontSize: '20px',
-                        fontVariationSettings: '"FILL" 1, "wght" 400, "GRAD" 0, "opsz" 48'
-                      }}>thumb_down</span>
-                    </button>
-                  </div>
-                ) : null}
+                )}
               </div>
 
               {/* 오른쪽 빈 영역 */}
@@ -2097,8 +2281,7 @@ export default function GameRoomPreview() {
         borderRadius: '8px',
         border: '1px solid #2196f3',
       }}>
-        <h4>페이즈 전환</h4>
-        <div style={{ display: 'flex', gap: '10px', marginTop: '10px', flexWrap: 'wrap' }}>
+        <div style={{ display: 'flex', gap: '10px', marginTop: '4px', flexWrap: 'wrap' }}>
           {(['COUNTDOWN', 'WORD_SELECT', 'DRAWING', 'TURN_RESULT', 'ROUND_END', 'GAME_END'] as GamePhase[]).map((phase) => (
             <button
               key={phase}
@@ -2117,66 +2300,6 @@ export default function GameRoomPreview() {
             </button>
           ))}
         </div>
-      </div>
-
-      {/* 타이머 컨트롤 (테스트용) */}
-      {['COUNTDOWN', 'WORD_SELECT', 'DRAWING'].includes(currentPhase) && (
-        <div style={{
-          width: '1310px',
-          margin: '20px auto 0',
-          padding: '15px',
-          backgroundColor: '#fff3cd',
-          borderRadius: '8px',
-          border: '1px solid #ffc107',
-        }}>
-          <h4>타이머 컨트롤</h4>
-          <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
-            <button
-              onClick={() => setTimeLeft(Math.max(0, timeLeft - 5))}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#ff9800',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-              }}
-            >
-              시간 -5초
-            </button>
-            <button
-              onClick={() => setTimeLeft(timeLeft + 5)}
-              style={{
-                padding: '8px 16px',
-                backgroundColor: '#4caf50',
-                color: 'white',
-                border: 'none',
-                borderRadius: '4px',
-                cursor: 'pointer',
-              }}
-            >
-              시간 +5초
-            </button>
-            <span style={{ marginLeft: '10px', lineHeight: '32px' }}>
-              현재 시간: {timeLeft}초
-            </span>
-          </div>
-        </div>
-      )}
-
-      {/* 프리뷰 알림 배너 */}
-      <div style={{
-        width: '1310px',
-        margin: '20px auto 0',
-        padding: '15px',
-        backgroundColor: '#f0f0f0',
-        border: '2px solid #999',
-        borderRadius: '8px',
-        textAlign: 'center',
-        fontWeight: 'bold',
-        color: '#555',
-      }}>
-        🎨 게임 페이지 프리뷰 모드 (서버 연결 없음)
       </div>
 
       {/* 카운트다운 애니메이션 */}
