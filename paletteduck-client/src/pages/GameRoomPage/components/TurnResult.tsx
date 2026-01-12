@@ -6,9 +6,10 @@ interface TurnResultProps {
   players: Player[];
   canvasImageUrl: string;
   isSpectatorMidJoin?: boolean;  // 도중 참가 관전자 여부
+  timeLeft?: number;  // 다음 턴까지 남은 시간
 }
 
-export default function TurnResult({ turnInfo, players, canvasImageUrl, isSpectatorMidJoin }: TurnResultProps) {
+export default function TurnResult({ turnInfo, players, canvasImageUrl, isSpectatorMidJoin, timeLeft }: TurnResultProps) {
   // 이번 턴에서 점수를 획득한 플레이어만 필터링 및 점수순 정렬
   const scoredPlayers = players
     .filter(p => (turnInfo.turnScores?.[p.playerId] || 0) > 0)
@@ -56,14 +57,21 @@ export default function TurnResult({ turnInfo, players, canvasImageUrl, isSpecta
         marginBottom: '20px',
         flexShrink: 0
       }}>
-        다음 턴이 곧 시작됩니다...
+        {timeLeft !== undefined ? (
+          <>
+            <span style={{ fontWeight: 'bold', color: '#2196f3' }}>{timeLeft}초</span>
+            {' 뒤에 다음 턴이 시작됩니다...'}
+          </>
+        ) : (
+          '다음 턴이 곧 시작됩니다...'
+        )}
       </div>
 
       <div style={{ display: 'flex', gap: '30px', flex: 1, minHeight: 0, overflow: 'hidden' }}>
         {/* 왼쪽: 그림 */}
         <div style={{ flex: 1 }}>
-          <h3>출제된 그림</h3>
-          <div style={{ marginTop: '10px', display: 'flex', justifyContent: 'center', position: 'relative' }}>
+          <h3 style={{ marginBottom: '10px', flexShrink: 0, fontWeight: 'normal' }}><span style={{ fontWeight: 'normal' }}>출제된 그림 - </span><span style={{ fontWeight: 'bold' }}>{turnInfo.word || '???'}</span></h3>
+          <div style={{ display: 'flex', justifyContent: 'center', position: 'relative' }}>
             {isSpectatorMidJoin ? (
               <div
                 style={{
@@ -131,7 +139,7 @@ export default function TurnResult({ turnInfo, players, canvasImageUrl, isSpecta
               border: '2px solid #2196f3'
             }}>
               <div style={{ fontSize: '14px', fontWeight: 'bold', marginBottom: '6px' }}>
-                🎨 출제자: {turnInfo.drawerNickname}
+                🎨 <span style={{ color: '#2196f3' }}>{turnInfo.drawerNickname}</span>
               </div>
               <div style={{ fontSize: '12px', color: '#666' }}>
                 획득 점수: <strong style={{ color: '#2196f3' }}>+{drawerTurnScore}</strong>점
@@ -145,7 +153,7 @@ export default function TurnResult({ turnInfo, players, canvasImageUrl, isSpecta
 
         {/* 오른쪽: 랭킹 */}
         <div style={{ flex: 1, display: 'flex', flexDirection: 'column', maxHeight: '100%' }}>
-          <h3 style={{ marginBottom: '10px', flexShrink: 0 }}>이번 턴 득점 랭킹</h3>
+          <h3 style={{ marginBottom: '10px', flexShrink: 0 }}>턴 득점 랭킹</h3>
           <div style={{
             flex: 1,
             overflowY: 'auto',
@@ -179,7 +187,8 @@ export default function TurnResult({ turnInfo, players, canvasImageUrl, isSpecta
                     <div style={{
                       fontSize: '14px',
                       fontWeight: 'bold',
-                      marginBottom: '3px'
+                      marginBottom: '3px',
+                      color: player.playerId === turnInfo.drawerId ? '#2196f3' : '#333'
                     }}>
                       {player.nickname}
                       {player.playerId === turnInfo.drawerId && ' 🎨'}
