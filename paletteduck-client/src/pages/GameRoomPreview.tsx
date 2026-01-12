@@ -1244,28 +1244,20 @@ export default function GameRoomPreview() {
             flexShrink: 0
           }}>
             {gameState.phase === 'GAME_END' ? (
-              <>
-                {/* 왼쪽: 빈 공간 */}
-                <div></div>
-
-                {/* 중앙: 게임 종료 문구 */}
+              <div style={{
+                gridColumn: '1 / 4',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
                 <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
+                  fontSize: '24px',
+                  fontWeight: 'bold',
+                  color: '#fff'
                 }}>
-                  <div style={{
-                    fontSize: '24px',
-                    fontWeight: 'bold',
-                    color: '#fff'
-                  }}>
-                    🎉 게임 종료! 🎉
-                  </div>
+                  🎉 게임 종료! 🎉
                 </div>
-
-                {/* 오른쪽: 빈 공간 */}
-                <div></div>
-              </>
+              </div>
             ) : gameState.currentTurn && (
               <>
                 {/* 왼쪽: 라운드 (플레이어 영역 대응) */}
@@ -1288,26 +1280,28 @@ export default function GameRoomPreview() {
                   justifyContent: 'center',
                   position: 'relative'
                 }}>
-                  <div style={{
-                    fontSize: '22px',
-                    fontWeight: 'bold',
-                    color: gameState.phase === 'TURN_RESULT' ? '#fff' : '#333',
-                    letterSpacing: gameState.phase === 'TURN_RESULT' ? '4px' : '8px',
-                    backgroundColor: gameState.phase === 'TURN_RESULT' ? 'transparent' : 'rgb(208, 225, 249)',
-                    padding: '2px 20px',
-                    borderRadius: '6px',
-                    border: gameState.phase === 'TURN_RESULT' ? 'none' : '2px solid #4a6bb3',
-                    textShadow: 'none',
-                    textAlign: 'center'
-                  }}>
-                    {gameState.phase === 'TURN_RESULT'
-                      ? '턴 종료'
-                      : (isDrawer ? (gameState.currentTurn.word || '???') : (gameState.currentTurn.currentHint || '???'))
-                    }
-                  </div>
+                  {gameState.phase !== 'WORD_SELECT' && gameState.phase !== 'ROUND_END' && (
+                    <div style={{
+                      fontSize: '22px',
+                      fontWeight: 'bold',
+                      color: gameState.phase === 'TURN_RESULT' ? '#fff' : '#333',
+                      letterSpacing: gameState.phase === 'TURN_RESULT' ? '4px' : '8px',
+                      backgroundColor: gameState.phase === 'TURN_RESULT' ? 'transparent' : 'rgb(208, 225, 249)',
+                      padding: '2px 20px',
+                      borderRadius: '6px',
+                      border: gameState.phase === 'TURN_RESULT' ? 'none' : '2px solid #4a6bb3',
+                      textShadow: 'none',
+                      textAlign: 'center'
+                    }}>
+                      {gameState.phase === 'TURN_RESULT'
+                        ? '턴 종료'
+                        : (isDrawer ? (gameState.currentTurn.word || '???') : (gameState.currentTurn.currentHint || '???'))
+                      }
+                    </div>
+                  )}
 
                   {/* 타이머와 힌트 버튼 (캔버스 오른쪽 끝) */}
-                  {isDrawer && (
+                  {isDrawer && gameState.phase !== 'WORD_SELECT' && gameState.phase !== 'ROUND_END' && (
                     <div style={{
                       position: 'absolute',
                       right: '10px',
@@ -1519,7 +1513,7 @@ export default function GameRoomPreview() {
             <div style={{
               width: '100%',
               height: '606px',
-              backgroundColor: '#E8E5E0',
+              backgroundColor: 'rgba(0, 0, 0, 0.6)',
               borderRadius: '0 0 8px 8px',
               flexShrink: 0,
               padding: '20px',
@@ -1531,16 +1525,15 @@ export default function GameRoomPreview() {
                 maxWidth: '1100px',
                 width: '100%',
                 margin: '0 auto',
-                backgroundColor: '#fff',
+                backgroundColor: 'transparent',
                 padding: '20px',
                 borderRadius: '8px',
-                boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
                 display: 'flex',
                 flexDirection: 'column',
                 height: '100%',
                 overflow: 'hidden'
               }}>
-                <div style={{ display: 'flex', gap: '20px', flex: 1, minHeight: 0 }}>
+                <div style={{ display: 'flex', gap: '40px', flex: 1, minHeight: 0, justifyContent: 'center', alignItems: 'stretch' }}>
                   {/* 왼쪽: 베스트 아티스트 그림 */}
                   <div style={{
                     flex: '0 0 480px',
@@ -1548,7 +1541,7 @@ export default function GameRoomPreview() {
                     flexDirection: 'column',
                     gap: '12px'
                   }}>
-                    <h3 style={{ margin: 0, textAlign: 'center', fontSize: '18px' }}>🎨 베스트 아티스트</h3>
+                    <h3 style={{ margin: 0, textAlign: 'center', fontSize: '18px', color: '#fff' }}>🎨 베스트 아티스트</h3>
 
                     {/* 그림 영역 - 캔버스 비율 (810:660 = 27:22) 유지 */}
                     <div style={{
@@ -1593,8 +1586,8 @@ export default function GameRoomPreview() {
                   </div>
 
                   {/* 오른쪽: 최종 순위 */}
-                  <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-                    <h3 style={{ marginTop: 0, marginBottom: '15px', fontSize: '18px' }}>최종 순위</h3>
+                  <div style={{ flex: 1, minWidth: 0, maxWidth: '450px', display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+                    <h3 style={{ marginTop: 0, marginBottom: '15px', fontSize: '18px', color: '#fff', textAlign: 'center' }}>최종 순위</h3>
                     <div style={{
                       flex: 1,
                       overflowY: 'auto',
@@ -1635,7 +1628,8 @@ export default function GameRoomPreview() {
                               marginRight: '15px',
                               width: '35px',
                               textAlign: 'center',
-                              flexShrink: 0
+                              flexShrink: 0,
+                              color: '#000'
                             }}>
                               {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}위`}
                             </span>
@@ -1658,7 +1652,7 @@ export default function GameRoomPreview() {
                               </div>
                             </div>
 
-                            <span style={{ fontSize: '18px', fontWeight: 'bold', marginLeft: '10px', flexShrink: 0 }}>
+                            <span style={{ fontSize: '18px', fontWeight: 'bold', marginLeft: '10px', flexShrink: 0, color: '#000' }}>
                               {player.score}점
                             </span>
                           </div>
@@ -1992,10 +1986,10 @@ export default function GameRoomPreview() {
                         boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
                       }}>
                         <h2 style={{ margin: 0, fontSize: '24px', color: '#333' }}>
-                          출제자가 단어를 선택하고 있습니다...
+                          출제자 단어 선택중...
                         </h2>
-                        <p style={{ marginTop: '20px', color: '#666', fontSize: '16px' }}>
-                          잠시만 기다려주세요.
+                        <p style={{ marginTop: '20px', color: '#666', fontSize: '32px', fontWeight: 'bold' }}>
+                          {timeLeft}
                         </p>
                       </div>
                     )}
