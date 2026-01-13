@@ -921,6 +921,8 @@ export default function GameRoomPreview() {
   const [isPlayerAtBottom, setIsPlayerAtBottom] = useState(false);
   const [isSpectatorAtTop, setIsSpectatorAtTop] = useState(true);
   const [isSpectatorAtBottom, setIsSpectatorAtBottom] = useState(false);
+  const [isTransitioning, setIsTransitioning] = useState(false);
+  const [slideDirection, setSlideDirection] = useState<'out' | 'in'>('in');
   const canvasRef = useRef<CanvasHandle>(null);
   const playerListRef = useRef<HTMLUListElement>(null);
   const spectatorListRef = useRef<HTMLDivElement>(null);
@@ -932,23 +934,37 @@ export default function GameRoomPreview() {
   }), []);
 
   const handlePhaseChange = (phase: GamePhase) => {
-    setCurrentPhase(phase);
-    setGameState(createMockGameState(phase));
+    // 슬라이드 아웃 애니메이션 시작
+    setIsTransitioning(true);
+    setSlideDirection('out');
 
-    // 페이즈별 시간 초기값 설정
-    switch (phase) {
-      case 'COUNTDOWN':
-        setTimeLeft(3);
-        break;
-      case 'WORD_SELECT':
-        setTimeLeft(10);
-        break;
-      case 'DRAWING':
-        setTimeLeft(100);
-        break;
-      default:
-        setTimeLeft(0);
-    }
+    // 400ms 후 페이즈 변경 및 슬라이드 인
+    setTimeout(() => {
+      setCurrentPhase(phase);
+      setGameState(createMockGameState(phase));
+
+      // 페이즈별 시간 초기값 설정
+      switch (phase) {
+        case 'COUNTDOWN':
+          setTimeLeft(3);
+          break;
+        case 'WORD_SELECT':
+          setTimeLeft(10);
+          break;
+        case 'DRAWING':
+          setTimeLeft(100);
+          break;
+        default:
+          setTimeLeft(0);
+      }
+
+      setSlideDirection('in');
+
+      // 400ms 후 애니메이션 종료
+      setTimeout(() => {
+        setIsTransitioning(false);
+      }, 400);
+    }, 400);
   };
 
   // 스크롤 위치 감지
@@ -1325,7 +1341,7 @@ export default function GameRoomPreview() {
                             padding: '8px 16px',
                             fontSize: '14px',
                             fontWeight: 'bold',
-                            backgroundColor: timeLeft <= 85 ? '#D4A574' : '#999',
+                            backgroundColor: timeLeft <= 85 ? '#5C7CFA' : '#999',
                             color: '#fff',
                             border: 'none',
                             borderRadius: '4px',
@@ -1377,7 +1393,7 @@ export default function GameRoomPreview() {
                             right: '0',
                             marginTop: '8px',
                             backgroundColor: '#fff',
-                            border: '2px solid #D4A574',
+                            border: '2px solid #5C7CFA',
                             borderRadius: '8px',
                             boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
                             padding: '8px',
@@ -1395,7 +1411,7 @@ export default function GameRoomPreview() {
                               height: '0',
                               borderLeft: '8px solid transparent',
                               borderRight: '8px solid transparent',
-                              borderBottom: '8px solid #D4A574'
+                              borderBottom: '8px solid #5C7CFA'
                             }}></div>
 
                             {/* 현재 힌트 상태 표시 */}
@@ -1449,7 +1465,7 @@ export default function GameRoomPreview() {
                                   padding: '8px 12px',
                                   fontSize: '14px',
                                   fontWeight: 'bold',
-                                  backgroundColor: '#D4A574',
+                                  backgroundColor: '#5C7CFA',
                                   color: '#fff',
                                   border: 'none',
                                   borderRadius: '4px',
@@ -1458,10 +1474,10 @@ export default function GameRoomPreview() {
                                   width: '90px'
                                 }}
                                 onMouseEnter={(e) => {
-                                  e.currentTarget.style.backgroundColor = '#C49564';
+                                  e.currentTarget.style.backgroundColor = '#4C6EF5';
                                 }}
                                 onMouseLeave={(e) => {
-                                  e.currentTarget.style.backgroundColor = '#D4A574';
+                                  e.currentTarget.style.backgroundColor = '#5C7CFA';
                                 }}
                               >
                                 💡 초성
@@ -1476,7 +1492,7 @@ export default function GameRoomPreview() {
                                   padding: '8px 12px',
                                   fontSize: '14px',
                                   fontWeight: 'bold',
-                                  backgroundColor: '#B8885A',
+                                  backgroundColor: '#748FFC',
                                   color: '#fff',
                                   border: 'none',
                                   borderRadius: '4px',
@@ -1485,10 +1501,10 @@ export default function GameRoomPreview() {
                                   width: '90px'
                                 }}
                                 onMouseEnter={(e) => {
-                                  e.currentTarget.style.backgroundColor = '#A8784A';
+                                  e.currentTarget.style.backgroundColor = '#5C7CFA';
                                 }}
                                 onMouseLeave={(e) => {
-                                  e.currentTarget.style.backgroundColor = '#B8885A';
+                                  e.currentTarget.style.backgroundColor = '#748FFC';
                                 }}
                               >
                                 🔥 글자
@@ -1822,7 +1838,8 @@ export default function GameRoomPreview() {
                 <div style={{
                   position: 'relative',
                   width: 'fit-content',
-                  height: '100%'
+                  height: '100%',
+                  overflow: 'hidden'
                 }}>
                   {/* 시간 오버레이 */}
                   {gameState.phase === 'DRAWING' && (
@@ -1947,7 +1964,14 @@ export default function GameRoomPreview() {
                       fontWeight: 'bold',
                       color: '#fff',
                       textShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
-                      animation: 'pulse 1s infinite'
+                      animation: 'pulse 1s infinite',
+                      transform: slideDirection === 'out'
+                        ? 'translateY(100%)'
+                        : isTransitioning
+                          ? 'translateY(-100%)'
+                          : 'translateY(0)',
+                      opacity: slideDirection === 'out' ? 0 : 1,
+                      transition: 'transform 0.4s ease-in-out, opacity 0.4s ease-in-out'
                     }}>
                       {timeLeft}
                     </div>
@@ -1962,7 +1986,7 @@ export default function GameRoomPreview() {
                     left: 0,
                     width: '800px',
                     height: '600px',
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -1971,28 +1995,38 @@ export default function GameRoomPreview() {
                     boxSizing: 'border-box',
                     pointerEvents: 'none'
                   }}>
-                    {isDrawer ? (
-                      <WordSelect
-                        turnInfo={gameState.currentTurn}
-                        onSelectWord={(word) => console.log('Selected word:', word)}
-                        roomId="preview"
-                      />
-                    ) : (
-                      <div style={{
-                        backgroundColor: '#fff',
-                        padding: '40px 60px',
-                        borderRadius: '12px',
-                        textAlign: 'center',
-                        boxShadow: '0 4px 20px rgba(0, 0, 0, 0.3)'
-                      }}>
-                        <h2 style={{ margin: 0, fontSize: '24px', color: '#333' }}>
-                          출제자 단어 선택중...
-                        </h2>
-                        <p style={{ marginTop: '20px', color: '#666', fontSize: '32px', fontWeight: 'bold' }}>
-                          {timeLeft}
-                        </p>
-                      </div>
-                    )}
+                    <div style={{
+                      transform: slideDirection === 'out'
+                        ? 'translateY(100%)'
+                        : isTransitioning
+                          ? 'translateY(-700px)'
+                          : 'translateY(0)',
+                      opacity: slideDirection === 'out' ? 0 : 1,
+                      transition: 'transform 0.4s ease-in-out, opacity 0.4s ease-in-out'
+                    }}>
+                      {isDrawer ? (
+                        <WordSelect
+                          turnInfo={gameState.currentTurn}
+                          onSelectWord={(word) => console.log('Selected word:', word)}
+                          roomId="preview"
+                        />
+                      ) : (
+                        <div style={{
+                          padding: '20px',
+                          border: '3px solid #2196f3',
+                          borderRadius: '12px',
+                          backgroundColor: '#e3f2fd',
+                          pointerEvents: 'auto'
+                        }}>
+                          <h3 style={{ marginTop: 0, fontSize: '24px', textAlign: 'center', color: '#1976d2' }}>
+                            출제자 단어 선택중...
+                          </h3>
+                          <p style={{ marginTop: '20px', color: '#666', fontSize: '32px', fontWeight: 'bold', textAlign: 'center' }}>
+                            {timeLeft}
+                          </p>
+                        </div>
+                      )}
+                    </div>
                   </div>
                 )}
 
@@ -2004,23 +2038,38 @@ export default function GameRoomPreview() {
                     left: 0,
                     width: '800px',
                     height: '600px',
-                    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
                     display: 'flex',
-                    alignItems: 'flex-start',
+                    alignItems: 'center',
                     justifyContent: 'center',
                     zIndex: 100,
                     padding: '20px',
                     boxSizing: 'border-box',
-                    overflowY: 'auto',
+                    overflow: 'hidden',
                     pointerEvents: 'auto'
                   }}>
-                    <TurnResult
-                      turnInfo={gameState.currentTurn}
-                      players={gameState.players}
-                      canvasImageUrl={canvasImageUrl}
-                      isSpectatorMidJoin={false}
-                      timeLeft={timeLeft}
-                    />
+                    <div style={{
+                      width: '100%',
+                      height: '100%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      transform: slideDirection === 'out'
+                        ? 'translateY(100%)'
+                        : isTransitioning
+                          ? 'translateY(-700px)'
+                          : 'translateY(0)',
+                      opacity: slideDirection === 'out' ? 0 : 1,
+                      transition: 'transform 0.4s ease-in-out, opacity 0.4s ease-in-out'
+                    }}>
+                      <TurnResult
+                        turnInfo={gameState.currentTurn}
+                        players={gameState.players}
+                        canvasImageUrl={canvasImageUrl}
+                        isSpectatorMidJoin={false}
+                        timeLeft={timeLeft}
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -2032,7 +2081,7 @@ export default function GameRoomPreview() {
                     left: 0,
                     width: '800px',
                     height: '600px',
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -2045,7 +2094,14 @@ export default function GameRoomPreview() {
                       color: '#fff',
                       textShadow: '0 4px 8px rgba(0, 0, 0, 0.5)',
                       opacity: Math.min(1, timeLeft / 3),
-                      transition: 'opacity 0.3s ease-out'
+                      transform: slideDirection === 'out'
+                        ? 'translateY(100%)'
+                        : isTransitioning
+                          ? 'translateY(-100%)'
+                          : 'translateY(0)',
+                      transitionProperty: 'opacity, transform',
+                      transitionDuration: '0.3s, 0.4s',
+                      transitionTimingFunction: 'ease-out, ease-in-out'
                     }}>
                       ROUND {gameState.currentRound + 1}
                     </div>
