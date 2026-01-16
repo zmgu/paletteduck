@@ -1535,7 +1535,8 @@ export default function GameRoomPreview() {
               padding: '20px',
               boxSizing: 'border-box',
               display: 'flex',
-              flexDirection: 'column'
+              flexDirection: 'column',
+              overflow: 'hidden'
             }}>
               <div style={{
                 maxWidth: '1100px',
@@ -1547,7 +1548,14 @@ export default function GameRoomPreview() {
                 display: 'flex',
                 flexDirection: 'column',
                 height: '100%',
-                overflow: 'hidden'
+                overflow: 'hidden',
+                transform: slideDirection === 'out'
+                  ? 'translateY(100%)'
+                  : isTransitioning
+                    ? 'translateY(-700px)'
+                    : 'translateY(0)',
+                opacity: slideDirection === 'out' ? 0 : 1,
+                transition: 'transform 0.4s ease-in-out, opacity 0.4s ease-in-out'
               }}>
                 <div style={{ display: 'flex', gap: '40px', flex: 1, minHeight: 0, justifyContent: 'center', alignItems: 'stretch' }}>
                   {/* 왼쪽: 베스트 아티스트 그림 */}
@@ -1639,7 +1647,7 @@ export default function GameRoomPreview() {
                             )}
 
                             <span style={{
-                              fontSize: '20px',
+                              fontSize: '14px',
                               fontWeight: 'bold',
                               marginRight: '15px',
                               width: '35px',
@@ -1952,7 +1960,7 @@ export default function GameRoomPreview() {
                     left: 0,
                     width: '800px',
                     height: '600px',
-                    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                    backgroundColor: 'rgba(0, 0, 0, 0.6)',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',

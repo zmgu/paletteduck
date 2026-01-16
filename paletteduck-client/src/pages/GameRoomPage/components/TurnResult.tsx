@@ -175,11 +175,12 @@ export default function TurnResult({ turnInfo, players, canvasImageUrl, isSpecta
                   }}
                 >
                   <span style={{
-                    fontSize: '18px',
+                    fontSize: '14px',
                     fontWeight: 'bold',
                     marginRight: '10px',
                     width: '40px',
-                    textAlign: 'center'
+                    textAlign: 'center',
+                    color: index === 0 ? '#d97706' : index === 1 ? '#059669' : '#475569'
                   }}>
                     {index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `${index + 1}위`}
                   </span>
@@ -188,7 +189,7 @@ export default function TurnResult({ turnInfo, players, canvasImageUrl, isSpecta
                       fontSize: '14px',
                       fontWeight: 'bold',
                       marginBottom: '3px',
-                      color: player.playerId === turnInfo.drawerId ? '#2196f3' : '#333'
+                      color: player.playerId === turnInfo.drawerId ? '#0284c7' : '#1e293b'
                     }}>
                       {player.nickname}
                       {player.playerId === turnInfo.drawerId && ' 🎨'}
