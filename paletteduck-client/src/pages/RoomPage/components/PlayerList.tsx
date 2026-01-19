@@ -29,12 +29,14 @@ interface PlayerListProps {
   currentPlayerId: string;
   maxPlayers: number;
   drawerId?: string;
+  showScore?: boolean;
 }
 
 const PlayerList = forwardRef<HTMLUListElement, PlayerListProps>(({
   players,
   currentPlayerId,
-  drawerId
+  drawerId,
+  showScore = true
 }, ref) => {
   const listRef = useRef<HTMLUListElement>(null);
   const scrollRef = (ref as React.RefObject<HTMLUListElement>) || listRef;
@@ -80,18 +82,20 @@ const PlayerList = forwardRef<HTMLUListElement, PlayerListProps>(({
             }}
           >
             {/* 왼쪽: 등수 */}
-            <div style={{
-              width: '28px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              color: playerRanks.get(drawer.playerId) === 1 ? '#ffd700' : playerRanks.get(drawer.playerId) === 2 ? '#c0c0c0' : playerRanks.get(drawer.playerId) === 3 ? '#cd7f32' : '#333',
-              flexShrink: 0
-            }}>
-              {playerRanks.get(drawer.playerId) === 1 ? '🥇' : playerRanks.get(drawer.playerId) === 2 ? '🥈' : playerRanks.get(drawer.playerId) === 3 ? '🥉' : playerRanks.get(drawer.playerId)}
-            </div>
+            {showScore && (
+              <div style={{
+                width: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                color: playerRanks.get(drawer.playerId) === 1 ? '#ffd700' : playerRanks.get(drawer.playerId) === 2 ? '#c0c0c0' : playerRanks.get(drawer.playerId) === 3 ? '#cd7f32' : '#333',
+                flexShrink: 0
+              }}>
+                {playerRanks.get(drawer.playerId) === 1 ? '🥇' : playerRanks.get(drawer.playerId) === 2 ? '🥈' : playerRanks.get(drawer.playerId) === 3 ? '🥉' : playerRanks.get(drawer.playerId)}
+              </div>
+            )}
 
             {/* 중앙: 닉네임 + 점수/추천/비추천 */}
             <div style={{
@@ -114,19 +118,21 @@ const PlayerList = forwardRef<HTMLUListElement, PlayerListProps>(({
               </div>
 
               {/* 아래: 점수/추천/비추천 */}
-              <div style={{
-                fontSize: '11px',
-                color: '#aaa',
-                display: 'flex',
-                gap: '6px',
-                alignItems: 'center'
-              }}>
-                <span style={{ color: '#1976d2', fontWeight: 'bold' }}>{drawer.score || 0}점</span>
-                <span style={{ color: '#2e7d32', fontWeight: 'bold' }}>👍{drawer.totalLikes || 0}</span>
-                {(drawer.totalDislikes || 0) > 0 && (
-                  <span style={{ color: '#c62828', fontWeight: 'bold' }}>👎{drawer.totalDislikes}</span>
-                )}
-              </div>
+              {showScore && (
+                <div style={{
+                  fontSize: '11px',
+                  color: '#aaa',
+                  display: 'flex',
+                  gap: '6px',
+                  alignItems: 'center'
+                }}>
+                  <span style={{ color: '#1976d2', fontWeight: 'bold' }}>{drawer.score || 0}점</span>
+                  <span style={{ color: '#2e7d32', fontWeight: 'bold' }}>👍{drawer.totalLikes || 0}</span>
+                  {(drawer.totalDislikes || 0) > 0 && (
+                    <span style={{ color: '#c62828', fontWeight: 'bold' }}>👎{drawer.totalDislikes}</span>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* 오른쪽: 캐릭터 */}
@@ -219,18 +225,20 @@ const PlayerList = forwardRef<HTMLUListElement, PlayerListProps>(({
             }}
           >
             {/* 왼쪽: 등수 */}
-            <div style={{
-              width: '28px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              fontSize: '16px',
-              fontWeight: 'bold',
-              color: rank === 1 ? '#ffd700' : rank === 2 ? '#c0c0c0' : rank === 3 ? '#cd7f32' : '#333',
-              flexShrink: 0
-            }}>
-              {rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank}
-            </div>
+            {showScore && (
+              <div style={{
+                width: '28px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '16px',
+                fontWeight: 'bold',
+                color: rank === 1 ? '#ffd700' : rank === 2 ? '#c0c0c0' : rank === 3 ? '#cd7f32' : '#333',
+                flexShrink: 0
+              }}>
+                {rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : rank}
+              </div>
+            )}
 
             {/* 중앙: 닉네임 + 점수/추천/비추천 */}
             <div style={{
@@ -253,19 +261,21 @@ const PlayerList = forwardRef<HTMLUListElement, PlayerListProps>(({
               </div>
 
               {/* 아래: 점수/추천/비추천 */}
-              <div style={{
-                fontSize: '11px',
-                color: '#aaa',
-                display: 'flex',
-                gap: '6px',
-                alignItems: 'center'
-              }}>
-                <span style={{ color: '#1976d2', fontWeight: 'bold' }}>{player.score || 0}점</span>
-                <span style={{ color: '#2e7d32', fontWeight: 'bold' }}>👍{player.totalLikes || 0}</span>
-                {(player.totalDislikes || 0) > 0 && (
-                  <span style={{ color: '#c62828', fontWeight: 'bold' }}>👎{player.totalDislikes}</span>
-                )}
-              </div>
+              {showScore && (
+                <div style={{
+                  fontSize: '11px',
+                  color: '#aaa',
+                  display: 'flex',
+                  gap: '6px',
+                  alignItems: 'center'
+                }}>
+                  <span style={{ color: '#1976d2', fontWeight: 'bold' }}>{player.score || 0}점</span>
+                  <span style={{ color: '#2e7d32', fontWeight: 'bold' }}>👍{player.totalLikes || 0}</span>
+                  {(player.totalDislikes || 0) > 0 && (
+                    <span style={{ color: '#c62828', fontWeight: 'bold' }}>👎{player.totalDislikes}</span>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* 오른쪽: 캐릭터 */}

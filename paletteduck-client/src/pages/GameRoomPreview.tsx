@@ -2140,7 +2140,8 @@ export default function GameRoomPreview() {
                   backgroundColor: 'transparent',
                   borderBottom: 'none',
                   padding: '8px 0 2px 0',
-                  minHeight: 0,
+                  minHeight: '156px',
+                  maxHeight: '156px',
                   position: 'relative'
                 }}
                 onMouseEnter={() => setIsSpectatorHovered(true)}
