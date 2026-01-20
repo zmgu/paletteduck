@@ -798,13 +798,34 @@ export default function RoomPreview() {
                       flex: 0.8,
                       padding: '14px',
                       fontSize: '15px',
-                      backgroundColor: isCopied ? '#4caf50' : '#7a5a9a',
+                      backgroundColor: isCopied ? '#4caf50' : '#7a9bea',
                       color: 'white',
                       border: 'none',
                       borderRadius: '6px',
                       cursor: 'pointer',
                       fontWeight: 'bold',
-                      transition: 'background-color 0.3s'
+                      transition: 'background-color 0.5s ease',
+                      outline: 'none'
+                    }}
+                    onMouseEnter={(e) => {
+                      if (!isCopied) {
+                        e.currentTarget.style.backgroundColor = '#6585d8';
+                      }
+                    }}
+                    onMouseLeave={(e) => {
+                      if (!isCopied) {
+                        e.currentTarget.style.backgroundColor = '#7a9bea';
+                      }
+                    }}
+                    onMouseDown={(e) => {
+                      if (!isCopied) {
+                        e.currentTarget.style.backgroundColor = '#5a75c8';
+                      }
+                    }}
+                    onMouseUp={(e) => {
+                      if (!isCopied) {
+                        e.currentTarget.style.backgroundColor = '#6585d8';
+                      }
                     }}
                   >
                     {isCopied ? '초대코드 복사 완료' : '초대코드 복사'}
