@@ -12,12 +12,15 @@ export default function GameSettings({ settings, isHost, currentPlayerCount, onS
   const minPlayers = Math.max(GAME_CONSTANTS.MIN_PLAYERS, currentPlayerCount);
 
   return (
-    <div style={{ flex: 1, border: '1px solid #ccc', padding: '15px', borderRadius: '8px' }}>
+    <div style={{ flex: 1, backgroundColor: '#e3f2fd', border: '3px solid #2196f3', padding: '20px', borderRadius: '12px' }}>
+      <h3 style={{ margin: 0, fontSize: '24px', textAlign: 'center', color: 'rgb(61, 164, 246)' }}>
+        게임 설정
+      </h3>
       <div style={{ marginTop: '15px', display: 'flex', flexDirection: 'column', gap: '15px' }}>
 
         {/* 참가자 수 */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <label style={{ flex: 1 }}>참가자 수</label>
+          <label style={{ flex: 1, color: '#1565c0', fontWeight: 'bold' }}>참가자 수</label>
           <select
             value={settings.maxPlayers}
             onChange={(e) => onSettingsChange({ maxPlayers: parseInt(e.target.value) })}
@@ -38,7 +41,7 @@ export default function GameSettings({ settings, isHost, currentPlayerCount, onS
 
         {/* 라운드 */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <label style={{ flex: 1 }}>라운드</label>
+          <label style={{ flex: 1, color: '#1565c0', fontWeight: 'bold' }}>라운드</label>
           <select
             value={settings.rounds}
             onChange={(e) => onSettingsChange({ rounds: parseInt(e.target.value) })}
@@ -59,7 +62,7 @@ export default function GameSettings({ settings, isHost, currentPlayerCount, onS
 
         {/* 단어 선택지 */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <label style={{ flex: 1 }}>단어 선택지</label>
+          <label style={{ flex: 1, color: '#1565c0', fontWeight: 'bold' }}>단어 선택지</label>
           <select
             value={settings.wordChoices}
             onChange={(e) => onSettingsChange({ wordChoices: parseInt(e.target.value) })}
@@ -80,7 +83,7 @@ export default function GameSettings({ settings, isHost, currentPlayerCount, onS
 
         {/* 그리기 시간 */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <label style={{ flex: 1 }}>그리기 시간</label>
+          <label style={{ flex: 1, color: '#1565c0', fontWeight: 'bold' }}>그리기 시간</label>
           <select
             value={settings.drawTime}
             onChange={(e) => onSettingsChange({ drawTime: parseInt(e.target.value) })}

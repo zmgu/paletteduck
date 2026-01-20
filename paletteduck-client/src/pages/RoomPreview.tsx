@@ -771,7 +771,7 @@ export default function RoomPreview() {
                 }}>
                   {/* 게임 설정 영역 */}
                   <div style={{
-                    width: '280px'
+                    width: '360px'
                   }}>
                     <GameSettings
                       settings={roomInfo.settings}

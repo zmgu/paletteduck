@@ -115,7 +115,7 @@ export default function WordSelect({ turnInfo, onSelectWord, roomId }: WordSelec
         borderRadius: '12px',
         backgroundColor: '#e3f2fd'
       }}>
-        <h3 style={{ marginTop: 0, fontSize: '24px', textAlign: 'center' }}>
+        <h3 style={{ marginTop: 0, fontSize: '24px', textAlign: 'center', color: 'rgb(61 164 246)' }}>
           단어를 선택하세요
         </h3>
 
