@@ -33,9 +33,9 @@ html, body {
 body {
   min-width: 320px;
   background:
-    url('./assets/back.png'),
-    linear-gradient(135deg, #e0c3fc 0%, #8ec5fc 100%);
-  background-size: 400px, cover;
+    url('./assets/background22.png'),
+    linear-gradient(135deg, #e7cbff 0%, #99ccff 100%);
+  background-size: 600px, cover;
   background-attachment: fixed;
   background-position: top center;
   background-repeat: repeat, no-repeat;
