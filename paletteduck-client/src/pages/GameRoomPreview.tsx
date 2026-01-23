@@ -2017,6 +2017,7 @@ export default function GameRoomPreview() {
                           turnInfo={gameState.currentTurn}
                           onSelectWord={(word) => console.log('Selected word:', word)}
                           roomId="preview"
+                          timeLeft={timeLeft}
                         />
                       ) : (
                         <div style={{

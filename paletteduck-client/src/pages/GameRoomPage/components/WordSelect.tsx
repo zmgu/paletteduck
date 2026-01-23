@@ -6,9 +6,10 @@ interface WordSelectProps {
   turnInfo: TurnInfo;
   onSelectWord: (word: string) => void;
   roomId: string;
+  timeLeft?: number;
 }
 
-export default function WordSelect({ turnInfo, onSelectWord, roomId }: WordSelectProps) {
+export default function WordSelect({ turnInfo, onSelectWord, roomId, timeLeft }: WordSelectProps) {
   const [customWord, setCustomWord] = useState('');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [error, setError] = useState('');
@@ -115,6 +116,18 @@ export default function WordSelect({ turnInfo, onSelectWord, roomId }: WordSelec
         borderRadius: '12px',
         backgroundColor: '#e3f2fd'
       }}>
+        {timeLeft !== undefined && (
+          <div style={{
+            fontSize: '32px',
+            fontWeight: 'bold',
+            color: timeLeft <= 3 ? '#ff5252' : '#2196f3',
+            textAlign: 'center',
+            marginBottom: '5px',
+            transition: 'color 0.3s'
+          }}>
+            {timeLeft}
+          </div>
+        )}
         <h3 style={{ marginTop: 0, fontSize: '24px', textAlign: 'center', color: 'rgb(61 164 246)' }}>
           단어를 선택하세요
         </h3>
